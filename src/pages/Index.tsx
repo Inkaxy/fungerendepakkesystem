@@ -39,24 +39,25 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen overflow-hidden">
-      {/* Fallende brød animasjon */}
-      <div className="fixed inset-0 pointer-events-none z-10">
-        <div className="animate-bread-fall bread-1">🍞</div>
-        <div className="animate-bread-fall bread-2">🥖</div>
-        <div className="animate-bread-fall bread-3">🍞</div>
-        <div className="animate-bread-fall bread-4">🥐</div>
-        <div className="animate-bread-fall bread-5">🍞</div>
-      </div>
-
-      {/* Kjørende lastebil */}
-      <div className="fixed bottom-0 w-full pointer-events-none z-20">
-        <div className="animate-truck-drive">🚚</div>
-      </div>
-
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden gradient-bread py-20 px-4">
         <div className="absolute inset-0 bg-black/10"></div>
+        
+        {/* Fallende brød animasjon - kun i hero section */}
+        <div className="absolute inset-0 pointer-events-none z-10">
+          <div className="animate-bread-fall bread-1">🍞</div>
+          <div className="animate-bread-fall bread-2">🥖</div>
+          <div className="animate-bread-fall bread-3">🍞</div>
+          <div className="animate-bread-fall bread-4">🥐</div>
+          <div className="animate-bread-fall bread-5">🍞</div>
+        </div>
+
+        {/* Kjørende lastebil - i bunnen av hero section */}
+        <div className="absolute bottom-0 w-full pointer-events-none z-20">
+          <div className="animate-truck-drive">🚚</div>
+        </div>
+        
         <div className="relative max-w-7xl mx-auto text-center z-30">
           <div className="mb-8 flex justify-center">
             <img 
