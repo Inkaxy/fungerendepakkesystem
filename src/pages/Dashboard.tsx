@@ -1,243 +1,197 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Package, 
-  Truck, 
-  Users, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle,
-  AlertCircle,
-  BarChart3
-} from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
+import { Users, Package, Truck, BarChart3 } from 'lucide-react';
 
 const Dashboard = () => {
-  const stats = [
+  const { profile } = useAuthStore();
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'destructive';
+      case 'bakery_admin': return 'default';
+      case 'bakery_user': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  const getRoleName = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'Super Admin';
+      case 'bakery_admin': return 'Bakeri Admin';
+      case 'bakery_user': return 'Bakeri Bruker';
+      default: return 'Bruker';
+    }
+  };
+
+  const mockStats = [
     {
-      title: "Dagens ordrer",
-      value: "47",
-      change: "+12%",
-      changeType: "positive",
-      icon: Package,
-      description: "Fra i går"
-    },
-    {
-      title: "Pakket i dag",
-      value: "34",
-      change: "+8%",
-      changeType: "positive", 
-      icon: CheckCircle,
-      description: "72% ferdig"
-    },
-    {
-      title: "Aktive leveranser",
+      title: "Aktive Ordrer",
       value: "12",
-      change: "-3",
-      changeType: "neutral",
-      icon: Truck,
-      description: "På vei til kunder"
+      description: "3 klar for pakking",
+      icon: Package,
+      color: "text-blue-600"
     },
     {
-      title: "Gjennomsnittlig pakketid",
-      value: "1.8 min",
-      change: "-15%",
-      changeType: "positive",
-      icon: Clock,
-      description: "Bedre enn målet"
+      title: "Leveranser",
+      value: "8",
+      description: "i dag",
+      icon: Truck,
+      color: "text-green-600"
+    },
+    {
+      title: "Kunder",
+      value: "45",
+      description: "totalt",
+      icon: Users,
+      color: "text-purple-600"
+    },
+    {
+      title: "Omsetning",
+      value: "25.400 kr",
+      description: "denne uken",
+      icon: BarChart3,
+      color: "text-orange-600"
     }
   ];
 
-  const recentOrders = [
-    { id: "ORD-001", customer: "Bakeri Sentralen", status: "packed", time: "08:30", items: 12 },
-    { id: "ORD-002", customer: "Konditori Nord", status: "in_progress", time: "09:15", items: 8 },
-    { id: "ORD-003", customer: "Bakehouse AS", status: "pending", time: "10:00", items: 15 },
-    { id: "ORD-004", customer: "Brød & Mer", status: "packed", time: "10:30", items: 6 },
-  ];
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      packed: { label: "Pakket", variant: "default" as const, className: "bg-green-100 text-green-800" },
-      in_progress: { label: "Pakkes", variant: "secondary" as const, className: "bg-bakery-orange/20 text-bakery-orange" },
-      pending: { label: "Venter", variant: "outline" as const, className: "bg-gray-100 text-gray-600" }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        {config.label}
-      </Badge>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-bakery-brown">Dashboard</h1>
-              <p className="text-gray-600 mt-1">
-                Velkommen tilbake! Her er oversikten for i dag.
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="bg-white rounded-lg border p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Velkommen, {profile?.name || 'Bruker'}!
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Her er oversikten over ditt bakeri-system
+            </p>
+          </div>
+          <div className="text-right">
+            <Badge variant={getRoleBadgeVariant(profile?.role || '')} className="mb-2">
+              {getRoleName(profile?.role || '')}
+            </Badge>
+            {profile?.bakery_name && (
+              <p className="text-sm text-gray-600">
+                {profile.bakery_name}
               </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" className="border-bakery-orange text-bakery-orange hover:bg-bakery-orange hover:text-white">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Rapporter
-              </Button>
-              <Button className="bg-bakery-orange hover:bg-bakery-orange-light">
-                <Package className="h-4 w-4 mr-2" />
-                Ny ordre
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-bakery-orange/10">
-                    <stat.icon className="h-5 w-5 text-bakery-orange" />
-                  </div>
-                  <div className={`text-sm font-medium ${
-                    stat.changeType === 'positive' ? 'text-green-600' :
-                    stat.changeType === 'negative' ? 'text-red-600' :
-                    'text-gray-600'
-                  }`}>
-                    {stat.change}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-bakery-brown mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-sm font-medium text-gray-900 mb-1">
-                  {stat.title}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {stat.description}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Orders */}
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-bakery-brown flex items-center">
-                <Package className="h-5 w-5 mr-2 text-bakery-orange" />
-                Dagens ordrer
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {mockStats.map((stat, index) => (
+          <Card key={index}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
               </CardTitle>
-              <CardDescription>
-                Siste oppdateringer fra pakking og levering
-              </CardDescription>
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-bakery-orange/10 flex items-center justify-center">
-                          <Package className="h-5 w-5 text-bakery-orange" />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{order.id}</div>
-                        <div className="text-sm text-gray-500">{order.customer}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-gray-900">{order.items} produkter</div>
-                        <div className="text-xs text-gray-500">{order.time}</div>
-                      </div>
-                      {getStatusBadge(order.status)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="outline" className="w-full border-bakery-orange text-bakery-orange hover:bg-bakery-orange hover:text-white">
-                  Se alle ordrer
-                </Button>
-              </div>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground">
+                {stat.description}
+              </p>
             </CardContent>
           </Card>
+        ))}
+      </div>
 
-          {/* Quick Actions */}
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-bakery-brown flex items-center">
-                <TrendingUp className="h-5 w-5 mr-2 text-bakery-orange" />
-                Hurtighandlinger
-              </CardTitle>
-              <CardDescription>
-                De mest brukte funksjonene
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-20 flex-col space-y-2 border-bakery-orange/20 hover:border-bakery-orange hover:bg-bakery-orange/5">
-                  <Package className="h-6 w-6 text-bakery-orange" />
-                  <span className="text-sm font-medium">Start pakking</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2 border-bakery-orange/20 hover:border-bakery-orange hover:bg-bakery-orange/5">
-                  <Users className="h-6 w-6 text-bakery-orange" />
-                  <span className="text-sm font-medium">Administrer kunder</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2 border-bakery-orange/20 hover:border-bakery-orange hover:bg-bakery-orange/5">
-                  <Truck className="h-6 w-6 text-bakery-orange" />
-                  <span className="text-sm font-medium">Spor leveranser</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2 border-bakery-orange/20 hover:border-bakery-orange hover:bg-bakery-orange/5">
-                  <BarChart3 className="h-6 w-6 text-bakery-orange" />
-                  <span className="text-sm font-medium">Se rapporter</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Today's Summary */}
-        <Card className="mt-8 border-0 shadow-md">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-bakery-brown">Dagens sammendrag</CardTitle>
-            <CardDescription>Status for pakking og leveranser</CardDescription>
+            <CardTitle>Hurtighandlinger</CardTitle>
+            <CardDescription>
+              Vanlige oppgaver for {getRoleName(profile?.role || '')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <h4 className="font-medium">Pakking</h4>
+              <p className="text-sm text-gray-600">Start pakking av nye ordrer</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <h4 className="font-medium">Leveringer</h4>
+              <p className="text-sm text-gray-600">Se dagens leveringsplan</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <h4 className="font-medium">Rapporter</h4>
+              <p className="text-sm text-gray-600">Generer ukens rapport</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Siste Aktivitet</CardTitle>
+            <CardDescription>
+              Nylige hendelser i systemet
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-3xl font-bold text-green-600 mb-2">72%</div>
-                <div className="text-sm font-medium text-gray-900 mb-1">Ferdig pakket</div>
-                <div className="text-xs text-gray-500">34 av 47 ordrer</div>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm">Ordre #1234 pakket</p>
+                  <p className="text-xs text-gray-500">5 minutter siden</p>
+                </div>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-3xl font-bold text-bakery-orange mb-2">28%</div>
-                <div className="text-sm font-medium text-gray-900 mb-1">Under pakking</div>
-                <div className="text-xs text-gray-500">13 ordrer igjen</div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm">Ny kunde registrert</p>
+                  <p className="text-xs text-gray-500">15 minutter siden</p>
+                </div>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-3xl font-bold text-blue-600 mb-2">92%</div>
-                <div className="text-sm font-medium text-gray-900 mb-1">Leveringsrate</div>
-                <div className="text-xs text-gray-500">På tid i dag</div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm">Levering startet</p>
+                  <p className="text-xs text-gray-500">30 minutter siden</p>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Profile Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profil Informasjon</CardTitle>
+          <CardDescription>
+            Din konto-informasjon og innstillinger
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-500">Navn</label>
+              <p className="text-base">{profile?.name || 'Ikke angitt'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">E-post</label>
+              <p className="text-base">{profile?.email || 'Ikke angitt'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">Rolle</label>
+              <p className="text-base">{getRoleName(profile?.role || '')}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">Bakeri</label>
+              <p className="text-base">{profile?.bakery_name || 'Ikke tilknyttet'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

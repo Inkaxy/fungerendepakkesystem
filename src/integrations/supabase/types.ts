@@ -9,7 +9,89 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bakeries: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bakery_id: string | null
+          created_at: string | null
+          email: string | null
+          email_confirmed: boolean | null
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          name: string | null
+          provider: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bakery_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          email_confirmed?: boolean | null
+          id: string
+          is_active?: boolean | null
+          last_login?: string | null
+          name?: string | null
+          provider?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bakery_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          email_confirmed?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          name?: string | null
+          provider?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +100,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "super_admin" | "bakery_admin" | "bakery_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +215,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["super_admin", "bakery_admin", "bakery_user"],
+    },
   },
 } as const
