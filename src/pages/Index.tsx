@@ -5,43 +5,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Truck, Package, Users, BarChart3, Clock, CheckCircle } from 'lucide-react';
 import { useCollisionDetection } from '@/hooks/useCollisionDetection';
 import { GameOverlay } from '@/components/GameOverlay';
-
 const Index = () => {
   const navigate = useNavigate();
-  const { score, collectedItems, collisions } = useCollisionDetection();
-
-  const features = [
-    {
-      icon: Package,
-      title: "Smart Pakking",
-      description: "Effektiv pakking med sanntidsovervåking og QR-kode system"
-    },
-    {
-      icon: Truck,
-      title: "Levering & Logistikk",
-      description: "Spor leveranser og administrer ruter enkelt"
-    },
-    {
-      icon: Users,
-      title: "Kundeadministrasjon",
-      description: "Komplett oversikt over kunder og deres bestillinger"
-    },
-    {
-      icon: BarChart3,
-      title: "Rapporter",
-      description: "Detaljerte rapporter og statistikk for bedre innsikt"
-    }
-  ];
-
-  const stats = [
-    { number: "500+", label: "Bakeri-partnere", icon: Users },
-    { number: "50k+", label: "Daglige leveranser", icon: Truck },
-    { number: "99.8%", label: "Oppetid", icon: CheckCircle },
-    { number: "<2min", label: "Gjennomsnittlig pakketid", icon: Clock }
-  ];
-
-  return (
-    <div className="min-h-screen">
+  const {
+    score,
+    collectedItems,
+    collisions
+  } = useCollisionDetection();
+  const features = [{
+    icon: Package,
+    title: "Smart Pakking",
+    description: "Effektiv pakking med sanntidsovervåking og QR-kode system"
+  }, {
+    icon: Truck,
+    title: "Levering & Logistikk",
+    description: "Spor leveranser og administrer ruter enkelt"
+  }, {
+    icon: Users,
+    title: "Kundeadministrasjon",
+    description: "Komplett oversikt over kunder og deres bestillinger"
+  }, {
+    icon: BarChart3,
+    title: "Rapporter",
+    description: "Detaljerte rapporter og statistikk for bedre innsikt"
+  }];
+  const stats = [{
+    number: "500+",
+    label: "Bakeri-partnere",
+    icon: Users
+  }, {
+    number: "50k+",
+    label: "Daglige leveranser",
+    icon: Truck
+  }, {
+    number: "99.8%",
+    label: "Oppetid",
+    icon: CheckCircle
+  }, {
+    number: "<2min",
+    label: "Gjennomsnittlig pakketid",
+    icon: Clock
+  }];
+  return <div className="min-h-screen">
       <GameOverlay score={score} collectedItems={collectedItems} collisions={collisions} />
       
       {/* Hero Section */}
@@ -69,34 +74,20 @@ const Index = () => {
         
         <div className="relative max-w-7xl mx-auto text-center z-30">
           <div className="mb-8 flex justify-center">
-            <img 
-              src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" 
-              alt="Loaf & Load"
-              className="h-32 w-auto animate-bread-rise"
-            />
+            <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-32 w-auto animate-bread-rise" />
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Loaf & Load
-          </h1>
+          
           
           <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
             Komplett pakking- og leveringssystem for moderne bakerier
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              onClick={() => navigate('/login')}
-              className="bg-white text-bakery-brown hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
-            >
+            <Button size="lg" onClick={() => navigate('/login')} className="bg-white text-bakery-brown hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
               Logg inn
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-white/20 backdrop-blur border-white text-white hover:bg-white hover:text-bakery-brown px-8 py-3 text-lg font-semibold"
-            >
+            <Button variant="outline" size="lg" className="bg-white/20 backdrop-blur border-white text-white hover:bg-white hover:text-bakery-brown px-8 py-3 text-lg font-semibold">
               Les mer
             </Button>
           </div>
@@ -107,8 +98,7 @@ const Index = () => {
       <section className="py-16 bg-bakery-cream">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
+            {stats.map((stat, index) => <div key={index} className="text-center">
                 <div className="flex justify-center mb-4">
                   <stat.icon className="h-8 w-8 text-bakery-orange" />
                 </div>
@@ -118,8 +108,7 @@ const Index = () => {
                 <div className="text-sm text-gray-600">
                   {stat.label}
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -137,8 +126,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+            {features.map((feature, index) => <Card key={index} className="group hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
                 <CardHeader className="text-center pb-4">
                   <div className="flex justify-center mb-4">
                     <div className="p-3 rounded-lg bg-bakery-orange/10 group-hover:bg-bakery-orange/20 transition-colors">
@@ -154,8 +142,7 @@ const Index = () => {
                     {feature.description}
                   </CardDescription>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -169,11 +156,7 @@ const Index = () => {
           <p className="text-xl mb-8 opacity-90">
             Bli med tusenvis av bakerier som allerede bruker Loaf & Load for å effektivisere sin drift
           </p>
-          <Button
-            size="lg"
-            onClick={() => navigate('/login')}
-            className="bg-bakery-orange hover:bg-bakery-orange-light text-white px-8 py-3 text-lg font-semibold"
-          >
+          <Button size="lg" onClick={() => navigate('/login')} className="bg-bakery-orange hover:bg-bakery-orange-light text-white px-8 py-3 text-lg font-semibold">
             Kom i gang i dag
           </Button>
         </div>
@@ -193,8 +176,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
