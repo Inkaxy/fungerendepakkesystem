@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Truck, Package, Users, BarChart3, Clock, CheckCircle } from 'lucide-react';
 import { useCollisionDetection } from '@/hooks/useCollisionDetection';
 import { GameOverlay } from '@/components/GameOverlay';
+
 const Index = () => {
   const navigate = useNavigate();
   const {
@@ -12,6 +13,7 @@ const Index = () => {
     collectedItems,
     collisions
   } = useCollisionDetection();
+
   const features = [{
     icon: Package,
     title: "Smart Pakking",
@@ -46,6 +48,7 @@ const Index = () => {
     label: "Gjennomsnittlig pakketid",
     icon: Clock
   }];
+
   return <div className="min-h-screen">
       <GameOverlay score={score} collectedItems={collectedItems} collisions={collisions} />
       
@@ -69,7 +72,13 @@ const Index = () => {
 
         {/* Kjørende lastebil - i bunnen av hero section */}
         <div className="absolute bottom-0 w-full pointer-events-none z-20">
-          <div className="animate-truck-drive">🚚</div>
+          <div className="animate-truck-drive">
+            <img 
+              src="/lovable-uploads/c571ae09-9560-45aa-ac6e-6cf14306c1ec.png" 
+              alt="Bread delivery truck" 
+              className="h-20 w-auto"
+            />
+          </div>
         </div>
         
         <div className="relative max-w-7xl mx-auto text-center z-30">
@@ -178,4 +187,5 @@ const Index = () => {
       </footer>
     </div>;
 };
+
 export default Index;
