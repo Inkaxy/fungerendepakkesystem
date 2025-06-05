@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -84,7 +83,7 @@ const Index = () => {
         
         <div className="relative max-w-7xl mx-auto text-center z-30">
           <div className="mb-8 flex justify-center">
-            <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-16 w-auto animate-bread-rise" />
+            <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-24 w-auto animate-bread-rise" />
           </div>
           
           
