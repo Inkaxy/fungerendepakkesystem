@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -103,9 +102,55 @@
   100% { transform: translateY(0px) scale(1); }
 }
 
+@keyframes bread-fall {
+  0% { 
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes truck-drive {
+  0% { 
+    transform: translateX(-100px);
+  }
+  50% { 
+    transform: translateX(calc(100vw - 100px));
+  }
+  100% { 
+    transform: translateX(-100px);
+  }
+}
+
 .animate-bread-rise {
   animation: bread-rise 2s ease-in-out infinite;
 }
+
+.animate-bread-fall {
+  animation: bread-fall linear infinite;
+  position: absolute;
+  font-size: 2rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.animate-truck-drive {
+  animation: truck-drive 15s linear infinite;
+  position: absolute;
+  bottom: 20px;
+  font-size: 3rem;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.bread-1 { animation-duration: 8s; animation-delay: 0s; left: 10%; }
+.bread-2 { animation-duration: 10s; animation-delay: 2s; left: 30%; }
+.bread-3 { animation-duration: 9s; animation-delay: 4s; left: 50%; }
+.bread-4 { animation-duration: 11s; animation-delay: 6s; left: 70%; }
+.bread-5 { animation-duration: 7s; animation-delay: 8s; left: 90%; }
 
 /* Gradient backgrounds inspired by bread colors */
 .gradient-bread {
