@@ -44,13 +44,18 @@ const Index = () => {
       <section className="relative overflow-hidden gradient-bread py-20 px-4">
         <div className="absolute inset-0 bg-black/10"></div>
         
-        {/* Fallende brød animasjon - kun i hero section */}
+        {/* Fallende brød og bakevarer animasjon - kun i hero section */}
         <div className="absolute inset-0 pointer-events-none z-10">
           <div className="animate-bread-fall bread-1">🍞</div>
           <div className="animate-bread-fall bread-2">🥖</div>
-          <div className="animate-bread-fall bread-3">🍞</div>
-          <div className="animate-bread-fall bread-4">🥐</div>
-          <div className="animate-bread-fall bread-5">🍞</div>
+          <div className="animate-bread-fall bread-3">🥐</div>
+          <div className="animate-bread-fall bread-4">🧁</div>
+          <div className="animate-bread-fall bread-5">🥯</div>
+          <div className="animate-bread-fall bread-6">🥧</div>
+          <div className="animate-bread-fall bread-7">🍰</div>
+          <div className="animate-bread-fall bread-8">🥨</div>
+          <div className="animate-bread-fall bread-9">🍪</div>
+          <div className="animate-bread-fall bread-10">🍩</div>
         </div>
 
         {/* Kjørende lastebil - i bunnen av hero section */}

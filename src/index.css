@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -115,13 +116,19 @@
 
 @keyframes truck-drive {
   0% { 
-    transform: translateX(-100px);
+    transform: translateX(-100px) scaleX(1);
+  }
+  49% { 
+    transform: translateX(calc(100vw - 100px)) scaleX(1);
   }
   50% { 
-    transform: translateX(calc(100vw - 100px));
+    transform: translateX(calc(100vw - 100px)) scaleX(-1);
+  }
+  99% { 
+    transform: translateX(-100px) scaleX(-1);
   }
   100% { 
-    transform: translateX(-100px);
+    transform: translateX(-100px) scaleX(1);
   }
 }
 
@@ -138,7 +145,7 @@
 }
 
 .animate-truck-drive {
-  animation: truck-drive 15s linear infinite;
+  animation: truck-drive 20s linear infinite;
   position: absolute;
   bottom: 10px;
   font-size: 3rem;
@@ -146,11 +153,16 @@
   pointer-events: none;
 }
 
-.bread-1 { animation-duration: 8s; animation-delay: 0s; left: 10%; }
-.bread-2 { animation-duration: 10s; animation-delay: 2s; left: 30%; }
-.bread-3 { animation-duration: 9s; animation-delay: 4s; left: 50%; }
-.bread-4 { animation-duration: 11s; animation-delay: 6s; left: 70%; }
-.bread-5 { animation-duration: 7s; animation-delay: 8s; left: 90%; }
+.bread-1 { animation-duration: 8s; animation-delay: 0s; left: 5%; }
+.bread-2 { animation-duration: 10s; animation-delay: 2s; left: 15%; }
+.bread-3 { animation-duration: 9s; animation-delay: 4s; left: 25%; }
+.bread-4 { animation-duration: 11s; animation-delay: 6s; left: 35%; }
+.bread-5 { animation-duration: 7s; animation-delay: 8s; left: 45%; }
+.bread-6 { animation-duration: 12s; animation-delay: 1s; left: 55%; }
+.bread-7 { animation-duration: 8s; animation-delay: 3s; left: 65%; }
+.bread-8 { animation-duration: 9s; animation-delay: 5s; left: 75%; }
+.bread-9 { animation-duration: 10s; animation-delay: 7s; left: 85%; }
+.bread-10 { animation-duration: 11s; animation-delay: 9s; left: 95%; }
 
 /* Gradient backgrounds inspired by bread colors */
 .gradient-bread {
