@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -115,16 +116,16 @@
 
 @keyframes truck-drive {
   0% { 
-    transform: translateX(-100px) scaleX(1);
+    transform: translateX(-100px) scaleX(-1);
   }
   50% { 
-    transform: translateX(calc(100vw - 100px)) scaleX(1);
-  }
-  51% { 
     transform: translateX(calc(100vw - 100px)) scaleX(-1);
   }
+  51% { 
+    transform: translateX(calc(100vw - 100px)) scaleX(1);
+  }
   100% { 
-    transform: translateX(-100px) scaleX(-1);
+    transform: translateX(-100px) scaleX(1);
   }
 }
 
