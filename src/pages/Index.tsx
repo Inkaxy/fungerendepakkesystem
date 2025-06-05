@@ -1,12 +1,14 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Truck, Package, Users, BarChart3, Clock, CheckCircle } from 'lucide-react';
+import { useCollisionDetection } from '@/hooks/useCollisionDetection';
+import { GameOverlay } from '@/components/GameOverlay';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { score, collectedItems, collisions } = useCollisionDetection();
 
   const features = [
     {
@@ -40,6 +42,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <GameOverlay score={score} collectedItems={collectedItems} collisions={collisions} />
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden gradient-bread py-20 px-4">
         <div className="absolute inset-0 bg-black/10"></div>

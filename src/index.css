@@ -129,6 +129,27 @@
   }
 }
 
+@keyframes collectEffect {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes truckBoost {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 .animate-bread-rise {
   animation: bread-rise 2s ease-in-out infinite;
 }
@@ -141,6 +162,11 @@
   pointer-events: none;
 }
 
+.animate-bread-fall.collected {
+  animation: collectEffect 0.5s ease-out forwards;
+  z-index: 30;
+}
+
 .animate-truck-drive {
   animation: truck-drive 20s linear infinite;
   position: absolute;
@@ -148,6 +174,11 @@
   font-size: 3rem;
   z-index: 20;
   pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.animate-truck-drive.boost {
+  animation: truck-drive 20s linear infinite, truckBoost 0.3s ease-out;
 }
 
 .bread-1 { animation-duration: 8s; animation-delay: 0s; left: 5%; }
