@@ -1,12 +1,174 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Truck, Package, Users, BarChart3, Clock, CheckCircle } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  const features = [
+    {
+      icon: Package,
+      title: "Smart Pakking",
+      description: "Effektiv pakking med sanntidsovervåking og QR-kode system"
+    },
+    {
+      icon: Truck,
+      title: "Levering & Logistikk",
+      description: "Spor leveranser og administrer ruter enkelt"
+    },
+    {
+      icon: Users,
+      title: "Kundeadministrasjon",
+      description: "Komplett oversikt over kunder og deres bestillinger"
+    },
+    {
+      icon: BarChart3,
+      title: "Rapporter",
+      description: "Detaljerte rapporter og statistikk for bedre innsikt"
+    }
+  ];
+
+  const stats = [
+    { number: "500+", label: "Bakeri-partnere", icon: Users },
+    { number: "50k+", label: "Daglige leveranser", icon: Truck },
+    { number: "99.8%", label: "Oppetid", icon: CheckCircle },
+    { number: "<2min", label: "Gjennomsnittlig pakketid", icon: Clock }
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden gradient-bread py-20 px-4">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative max-w-7xl mx-auto text-center">
+          <div className="mb-8 flex justify-center">
+            <img 
+              src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" 
+              alt="Loaf & Load"
+              className="h-32 w-auto animate-bread-rise"
+            />
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            Loaf & Load
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+            Komplett pakking- og leveringssystem for moderne bakerier
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              onClick={() => navigate('/login')}
+              className="bg-white text-bakery-brown hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+            >
+              Logg inn
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-white text-white hover:bg-white hover:text-bakery-brown px-8 py-3 text-lg font-semibold"
+            >
+              Les mer
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-bakery-cream">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="flex justify-center mb-4">
+                  <stat.icon className="h-8 w-8 text-bakery-orange" />
+                </div>
+                <div className="text-3xl font-bold text-bakery-brown mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-bakery-brown mb-4">
+              Alt du trenger for effektiv bakeri-drift
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Fra bestilling til levering - vi forenkler hele prosessen med moderne teknologi
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="group hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+                <CardHeader className="text-center pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-3 rounded-lg bg-bakery-orange/10 group-hover:bg-bakery-orange/20 transition-colors">
+                      <feature.icon className="h-8 w-8 text-bakery-orange" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-bakery-brown">
+                    {feature.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-center">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-bakery-brown text-white">
+        <div className="max-w-4xl mx-auto text-center px-4">
+          <h2 className="text-4xl font-bold mb-6">
+            Klar til å modernisere ditt bakeri?
+          </h2>
+          <p className="text-xl mb-8 opacity-90">
+            Bli med tusenvis av bakerier som allerede bruker Loaf & Load for å effektivisere sin drift
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate('/login')}
+            className="bg-bakery-orange hover:bg-bakery-orange-light text-white px-8 py-3 text-lg font-semibold"
+          >
+            Kom i gang i dag
+          </Button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0">
+              <h3 className="text-2xl font-bold">Loaf & Load</h3>
+              <p className="text-gray-400">Bakeri pakking- og leveringssystem</p>
+            </div>
+            <div className="text-gray-400">
+              © 2024 Loaf & Load. Alle rettigheter forbeholdt.
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
