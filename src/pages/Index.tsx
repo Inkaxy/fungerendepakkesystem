@@ -83,7 +83,7 @@ const Index = () => {
         
         <div className="relative max-w-7xl mx-auto text-center z-30">
           <div className="mb-8 flex justify-center">
-            <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-32 w-auto animate-bread-rise" />
+            <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-64 w-auto animate-bread-rise" />
           </div>
           
           
