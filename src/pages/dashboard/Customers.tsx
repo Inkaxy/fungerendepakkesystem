@@ -5,6 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, UserPlus, Phone, Mail, MapPin, Loader2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const Customers = () => {
   const { data: customers, isLoading, error } = useCustomers();
@@ -121,7 +129,7 @@ const Customers = () => {
         </Card>
       </div>
 
-      {/* Customers List */}
+      {/* Customers Table */}
       <Card>
         <CardHeader>
           <CardTitle>Kunde Oversikt</CardTitle>
@@ -145,58 +153,72 @@ const Customers = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {customers.map((customer) => (
-                <div key={customer.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">{customer.name}</span>
-                      {getStatusBadge(customer.status)}
-                    </div>
-                    {customer.contact_person && (
-                      <p className="text-sm text-gray-600">Kontakt: {customer.contact_person}</p>
-                    )}
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      {customer.phone && (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Navn</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Kontaktperson</TableHead>
+                  <TableHead>Telefon</TableHead>
+                  <TableHead>E-post</TableHead>
+                  <TableHead>Adresse</TableHead>
+                  <TableHead>Opprettet</TableHead>
+                  <TableHead className="text-right">Handlinger</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {customers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell>{getStatusBadge(customer.status)}</TableCell>
+                    <TableCell>{customer.contact_person || '-'}</TableCell>
+                    <TableCell>
+                      {customer.phone ? (
                         <div className="flex items-center">
                           <Phone className="w-3 h-3 mr-1" />
                           {customer.phone}
                         </div>
-                      )}
-                      {customer.email && (
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {customer.email ? (
                         <div className="flex items-center">
                           <Mail className="w-3 h-3 mr-1" />
                           {customer.email}
                         </div>
-                      )}
-                    </div>
-                    {customer.address && (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {customer.address}
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {customer.address ? (
+                        <div className="flex items-center">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          <span className="truncate max-w-32">{customer.address}</span>
+                        </div>
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(customer.created_at).toLocaleDateString('nb-NO')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        {customer.email && (
+                          <Button variant="outline" size="sm">
+                            <Mail className="w-4 h-4 mr-1" />
+                            Kontakt
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm">
+                          Rediger
+                        </Button>
+                        <Button size="sm">
+                          Ny Ordre
+                        </Button>
                       </div>
-                    )}
-                    <div className="text-xs text-gray-400">
-                      Opprettet: {new Date(customer.created_at).toLocaleDateString('nb-NO')}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    {customer.email && (
-                      <Button variant="outline" size="sm">
-                        <Mail className="w-4 h-4 mr-1" />
-                        Kontakt
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm">
-                      Rediger
-                    </Button>
-                    <Button size="sm">
-                      Ny Ordre
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,14 @@ import { Input } from '@/components/ui/input';
 import { useProducts, useCreateProduct } from '@/hooks/useProducts';
 import { useAuthStore } from '@/stores/authStore';
 import { Package, Plus, Search, Filter } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { 
   Dialog,
   DialogContent,
@@ -94,6 +101,7 @@ const Products = () => {
   }) || [];
 
   const categories = [...new Set(products?.map(p => p.category) || [])];
+  const activeProducts = products?.filter(p => p.is_active) || [];
 
   if (isLoading) {
     return (
@@ -214,6 +222,37 @@ const Products = () => {
         </Dialog>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Totale produkter</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{products?.length || 0}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Aktive produkter</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activeProducts.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Kategorier</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{categories.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
@@ -245,40 +284,16 @@ const Products = () => {
         </CardContent>
       </Card>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <Card key={product.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{product.name}</CardTitle>
-                <Badge variant={product.is_active ? "default" : "secondary"}>
-                  {product.is_active ? "Aktiv" : "Inaktiv"}
-                </Badge>
-              </div>
-              <CardDescription>{product.category}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Pris:</span>
-                  <span className="font-medium">
-                    {product.price ? `${product.price} kr` : 'Ikke satt'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Enhet:</span>
-                  <span className="font-medium">{product.unit}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredProducts.length === 0 && (
-        <Card>
-          <CardContent className="pt-6">
+      {/* Products Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Produkt Oversikt</CardTitle>
+          <CardDescription>
+            Alle produkter i produktkatalogen
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {filteredProducts.length === 0 ? (
             <div className="text-center py-8">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -297,9 +312,53 @@ const Products = () => {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Navn</TableHead>
+                  <TableHead>Kategori</TableHead>
+                  <TableHead>Pris</TableHead>
+                  <TableHead>Enhet</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Opprettet</TableHead>
+                  <TableHead className="text-right">Handlinger</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell>
+                      {product.price ? `${product.price} kr` : 'Ikke satt'}
+                    </TableCell>
+                    <TableCell>{product.unit}</TableCell>
+                    <TableCell>
+                      <Badge variant={product.is_active ? "default" : "secondary"}>
+                        {product.is_active ? "Aktiv" : "Inaktiv"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(product.created_at).toLocaleDateString('nb-NO')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">
+                          Rediger
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          {product.is_active ? 'Deaktiver' : 'Aktiver'}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
