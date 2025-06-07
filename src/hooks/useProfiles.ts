@@ -69,31 +69,68 @@ export const useCreateProfile = () => {
         throw new Error('Bruker ble ikke opprettet');
       }
 
-      console.log('User created, updating profile for ID:', authData.user.id);
+      console.log('User created, checking if profile exists for ID:', authData.user.id);
 
       // Wait a bit to ensure the profile trigger has run
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Update the profile that was automatically created with the correct role and bakery
-      const { data, error } = await supabase
+      // First, check if the profile already exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .update({
-          name: profile.name,
-          role: profile.role,
-          bakery_id: profile.bakery_id,
-          email_confirmed: true, // Since admin is creating this user
-        })
+        .select('*')
         .eq('id', authData.user.id)
-        .select()
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        console.error('Profile update error:', error);
-        throw error;
+      let profileData;
+
+      if (existingProfile) {
+        console.log('Profile exists, updating it');
+        // Update the existing profile
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({
+            name: profile.name,
+            role: profile.role,
+            bakery_id: profile.bakery_id,
+            email_confirmed: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', authData.user.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Profile update error:', error);
+          throw error;
+        }
+        profileData = data;
+      } else {
+        console.log('Profile does not exist, creating it manually');
+        // Create the profile manually if it doesn't exist
+        const { data, error } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            email: normalizedEmail,
+            name: profile.name,
+            role: profile.role,
+            bakery_id: profile.bakery_id,
+            email_confirmed: true,
+            provider: 'email',
+            is_active: true,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Profile creation error:', error);
+          throw error;
+        }
+        profileData = data;
       }
       
-      console.log('Profile updated successfully:', data);
-      return data;
+      console.log('Profile operation successful:', profileData);
+      return profileData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
