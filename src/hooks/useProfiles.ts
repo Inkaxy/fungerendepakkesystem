@@ -119,3 +119,30 @@ export const useUpdateProfile = () => {
     },
   });
 };
+
+export const useDeleteProfile = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Delete from auth.users (this will cascade to profiles due to the foreign key)
+      const { error } = await supabase.auth.admin.deleteUser(id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast({
+        title: "Suksess",
+        description: "Bruker slettet",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette bruker: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};

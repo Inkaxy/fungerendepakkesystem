@@ -4,11 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
-import { Settings, Users, Building, Shield, UserPlus, Loader2 } from 'lucide-react';
-import { useBakeries } from '@/hooks/useBakeries';
-import { useProfiles } from '@/hooks/useProfiles';
+import { Settings, Users, Building, Shield, UserPlus, Loader2, Edit, Trash2, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useBakeries, useDeleteBakery } from '@/hooks/useBakeries';
+import { useProfiles, useDeleteProfile } from '@/hooks/useProfiles';
 import CreateBakeryDialog from '@/components/admin/CreateBakeryDialog';
 import CreateUserDialog from '@/components/admin/CreateUserDialog';
+import EditUserDialog from '@/components/admin/EditUserDialog';
+import DeleteConfirmDialog from '@/components/admin/DeleteConfirmDialog';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -16,9 +24,14 @@ const Admin = () => {
   const { profile } = useAuthStore();
   const [showCreateBakery, setShowCreateBakery] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [deletingBakery, setDeletingBakery] = useState<any>(null);
+  const [deletingUser, setDeletingUser] = useState<any>(null);
   
   const { data: bakeries, isLoading: bakeriesLoading } = useBakeries();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
+  const deleteBakery = useDeleteBakery();
+  const deleteProfile = useDeleteProfile();
 
   // Only super_admin should see this page
   if (profile?.role !== 'super_admin') {
@@ -51,6 +64,20 @@ const Admin = () => {
       : <Badge variant="secondary">Inaktiv</Badge>;
   };
 
+  const handleDeleteBakery = async () => {
+    if (deletingBakery) {
+      await deleteBakery.mutateAsync(deletingBakery.id);
+      setDeletingBakery(null);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (deletingUser) {
+      await deleteProfile.mutateAsync(deletingUser.id);
+      setDeletingUser(null);
+    }
+  };
+
   if (bakeriesLoading || profilesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -62,6 +89,7 @@ const Admin = () => {
   const totalBakeries = bakeries?.length || 0;
   const totalUsers = profiles?.length || 0;
   const superAdmins = profiles?.filter(p => p.role === 'super_admin').length || 0;
+  const activeUsers = profiles?.filter(p => p.is_active).length || 0;
 
   return (
     <div className="space-y-6">
@@ -111,7 +139,7 @@ const Admin = () => {
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              Alle registrerte
+              {activeUsers} aktive
             </p>
           </CardContent>
         </Card>
@@ -173,13 +201,29 @@ const Admin = () => {
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4 mr-1" />
-                    Innstillinger
-                  </Button>
-                  <Button variant="outline" size="sm">
                     <Users className="w-4 h-4 mr-1" />
                     Brukere
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Rediger
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => setDeletingBakery(bakery)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Slett
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
@@ -225,12 +269,34 @@ const Admin = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setEditingUser(user)}
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
                     Rediger
                   </Button>
-                  <Button variant="outline" size="sm">
-                    Tilganger
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Settings className="w-4 h-4 mr-2" />
+                        Tilganger
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => setDeletingUser(user)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Slett
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
@@ -255,6 +321,27 @@ const Admin = () => {
       <CreateUserDialog 
         open={showCreateUser} 
         onOpenChange={setShowCreateUser} 
+      />
+      <EditUserDialog
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
+        user={editingUser}
+      />
+      <DeleteConfirmDialog
+        open={!!deletingBakery}
+        onOpenChange={(open) => !open && setDeletingBakery(null)}
+        title="Slett bakeri"
+        description={`Er du sikker på at du vil slette bakeriet "${deletingBakery?.name}"? Denne handlingen kan ikke angres.`}
+        onConfirm={handleDeleteBakery}
+        isLoading={deleteBakery.isPending}
+      />
+      <DeleteConfirmDialog
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && setDeletingUser(null)}
+        title="Slett bruker"
+        description={`Er du sikker på at du vil slette brukeren "${deletingUser?.name || deletingUser?.email}"? Denne handlingen kan ikke angres.`}
+        onConfirm={handleDeleteUser}
+        isLoading={deleteProfile.isPending}
       />
     </div>
   );

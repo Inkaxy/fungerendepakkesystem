@@ -59,3 +59,66 @@ export const useCreateBakery = () => {
     },
   });
 };
+
+export const useUpdateBakery = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Bakery> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('bakeries')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bakeries'] });
+      toast({
+        title: "Suksess",
+        description: "Bakeri oppdatert",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke oppdatere bakeri: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteBakery = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('bakeries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bakeries'] });
+      toast({
+        title: "Suksess",
+        description: "Bakeri slettet",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette bakeri: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
