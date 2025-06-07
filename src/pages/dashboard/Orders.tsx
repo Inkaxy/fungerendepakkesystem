@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +6,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
-import { Package, Clock, CheckCircle, Truck, Calendar as CalendarIcon, Search, ArrowLeft, Users } from 'lucide-react';
-import { format, isSameDay } from 'date-fns';
+import { Package, Clock, CheckCircle, Truck, Calendar as CalendarIcon, Search, ArrowLeft, Users, FileText, CircleDot } from 'lucide-react';
+import { format, isSameDay, isToday } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 interface Product {
@@ -40,6 +39,7 @@ interface PackingDay {
     quantity: number;
   }>;
   status: 'Klar for pakking' | 'Pågår' | 'Fullført';
+  filesUploaded: number;
 }
 
 const Orders = () => {
@@ -48,7 +48,7 @@ const Orders = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [view, setView] = useState<'calendar' | 'products' | 'packing'>('calendar');
 
-  // Mock data basert på bildene
+  // Mock data basert på bildene - expanded with more dates and file info
   const packingDays: PackingDay[] = [
     {
       date: new Date(2025, 5, 3),
@@ -62,7 +62,8 @@ const Orders = () => {
         { name: 'Loff', quantity: 134 },
         { name: 'Horten', quantity: 246 }
       ],
-      status: 'Klar for pakking'
+      status: 'Klar for pakking',
+      filesUploaded: 3
     },
     {
       date: new Date(2025, 5, 7),
@@ -73,7 +74,31 @@ const Orders = () => {
         { name: 'Rundstykker', quantity: 120 },
         { name: 'Bagetter', quantity: 85 }
       ],
-      status: 'Fullført'
+      status: 'Fullført',
+      filesUploaded: 2
+    },
+    {
+      date: new Date(2025, 5, 10),
+      totalOrders: 42,
+      uniqueCustomers: 38,
+      productTypes: 28,
+      topProducts: [
+        { name: 'Kneipp', quantity: 200 },
+        { name: 'Loff', quantity: 180 }
+      ],
+      status: 'Pågår',
+      filesUploaded: 4
+    },
+    {
+      date: new Date(2025, 5, 14),
+      totalOrders: 31,
+      uniqueCustomers: 29,
+      productTypes: 22,
+      topProducts: [
+        { name: 'Hortensbrød', quantity: 150 }
+      ],
+      status: 'Klar for pakking',
+      filesUploaded: 2
     }
   ];
 
@@ -139,6 +164,31 @@ const Orders = () => {
   );
 
   const selectedDayData = getSelectedDayData();
+
+  // Legend component for calendar
+  const CalendarLegend = () => (
+    <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+      <h4 className="text-sm font-medium mb-3">Forklaring</h4>
+      <div className="grid grid-cols-2 gap-3 text-xs">
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 rounded-sm bg-primary border-2 border-primary"></div>
+          <span>Klar for pakking</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 rounded-sm bg-orange-500 border-2 border-orange-500"></div>
+          <span>Pågår</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 rounded-sm bg-green-600 border-2 border-green-600"></div>
+          <span>Fullført</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 rounded-sm bg-background border-4 border-red-500"></div>
+          <span>I dag</span>
+        </div>
+      </div>
+    </div>
+  );
 
   if (view === 'packing' && selectedProduct) {
     return (
@@ -410,7 +460,7 @@ const Orders = () => {
               <div className="flex items-center justify-between">
                 <CardTitle>Kalender</CardTitle>
                 <div className="text-sm text-muted-foreground">
-                  Antall pakkedager funnet: 1
+                  Antall pakkedager funnet: {packingDays.length}
                 </div>
               </div>
             </CardHeader>
@@ -419,27 +469,56 @@ const Orders = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="rounded-md border-0"
+                className="rounded-md border-0 pointer-events-auto"
                 locale={nb}
                 modifiers={{
-                  packingDay: packingDays.map(day => day.date),
-                  completed: packingDays.filter(day => day.status === 'Fullført').map(day => day.date)
+                  packingDayReady: packingDays.filter(day => day.status === 'Klar for pakking').map(day => day.date),
+                  packingDayInProgress: packingDays.filter(day => day.status === 'Pågår').map(day => day.date),
+                  packingDayCompleted: packingDays.filter(day => day.status === 'Fullført').map(day => day.date),
+                  today: [new Date()]
                 }}
                 modifiersStyles={{
-                  packingDay: { 
-                    backgroundColor: 'hsl(var(--primary))', 
+                  packingDayReady: { 
+                    backgroundColor: 'hsl(var(--primary))',
                     color: 'white',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    border: '2px solid hsl(var(--primary))',
+                    position: 'relative'
                   },
-                  completed: { 
-                    backgroundColor: 'hsl(var(--muted))', 
-                    color: 'hsl(var(--muted-foreground))'
+                  packingDayInProgress: { 
+                    backgroundColor: '#f97316',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    border: '2px solid #f97316'
+                  },
+                  packingDayCompleted: { 
+                    backgroundColor: '#16a34a',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    border: '2px solid #16a34a'
+                  },
+                  today: {
+                    border: '4px solid #ef4444',
+                    fontWeight: 'bold',
+                    borderRadius: '4px'
                   }
                 }}
               />
-              <div className="mt-4 text-sm text-muted-foreground">
-                <p>Pakkedager funnet: 1</p>
+              
+              <CalendarLegend />
+              
+              <div className="mt-4 text-sm text-muted-foreground space-y-1">
+                <p className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Pakkedager funnet: {packingDays.length}</span>
+                </p>
                 <p>Valgt dato: {selectedDate ? format(selectedDate, 'yyyy-MM-dd', { locale: nb }) : 'Ingen'}</p>
+                {selectedDayData && (
+                  <p className="flex items-center space-x-2">
+                    <CircleDot className="h-4 w-4" />
+                    <span>{selectedDayData.filesUploaded} filer lastet opp</span>
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -450,14 +529,28 @@ const Orders = () => {
           {selectedDayData ? (
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {format(selectedDate!, 'd. MMMM yyyy', { locale: nb })}
+                <CardTitle className="flex items-center space-x-2">
+                  <span>{format(selectedDate!, 'd. MMMM yyyy', { locale: nb })}</span>
+                  {isToday(selectedDate!) && (
+                    <Badge variant="destructive" className="text-xs">I DAG</Badge>
+                  )}
                 </CardTitle>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">Status</span>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Badge 
+                    variant="secondary" 
+                    className={
+                      selectedDayData.status === 'Klar for pakking' ? 'bg-blue-100 text-blue-800' :
+                      selectedDayData.status === 'Pågår' ? 'bg-orange-100 text-orange-800' :
+                      'bg-green-100 text-green-800'
+                    }
+                  >
                     {selectedDayData.status}
                   </Badge>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <FileText className="h-4 w-4" />
+                  <span>{selectedDayData.filesUploaded} filer lastet opp</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -502,6 +595,7 @@ const Orders = () => {
               <CardContent className="pt-6 text-center text-muted-foreground">
                 <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Velg en dato i kalenderen for å se pakkedetaljer</p>
+                <p className="text-xs mt-2">Dager med opplastede filer er markert med farger</p>
               </CardContent>
             </Card>
           )}
