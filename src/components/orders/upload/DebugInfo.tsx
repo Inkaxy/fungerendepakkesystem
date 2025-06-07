@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Profile } from '@/types/profile';
+import { UserProfile } from '@/stores/authStore';
 import { IdMapping } from './types';
 
 interface DebugInfoProps {
-  profile: Profile | null;
+  profile: UserProfile | null;
   productIdMapping: IdMapping;
   customerIdMapping: IdMapping;
 }

@@ -3,10 +3,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateOrder } from '@/hooks/useCreateOrder';
 import { parseOrderFile } from '@/utils/fileParser';
 import { IdMapping, UploadResults, UploadStatus } from './types';
-import { Profile } from '@/types/profile';
+import { UserProfile } from '@/stores/authStore';
 
 export const useOrderUpload = (
-  profile: Profile | null,
+  profile: UserProfile | null,
   uploadStatus: UploadStatus,
   productIdMapping: IdMapping,
   customerIdMapping: IdMapping,

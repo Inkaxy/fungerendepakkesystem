@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Profile } from '@/types/profile';
+import { UserProfile } from '@/stores/authStore';
 
 interface AccessWarningProps {
-  profile: Profile | null;
+  profile: UserProfile | null;
 }
 
 const AccessWarning = ({ profile }: AccessWarningProps) => {

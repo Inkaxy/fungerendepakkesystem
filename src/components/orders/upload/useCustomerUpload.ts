@@ -3,10 +3,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateCustomer } from '@/hooks/useCustomers';
 import { parseCustomerFile } from '@/utils/fileParser';
 import { IdMapping, UploadResults, UploadStatus } from './types';
-import { Profile } from '@/types/profile';
+import { UserProfile } from '@/stores/authStore';
 
 export const useCustomerUpload = (
-  profile: Profile | null,
+  profile: UserProfile | null,
   setUploadStatus: React.Dispatch<React.SetStateAction<UploadStatus>>,
   setCustomerIdMapping: React.Dispatch<React.SetStateAction<IdMapping>>,
   setUploadResults: React.Dispatch<React.SetStateAction<UploadResults>>
