@@ -1,605 +1,247 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Package, Clock, CheckCircle, Truck, Calendar as CalendarIcon, Search, ArrowLeft, Users, FileText, CircleDot } from 'lucide-react';
-import { format, isSameDay, isToday } from 'date-fns';
+import { Package, Plus, Calendar as CalendarIcon, Users, Clock, Loader2 } from 'lucide-react';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { nb } from 'date-fns/locale';
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  totalOrders: number;
-  packed: number;
-  percentage: number;
-  status: 'Ferdig' | 'Pågår' | 'Venter';
-  customers: number;
-}
-
-interface Order {
-  id: string;
-  customerName: string;
-  orderNumber: string;
-  quantity: number;
-  status: 'Venter' | 'Pakket' | 'Avvik';
-}
-
-interface PackingDay {
-  date: Date;
-  totalOrders: number;
-  uniqueCustomers: number;
-  productTypes: number;
-  topProducts: Array<{
-    name: string;
-    quantity: number;
-  }>;
-  status: 'Klar for pakking' | 'Pågår' | 'Fullført';
-  filesUploaded: number;
-}
+import { useOrders, useOrdersByDateRange } from '@/hooks/useOrders';
+import { usePackingSessions } from '@/hooks/usePackingSessions';
 
 const Orders = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(2025, 5, 3)); // 3. juni 2025
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [view, setView] = useState<'calendar' | 'products' | 'packing'>('calendar');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  const currentMonth = format(selectedDate, 'yyyy-MM');
+  const monthStart = format(startOfMonth(selectedDate), 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(selectedDate), 'yyyy-MM-dd');
+  
+  const { data: monthOrders, isLoading: ordersLoading } = useOrdersByDateRange(monthStart, monthEnd);
+  const { data: selectedDateOrders, isLoading: dayOrdersLoading } = useOrders(format(selectedDate, 'yyyy-MM-dd'));
+  const { data: packingSessions } = usePackingSessions();
 
-  // Mock data basert på bildene - expanded with more dates and file info
-  const packingDays: PackingDay[] = [
-    {
-      date: new Date(2025, 5, 3),
-      totalOrders: 35,
-      uniqueCustomers: 35,
-      productTypes: 30,
-      topProducts: [
-        { name: 'Kneipp', quantity: 165 },
-        { name: 'Hortensbrød', quantity: 359 },
-        { name: 'Kystenbrød', quantity: 316 },
-        { name: 'Loff', quantity: 134 },
-        { name: 'Horten', quantity: 246 }
-      ],
-      status: 'Klar for pakking',
-      filesUploaded: 3
-    },
-    {
-      date: new Date(2025, 5, 7),
-      totalOrders: 28,
-      uniqueCustomers: 26,
-      productTypes: 25,
-      topProducts: [
-        { name: 'Rundstykker', quantity: 120 },
-        { name: 'Bagetter', quantity: 85 }
-      ],
-      status: 'Fullført',
-      filesUploaded: 2
-    },
-    {
-      date: new Date(2025, 5, 10),
-      totalOrders: 42,
-      uniqueCustomers: 38,
-      productTypes: 28,
-      topProducts: [
-        { name: 'Kneipp', quantity: 200 },
-        { name: 'Loff', quantity: 180 }
-      ],
-      status: 'Pågår',
-      filesUploaded: 4
-    },
-    {
-      date: new Date(2025, 5, 14),
-      totalOrders: 31,
-      uniqueCustomers: 29,
-      productTypes: 22,
-      topProducts: [
-        { name: 'Hortensbrød', quantity: 150 }
-      ],
-      status: 'Klar for pakking',
-      filesUploaded: 2
-    }
-  ];
-
-  const products: Product[] = [
-    { id: 1, name: 'Kneipp', category: 'Ingen kategori', totalOrders: 165, packed: 165, percentage: 100, status: 'Ferdig', customers: 24 },
-    { id: 10, name: 'Rundstekt Helkorn', category: 'Ingen kategori', totalOrders: 89, packed: 89, percentage: 100, status: 'Ferdig', customers: 7 },
-    { id: 11, name: 'Hvassbrød', category: 'Ingen kategori', totalOrders: 110, packed: 110, percentage: 100, status: 'Ferdig', customers: 17 },
-    { id: 19, name: 'Færderbrød', category: 'Ingen kategori', totalOrders: 93, packed: 83, percentage: 89.2, status: 'Pågår', customers: 21 },
-    { id: 21, name: 'Hortensbrød', category: 'Ingen kategori', totalOrders: 359, packed: 359, percentage: 100, status: 'Ferdig', customers: 24 },
-    { id: 23, name: 'Kystenbrød', category: 'Ingen kategori', totalOrders: 316, packed: 316, percentage: 100, status: 'Ferdig', customers: 27 },
-    { id: 29, name: 'Fiberbrød Med Frø', category: 'Ingen kategori', totalOrders: 23, packed: 0, percentage: 0, status: 'Venter', customers: 9 },
-    { id: 30, name: 'Loff', category: 'Ingen kategori', totalOrders: 134, packed: 134, percentage: 100, status: 'Ferdig', customers: 24 },
-    { id: 31, name: 'Formloff', category: 'Ingen kategori', totalOrders: 18, packed: 18, percentage: 100, status: 'Ferdig', customers: 7 },
-    { id: 34, name: 'Spiralloff', category: 'Ingen kategori', totalOrders: 8, packed: 0, percentage: 0, status: 'Venter', customers: 4 },
-    { id: 36, name: 'Miniloff med Frø', category: 'Ingen kategori', totalOrders: 41, packed: 0, percentage: 0, status: 'Venter', customers: 7 }
-  ];
-
-  const orders: Order[] = [
-    { id: '10058', customerName: 'Meny Nettørey', orderNumber: '#10058', quantity: 2, status: 'Venter' },
-    { id: '10673', customerName: 'Kiwi Gauterud', orderNumber: '#10673', quantity: 5, status: 'Venter' },
-    { id: '10001', customerName: 'Meny Heimdal', orderNumber: '#10001', quantity: 3, status: 'Avvik' },
-    { id: '10736', customerName: 'Meny Tolvsrud', orderNumber: '#10736', quantity: 2, status: 'Venter' },
-    { id: '10801', customerName: 'Meny Holmestrand', orderNumber: '#10801', quantity: 1, status: 'Venter' },
-    { id: '10812', customerName: 'Spar Tjøme', orderNumber: '#10812', quantity: 1, status: 'Venter' },
-    { id: '10862', customerName: 'Kiwi Hjemseng', orderNumber: '#10862', quantity: 5, status: 'Venter' },
-    { id: '20002', customerName: 'Skallestad', orderNumber: '#20002', quantity: 3, status: 'Venter' },
-    { id: '5019', customerName: 'Wilhelmsen Chemicals AS', orderNumber: '#5019', quantity: 1, status: 'Venter' }
-  ];
-
-  const getSelectedDayData = () => {
-    if (!selectedDate) return null;
-    return packingDays.find(day => isSameDay(day.date, selectedDate));
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Ferdig':
-        return 'default';
-      case 'Pågår':
-        return 'secondary';
-      case 'Venter':
-        return 'outline';
+      case 'pending':
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Venter</Badge>;
+      case 'confirmed':
+        return <Badge variant="default">Bekreftet</Badge>;
+      case 'in_progress':
+        return <Badge variant="default"><Package className="w-3 h-3 mr-1" />Produksjon</Badge>;
+      case 'packed':
+        return <Badge className="bg-blue-500"><Package className="w-3 h-3 mr-1" />Pakket</Badge>;
+      case 'delivered':
+        return <Badge className="bg-green-500">Levert</Badge>;
+      case 'cancelled':
+        return <Badge variant="destructive">Kansellert</Badge>;
       default:
-        return 'outline';
+        return <Badge variant="outline">Ukjent</Badge>;
     }
   };
 
-  const getOrderStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'Pakket':
-        return 'default';
-      case 'Venter':
-        return 'secondary';
-      case 'Avvik':
-        return 'destructive';
-      default:
-        return 'outline';
+  // Create calendar markers for packing days
+  const calendarModifiers = {
+    packingDay: (date: Date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      return packingSessions?.some(session => session.session_date === dateStr) || false;
+    },
+    hasOrders: (date: Date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      return monthOrders?.some(order => order.delivery_date === dateStr) || false;
+    },
+    today: (date: Date) => {
+      const today = new Date();
+      return format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getPackingSessionStatus = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const session = packingSessions?.find(s => s.session_date === dateStr);
+    return session?.status;
+  };
 
-  const selectedDayData = getSelectedDayData();
-
-  // Legend component for calendar
-  const CalendarLegend = () => (
-    <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-      <h4 className="text-sm font-medium mb-3">Forklaring</h4>
-      <div className="grid grid-cols-2 gap-3 text-xs">
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 rounded-sm bg-primary border-2 border-primary"></div>
-          <span>Klar for pakking</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 rounded-sm bg-orange-500 border-2 border-orange-500"></div>
-          <span>Pågår</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 rounded-sm bg-green-600 border-2 border-green-600"></div>
-          <span>Fullført</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 rounded-sm bg-background border-4 border-red-500"></div>
-          <span>I dag</span>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (view === 'packing' && selectedProduct) {
+  if (ordersLoading) {
     return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => setView('products')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Tilbake</span>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Pakking - {selectedProduct.name}</h1>
-              <p className="text-muted-foreground">
-                {format(selectedDate || new Date(), 'dd.MM.yyyy', { locale: nb })}
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">03.06.2025</p>
-          </div>
-        </div>
-
-        {/* Progress Overview */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground">Fiberbrød Med Frø</div>
-              <div className="text-2xl font-bold">0/23</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground">Spiralloff</div>
-              <div className="text-2xl font-bold">0/8</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground">Miniloff med Frø</div>
-              <div className="text-2xl font-bold">0/41</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Product Details */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="h-5 w-5" />
-                <span>{selectedProduct.name}</span>
-                <Badge variant="secondary">#{selectedProduct.id}</Badge>
-              </CardTitle>
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-2">
-                <span className="flex items-center space-x-1">
-                  <Users className="h-4 w-4" />
-                  <span>{selectedProduct.customers} kunder</span>
-                </span>
-                <span>{selectedProduct.packed}/{selectedProduct.totalOrders}</span>
-                <span>{Math.round(selectedProduct.percentage)}% ferdig</span>
-              </div>
-            </div>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Merk alle som pakket ({orders.filter(o => o.status === 'Venter').length})
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Kunde</TableHead>
-                  <TableHead>Ordrenummer</TableHead>
-                  <TableHead>Antall</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Handling</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.customerName}</TableCell>
-                    <TableCell>{order.orderNumber}</TableCell>
-                    <TableCell>{order.quantity}</TableCell>
-                    <TableCell>
-                      <Badge variant={getOrderStatusBadgeVariant(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        {order.status === 'Venter' && (
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            Pakket
-                          </Button>
-                        )}
-                        {order.status === 'Avvik' && (
-                          <Button size="sm" variant="destructive">
-                            Avvik
-                          </Button>
-                        )}
-                        {order.status !== 'Venter' && order.status !== 'Avvik' && (
-                          <Button size="sm" variant="outline">
-                            Avvik
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  if (view === 'products') {
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => setView('calendar')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Tilbake</span>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold flex items-center space-x-2">
-                <CalendarIcon className="h-6 w-6" />
-                <span>tirsdag 3. juni</span>
-              </h1>
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                <span>9/30 Ordrer ferdig</span>
-                <span>1296/2090 Produkter pakket</span>
-                <span className="text-right">62%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <Progress value={62} className="h-2" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Ordrer ferdig</span>
-            <span>Produkter pakket</span>
-          </div>
-        </div>
-
-        {/* Products Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Package className="h-5 w-5" />
-                <CardTitle>Produkter å pakke</CardTitle>
-                <Badge variant="secondary">30 produkter</Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">0 av maks 3 valgt</span>
-                <Button disabled className="bg-gray-400">
-                  <Package className="mr-2 h-4 w-4" />
-                  Start pakking (0)
-                </Button>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 mt-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Søk etter varenummer eller navn..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <span className="text-sm text-muted-foreground">
-                Viser 30 av 30 resultater
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Varenummer</TableHead>
-                  <TableHead>Varenavn</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Totalt antall</TableHead>
-                  <TableHead>Pakket</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Velg</TableHead>
-                  <TableHead>Kunder</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow 
-                    key={product.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setView('packing');
-                    }}
-                  >
-                    <TableCell className="font-medium">{product.id}</TableCell>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{product.category}</TableCell>
-                    <TableCell>{product.totalOrders}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium text-green-600">{product.packed}</span>
-                        <Progress value={product.percentage} className="w-16 h-2" />
-                        <span className="text-xs text-muted-foreground">{Math.round(product.percentage)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(product.status)}>
-                        {product.status === 'Ferdig' && <CheckCircle className="mr-1 h-3 w-3" />}
-                        {product.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-muted-foreground">Velg</span>
-                    </TableCell>
-                    <TableCell>{product.customers}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const totalOrders = monthOrders?.length || 0;
+  const pendingOrders = monthOrders?.filter(o => o.status === 'pending').length || 0;
+  const packedOrders = monthOrders?.filter(o => o.status === 'packed').length || 0;
+  const uniqueCustomers = new Set(monthOrders?.map(o => o.customer_id)).size;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center space-x-2">
-            <CalendarIcon className="h-8 w-8" />
-            <span>Pakkekalender</span>
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Ordrer & Pakking</h1>
           <p className="text-muted-foreground">
-            Velg en dato med komplette filer for å starte pakking
+            Administrer ordrer og planlegg pakkedager
           </p>
         </div>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Ny Ordre
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Section */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Kalender</CardTitle>
-                <div className="text-sm text-muted-foreground">
-                  Antall pakkedager funnet: {packingDays.length}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ordrer denne måneden</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalOrders}</div>
+            <p className="text-xs text-muted-foreground">
+              {format(selectedDate, 'MMMM yyyy', { locale: nb })}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Venter</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingOrders}</div>
+            <p className="text-xs text-muted-foreground">Ikke påbegynt</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pakket</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{packedOrders}</div>
+            <p className="text-xs text-muted-foreground">Klare for levering</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Unike kunder</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{uniqueCustomers}</div>
+            <p className="text-xs text-muted-foreground">Denne måneden</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Calendar */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pakkekalender</CardTitle>
+            <CardDescription>
+              Klikk på en dato for å se ordrer for den dagen
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <div>
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md border-0 pointer-events-auto"
+                onSelect={(date) => date && setSelectedDate(date)}
                 locale={nb}
-                modifiers={{
-                  packingDayReady: packingDays.filter(day => day.status === 'Klar for pakking').map(day => day.date),
-                  packingDayInProgress: packingDays.filter(day => day.status === 'Pågår').map(day => day.date),
-                  packingDayCompleted: packingDays.filter(day => day.status === 'Fullført').map(day => day.date),
-                  today: [new Date()]
-                }}
-                modifiersStyles={{
-                  packingDayReady: { 
-                    backgroundColor: 'hsl(var(--primary))',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    border: '2px solid hsl(var(--primary))',
-                    position: 'relative'
+                modifiers={calendarModifiers}
+                modifiersClassNames={{
+                  packingDay: (date) => {
+                    const status = getPackingSessionStatus(date);
+                    switch (status) {
+                      case 'ready': return 'bg-blue-100 text-blue-800';
+                      case 'in_progress': return 'bg-orange-100 text-orange-800';
+                      case 'completed': return 'bg-green-100 text-green-800';
+                      default: return 'bg-gray-100 text-gray-800';
+                    }
                   },
-                  packingDayInProgress: { 
-                    backgroundColor: '#f97316',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    border: '2px solid #f97316'
-                  },
-                  packingDayCompleted: { 
-                    backgroundColor: '#16a34a',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    border: '2px solid #16a34a'
-                  },
-                  today: {
-                    border: '4px solid #ef4444',
-                    fontWeight: 'bold',
-                    borderRadius: '4px'
-                  }
+                  hasOrders: 'ring-2 ring-blue-200',
+                  today: 'ring-2 ring-red-500'
                 }}
               />
               
-              <CalendarLegend />
-              
-              <div className="mt-4 text-sm text-muted-foreground space-y-1">
-                <p className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Pakkedager funnet: {packingDays.length}</span>
-                </p>
-                <p>Valgt dato: {selectedDate ? format(selectedDate, 'yyyy-MM-dd', { locale: nb }) : 'Ingen'}</p>
-                {selectedDayData && (
-                  <p className="flex items-center space-x-2">
-                    <CircleDot className="h-4 w-4" />
-                    <span>{selectedDayData.filesUploaded} filer lastet opp</span>
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Selected Day Details */}
-        <div>
-          {selectedDayData ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <span>{format(selectedDate!, 'd. MMMM yyyy', { locale: nb })}</span>
-                  {isToday(selectedDate!) && (
-                    <Badge variant="destructive" className="text-xs">I DAG</Badge>
-                  )}
-                </CardTitle>
+              {/* Legend */}
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="font-medium">Fargekoder:</div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm">Status</span>
-                  <Badge 
-                    variant="secondary" 
-                    className={
-                      selectedDayData.status === 'Klar for pakking' ? 'bg-blue-100 text-blue-800' :
-                      selectedDayData.status === 'Pågår' ? 'bg-orange-100 text-orange-800' :
-                      'bg-green-100 text-green-800'
-                    }
-                  >
-                    {selectedDayData.status}
-                  </Badge>
+                  <div className="w-4 h-4 bg-blue-100 border rounded"></div>
+                  <span>Klar for pakking</span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  <span>{selectedDayData.filesUploaded} filer lastet opp</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-orange-100 border rounded"></div>
+                  <span>Pakking pågår</span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Totalt ordrer</span>
-                    <div className="text-2xl font-bold">{selectedDayData.totalOrders}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Unike kunder</span>
-                    <div className="text-2xl font-bold">{selectedDayData.uniqueCustomers}</div>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-muted-foreground">Produkttyper</span>
-                    <div className="text-2xl font-bold">{selectedDayData.productTypes}</div>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-green-100 border rounded"></div>
+                  <span>Pakking fullført</span>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-red-500 rounded"></div>
+                  <span>I dag</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                <div>
-                  <h4 className="font-semibold mb-2">Mest bestilte produkter</h4>
-                  <div className="space-y-2">
-                    {selectedDayData.topProducts.map((product, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span>{product.name}</span>
-                        <span className="font-medium">{product.quantity} stk</span>
+        {/* Daily Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Ordrer for {format(selectedDate, 'dd. MMMM yyyy', { locale: nb })}
+            </CardTitle>
+            <CardDescription>
+              {selectedDateOrders?.length || 0} ordrer denne dagen
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {dayOrdersLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : !selectedDateOrders || selectedDateOrders.length === 0 ? (
+              <div className="text-center py-8">
+                <CalendarIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">Ingen ordrer</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Ingen ordrer registrert for denne dagen.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {selectedDateOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-medium">{order.order_number}</span>
+                        {getStatusBadge(order.status)}
                       </div>
-                    ))}
+                      <p className="text-sm text-gray-600">
+                        {order.customer?.name || 'Ukjent kunde'}
+                      </p>
+                      {order.total_amount && (
+                        <p className="text-sm text-gray-500">
+                          {order.total_amount.toLocaleString('nb-NO')} kr
+                        </p>
+                      )}
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Detaljer
+                    </Button>
                   </div>
-                </div>
-
-                <Button 
-                  className="w-full"
-                  onClick={() => setView('products')}
-                >
-                  <Package className="mr-2 h-4 w-4" />
-                  Start pakking
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Velg en dato i kalenderen for å se pakkedetaljer</p>
-                <p className="text-xs mt-2">Dager med opplastede filer er markert med farger</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -39,6 +39,246 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address: string | null
+          bakery_id: string
+          contact_person: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          bakery_id: string
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          bakery_id?: string
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_products: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          packing_status: string | null
+          product_id: string
+          quantity: number
+          unit_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          packing_status?: string | null
+          product_id: string
+          quantity: number
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          packing_status?: string | null
+          product_id?: string
+          quantity?: number
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_products_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          bakery_id: string
+          created_at: string | null
+          customer_id: string
+          delivery_date: string
+          id: string
+          notes: string | null
+          order_number: string
+          status: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string | null
+          customer_id: string
+          delivery_date: string
+          id?: string
+          notes?: string | null
+          order_number: string
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string | null
+          customer_id?: string
+          delivery_date?: string
+          id?: string
+          notes?: string | null
+          order_number?: string
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packing_sessions: {
+        Row: {
+          bakery_id: string
+          created_at: string | null
+          files_uploaded: number | null
+          id: string
+          product_types: number | null
+          session_date: string
+          status: string | null
+          total_orders: number | null
+          unique_customers: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string | null
+          files_uploaded?: number | null
+          id?: string
+          product_types?: number | null
+          session_date: string
+          status?: string | null
+          total_orders?: number | null
+          unique_customers?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string | null
+          files_uploaded?: number | null
+          id?: string
+          product_types?: number | null
+          session_date?: string
+          status?: string | null
+          total_orders?: number | null
+          unique_customers?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packing_sessions_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          bakery_id: string
+          category: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bakery_id: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price?: number | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bakery_id?: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

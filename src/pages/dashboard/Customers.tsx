@@ -1,49 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, Phone, Mail, MapPin } from 'lucide-react';
+import { Users, UserPlus, Phone, Mail, MapPin, Loader2 } from 'lucide-react';
+import { useCustomers } from '@/hooks/useCustomers';
 
 const Customers = () => {
-  const mockCustomers = [
-    {
-      id: 'CUST-001',
-      name: 'Kafe Sentralen',
-      contact: 'Maria Hansen',
-      phone: '+47 123 45 678',
-      email: 'maria@kafesentralen.no',
-      address: 'Storgata 15, 0155 Oslo',
-      status: 'active',
-      orders: 45,
-      totalSpent: '125.500 kr',
-      lastOrder: '2025-06-07'
-    },
-    {
-      id: 'CUST-002',
-      name: 'Restaurant Nord',
-      contact: 'Erik Johansen',
-      phone: '+47 987 65 432',
-      email: 'erik@restaurantnord.no',
-      address: 'Nordahl Bruns gate 20, 0165 Oslo',
-      status: 'active',
-      orders: 28,
-      totalSpent: '89.200 kr',
-      lastOrder: '2025-06-06'
-    },
-    {
-      id: 'CUST-003',
-      name: 'Bakeri Sør',
-      contact: 'Linda Andersen',
-      phone: '+47 456 78 901',
-      email: 'linda@bakerisor.no',
-      address: 'Tøyengata 5, 0186 Oslo',
-      status: 'inactive',
-      orders: 12,
-      totalSpent: '34.800 kr',
-      lastOrder: '2025-05-15'
-    }
-  ];
+  const { data: customers, isLoading, error } = useCustomers();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -57,6 +21,25 @@ const Customers = () => {
         return <Badge variant="outline">Ukjent</Badge>;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600">
+        <p>Feil ved lasting av kunder: {error.message}</p>
+      </div>
+    );
+  }
+
+  const activeCustomers = customers?.filter(c => c.status === 'active') || [];
+  const totalCustomers = customers?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -84,9 +67,9 @@ const Customers = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
+            <div className="text-2xl font-bold">{totalCustomers}</div>
             <p className="text-xs text-muted-foreground">
-              +3 denne måneden
+              Registrerte kunder
             </p>
           </CardContent>
         </Card>
@@ -98,37 +81,41 @@ const Customers = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">38</div>
+            <div className="text-2xl font-bold">{activeCustomers.length}</div>
             <p className="text-xs text-muted-foreground">
-              84% av totale
+              {totalCustomers > 0 ? Math.round((activeCustomers.length / totalCustomers) * 100) : 0}% av totale
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Nye denne måneden
+              Med e-post
             </CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
+            <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">
+              {customers?.filter(c => c.email).length || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +1 fra forrige måned
+              Har registrert e-post
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Gjennomsnitt ordre
+              Med telefon
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Phone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">28</div>
+            <div className="text-2xl font-bold">
+              {customers?.filter(c => c.phone).length || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
-              per kunde
+              Har registrert telefon
             </p>
           </CardContent>
         </Card>
@@ -143,50 +130,74 @@ const Customers = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {mockCustomers.map((customer) => (
-              <div key={customer.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">{customer.name}</span>
-                    {getStatusBadge(customer.status)}
-                  </div>
-                  <p className="text-sm text-gray-600">Kontakt: {customer.contact}</p>
-                  <div className="flex items-center space-x-4 text-xs text-gray-500">
-                    <div className="flex items-center">
-                      <Phone className="w-3 h-3 mr-1" />
-                      {customer.phone}
-                    </div>
-                    <div className="flex items-center">
-                      <Mail className="w-3 h-3 mr-1" />
-                      {customer.email}
-                    </div>
-                  </div>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <MapPin className="w-3 h-3 mr-1" />
-                    {customer.address}
-                  </div>
-                  <div className="flex items-center space-x-4 text-xs text-gray-500">
-                    <span>{customer.orders} ordrer</span>
-                    <span className="font-medium">{customer.totalSpent}</span>
-                    <span>Siste ordre: {customer.lastOrder}</span>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Mail className="w-4 h-4 mr-1" />
-                    Kontakt
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Rediger
-                  </Button>
-                  <Button size="sm">
-                    Ny Ordre
-                  </Button>
-                </div>
+          {!customers || customers.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">Ingen kunder</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Kom i gang ved å opprette din første kunde.
+              </p>
+              <div className="mt-6">
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Ny Kunde
+                </Button>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {customers.map((customer) => (
+                <div key={customer.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{customer.name}</span>
+                      {getStatusBadge(customer.status)}
+                    </div>
+                    {customer.contact_person && (
+                      <p className="text-sm text-gray-600">Kontakt: {customer.contact_person}</p>
+                    )}
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      {customer.phone && (
+                        <div className="flex items-center">
+                          <Phone className="w-3 h-3 mr-1" />
+                          {customer.phone}
+                        </div>
+                      )}
+                      {customer.email && (
+                        <div className="flex items-center">
+                          <Mail className="w-3 h-3 mr-1" />
+                          {customer.email}
+                        </div>
+                      )}
+                    </div>
+                    {customer.address && (
+                      <div className="flex items-center text-xs text-gray-500">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        {customer.address}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400">
+                      Opprettet: {new Date(customer.created_at).toLocaleDateString('nb-NO')}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    {customer.email && (
+                      <Button variant="outline" size="sm">
+                        <Mail className="w-4 h-4 mr-1" />
+                        Kontakt
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm">
+                      Rediger
+                    </Button>
+                    <Button size="sm">
+                      Ny Ordre
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
