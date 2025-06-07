@@ -44,9 +44,14 @@ export const useCreateProfile = () => {
       role: Profile['role'];
       bakery_id?: string;
     }) => {
+      // Normalize email to lowercase to avoid validation issues
+      const normalizedEmail = profile.email.toLowerCase().trim();
+      
+      console.log('Creating user with email:', normalizedEmail);
+
       // Create user with regular signUp (this will create both auth.users and profiles entry)
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: profile.email,
+        email: normalizedEmail,
         password: profile.password,
         options: {
           data: {
@@ -55,8 +60,19 @@ export const useCreateProfile = () => {
         }
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Bruker ble ikke opprettet');
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
+      
+      if (!authData.user) {
+        throw new Error('Bruker ble ikke opprettet');
+      }
+
+      console.log('User created, updating profile for ID:', authData.user.id);
+
+      // Wait a bit to ensure the profile trigger has run
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Update the profile that was automatically created with the correct role and bakery
       const { data, error } = await supabase
@@ -71,7 +87,12 @@ export const useCreateProfile = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+      
+      console.log('Profile updated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -81,10 +102,21 @@ export const useCreateProfile = () => {
         description: "Bruker opprettet med passord. Brukeren kan nå logge inn.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Create profile error:', error);
+      let errorMessage = 'Kunne ikke opprette bruker';
+      
+      if (error.message?.includes('email_address_invalid')) {
+        errorMessage = 'Ugyldig e-postadresse. Vennligst bruk en gyldig e-post.';
+      } else if (error.message?.includes('User already registered')) {
+        errorMessage = 'En bruker med denne e-postadressen finnes allerede.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Feil",
-        description: `Kunne ikke opprette bruker: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
     },
