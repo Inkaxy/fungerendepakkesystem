@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ interface PackingDateDetailsProps {
 }
 
 const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) => {
+  const navigate = useNavigate();
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
   const { data: packingSession } = usePackingSessionByDate(dateStr);
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
@@ -54,6 +56,12 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
   };
 
   const handleStartPacking = async () => {
+    if (packingSession?.status === 'in_progress') {
+      // If already in progress, go directly to product overview
+      navigate(`/dashboard/orders/packing/${dateStr}`);
+      return;
+    }
+
     try {
       await createOrUpdateSession.mutateAsync({
         bakery_id: orders[0]?.bakery_id || '',
@@ -62,8 +70,11 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
         unique_customers: uniqueCustomers,
         product_types: productTypes,
         files_uploaded: 0,
-        status: 'in_progress'
+        status: 'ready'
       });
+
+      // Navigate to product overview
+      navigate(`/dashboard/orders/packing/${dateStr}`);
     } catch (error) {
       console.error('Failed to start packing session:', error);
     }
