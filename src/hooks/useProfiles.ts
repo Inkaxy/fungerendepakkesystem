@@ -41,12 +41,14 @@ export const useCreateProfile = () => {
     mutationFn: async (profile: {
       email: string;
       name: string;
+      password: string;
       role: Profile['role'];
       bakery_id?: string;
     }) => {
-      // First create user in Supabase Auth
+      // First create user in Supabase Auth with password
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: profile.email,
+        password: profile.password,
         email_confirm: true,
         user_metadata: {
           name: profile.name,
@@ -74,7 +76,7 @@ export const useCreateProfile = () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: "Suksess",
-        description: "Bruker opprettet",
+        description: "Bruker opprettet med passord",
       });
     },
     onError: (error) => {

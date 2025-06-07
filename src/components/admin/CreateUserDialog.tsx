@@ -33,6 +33,7 @@ import { useBakeries } from '@/hooks/useBakeries';
 const createUserSchema = z.object({
   name: z.string().min(1, 'Navn er påkrevd'),
   email: z.string().email('Ugyldig e-postadresse'),
+  password: z.string().min(6, 'Passord må være minst 6 tegn'),
   role: z.enum(['super_admin', 'bakery_admin', 'bakery_user']),
   bakery_id: z.string().optional(),
 });
@@ -53,6 +54,7 @@ const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
     defaultValues: {
       name: '',
       email: '',
+      password: '',
       role: 'bakery_user',
       bakery_id: '',
     },
@@ -66,6 +68,7 @@ const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
       await createProfile.mutateAsync({
         name: data.name,
         email: data.email,
+        password: data.password,
         role: data.role,
         bakery_id: needsBakery ? data.bakery_id : undefined,
       });
@@ -108,6 +111,19 @@ const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
                   <FormLabel>E-post *</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Passord *</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} placeholder="Minst 6 tegn" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
