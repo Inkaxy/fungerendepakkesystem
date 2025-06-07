@@ -156,6 +156,7 @@ const Customers = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Kontaktperson</TableHead>
@@ -169,6 +170,9 @@ const Customers = () => {
               <TableBody>
                 {customers.map((customer) => (
                   <TableRow key={customer.id}>
+                    <TableCell className="font-medium">
+                      {customer.customer_number || '-'}
+                    </TableCell>
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
                     <TableCell>{customer.contact_person || '-'}</TableCell>

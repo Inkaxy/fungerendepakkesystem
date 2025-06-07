@@ -95,7 +95,8 @@ const Products = () => {
   };
 
   const filteredProducts = products?.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (product.product_number && product.product_number.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   }) || [];
@@ -260,7 +261,7 @@ const Products = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Søk etter produkter..."
+                placeholder="Søk etter produkter eller varenummer..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -316,6 +317,7 @@ const Products = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Varenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Kategori</TableHead>
                   <TableHead>Pris</TableHead>
@@ -328,6 +330,9 @@ const Products = () => {
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
+                    <TableCell className="font-medium">
+                      {product.product_number || '-'}
+                    </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>

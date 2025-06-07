@@ -3,6 +3,7 @@ export interface Customer {
   id: string;
   bakery_id: string;
   name: string;
+  customer_number?: string;
   contact_person?: string;
   phone?: string;
   email?: string;
@@ -16,6 +17,7 @@ export interface Product {
   id: string;
   bakery_id: string;
   name: string;
+  product_number?: string;
   category?: string;
   price?: number;
   unit?: string;

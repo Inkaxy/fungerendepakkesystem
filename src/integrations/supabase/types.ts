@@ -45,6 +45,7 @@ export type Database = {
           bakery_id: string
           contact_person: string | null
           created_at: string | null
+          customer_number: string | null
           email: string | null
           id: string
           name: string
@@ -57,6 +58,7 @@ export type Database = {
           bakery_id: string
           contact_person?: string | null
           created_at?: string | null
+          customer_number?: string | null
           email?: string | null
           id?: string
           name: string
@@ -69,6 +71,7 @@ export type Database = {
           bakery_id?: string
           contact_person?: string | null
           created_at?: string | null
+          customer_number?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -244,6 +247,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           price: number | null
+          product_number: string | null
           unit: string | null
           updated_at: string | null
         }
@@ -255,6 +259,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           price?: number | null
+          product_number?: string | null
           unit?: string | null
           updated_at?: string | null
         }
@@ -266,6 +271,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           price?: number | null
+          product_number?: string | null
           unit?: string | null
           updated_at?: string | null
         }
