@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,7 +97,8 @@ export const useAuthStore = create<AuthState>()(
             session: data.session,
             isAuthenticating: false 
           });
-          await get().fetchProfile(data.user.id);
+          // Don't call fetchProfile here to avoid auth deadlock
+          // It will be called by the auth state change listener
         }
 
         return { error: null };
@@ -118,6 +118,8 @@ export const useAuthStore = create<AuthState>()(
       // Fetch User Profile
       fetchProfile: async (userId: string) => {
         try {
+          console.log('Fetching profile for user:', userId);
+          
           const { data, error } = await supabase
             .from('profiles')
             .select(`
@@ -125,9 +127,13 @@ export const useAuthStore = create<AuthState>()(
               bakeries(name)
             `)
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error fetching profile:', error);
+            // Don't throw, just log the error and continue
+            return;
+          }
 
           if (data) {
             const profile: UserProfile = {
@@ -144,14 +150,22 @@ export const useAuthStore = create<AuthState>()(
             };
             set({ profile });
             
+            console.log('Profile fetched successfully:', profile.email, profile.role);
+            
             // Log last login
             await supabase
               .from('profiles')
               .update({ last_login: new Date().toISOString() })
-              .eq('id', userId);
+              .eq('id', userId)
+              .select()
+              .maybeSingle();
+          } else {
+            console.log('No profile found for user:', userId);
+            set({ profile: null });
           }
         } catch (error) {
           console.error('Error fetching profile:', error);
+          // Don't set profile to null, keep existing state
         }
       },
 
