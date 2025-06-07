@@ -69,7 +69,7 @@ const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
         email: data.email,
         password: data.password,
         role: data.role,
-        bakery_id: canSelectBakery && data.bakery_id ? data.bakery_id : undefined,
+        bakery_id: canSelectBakery && data.bakery_id && data.bakery_id !== 'none' ? data.bakery_id : undefined,
       });
       form.reset();
       onOpenChange(false);
@@ -167,7 +167,7 @@ const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
                       </FormControl>
                       <SelectContent>
                         {selectedRole === 'super_admin' && (
-                          <SelectItem value="">Ingen bakeri (global tilgang)</SelectItem>
+                          <SelectItem value="none">Ingen bakeri (global tilgang)</SelectItem>
                         )}
                         {bakeries?.map((bakery) => (
                           <SelectItem key={bakery.id} value={bakery.id}>

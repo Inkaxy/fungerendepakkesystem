@@ -61,7 +61,7 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
     defaultValues: {
       name: user?.name || '',
       role: (user?.role as any) || 'bakery_user',
-      bakery_id: user?.bakery_id || '',
+      bakery_id: user?.bakery_id || 'none',
       is_active: user?.is_active ?? true,
     },
   });
@@ -71,7 +71,7 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
       form.reset({
         name: user.name || '',
         role: user.role as any,
-        bakery_id: user.bakery_id || '',
+        bakery_id: user.bakery_id || 'none',
         is_active: user.is_active,
       });
     }
@@ -88,7 +88,7 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
         id: user.id,
         name: data.name,
         role: data.role,
-        bakery_id: canSelectBakery && data.bakery_id ? data.bakery_id : null,
+        bakery_id: canSelectBakery && data.bakery_id && data.bakery_id !== 'none' ? data.bakery_id : null,
         is_active: data.is_active,
       });
       onOpenChange(false);
@@ -162,7 +162,7 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
                       </FormControl>
                       <SelectContent>
                         {selectedRole === 'super_admin' && (
-                          <SelectItem value="">Ingen bakeri (global tilgang)</SelectItem>
+                          <SelectItem value="none">Ingen bakeri (global tilgang)</SelectItem>
                         )}
                         {bakeries?.map((bakery) => (
                           <SelectItem key={bakery.id} value={bakery.id}>
