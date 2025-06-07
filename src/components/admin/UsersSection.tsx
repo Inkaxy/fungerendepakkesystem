@@ -7,9 +7,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Edit, UserCheck, UserX, MoreVertical, Settings, Building2 } from 'lucide-react';
+import { Users, Edit, UserCheck, UserX, MoreVertical, Settings, Building2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -28,6 +29,7 @@ interface UsersSectionProps {
   onEditUser: (user: User) => void;
   onDeactivateUser: (user: User) => void;
   onReactivateUser: (user: User) => void;
+  onPermanentDeleteUser: (user: User) => void;
   onManagePermissions: (user: User) => void;
 }
 
@@ -36,6 +38,7 @@ const UsersSection = ({
   onEditUser, 
   onDeactivateUser, 
   onReactivateUser,
+  onPermanentDeleteUser,
   onManagePermissions 
 }: UsersSectionProps) => {
   const getRoleBadge = (role: string) => {
@@ -129,6 +132,14 @@ const UsersSection = ({
                         Reaktiver
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-red-600"
+                      onClick={() => onPermanentDeleteUser(user)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Slett permanent
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Loader2 } from 'lucide-react';
 import { useBakeries, useDeleteBakery } from '@/hooks/useBakeries';
-import { useProfiles, useDeleteProfile, useReactivateProfile } from '@/hooks/useProfiles';
+import { useProfiles, useDeleteProfile, useReactivateProfile, usePermanentDeleteProfile } from '@/hooks/useProfiles';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStats from '@/components/admin/AdminStats';
 import BakeriesSection from '@/components/admin/BakeriesSection';
@@ -21,12 +21,14 @@ const Admin = () => {
   const [deletingBakery, setDeletingBakery] = useState<any>(null);
   const [deactivatingUser, setDeactivatingUser] = useState<any>(null);
   const [reactivatingUser, setReactivatingUser] = useState<any>(null);
+  const [permanentDeletingUser, setPermanentDeletingUser] = useState<any>(null);
   
   const { data: bakeries, isLoading: bakeriesLoading } = useBakeries();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
   const deleteBakery = useDeleteBakery();
   const deactivateProfile = useDeleteProfile(); // This is now deactivation
   const reactivateProfile = useReactivateProfile();
+  const permanentDeleteProfile = usePermanentDeleteProfile();
 
   // Only super_admin should see this page
   if (profile?.role !== 'super_admin') {
@@ -58,6 +60,13 @@ const Admin = () => {
     if (reactivatingUser) {
       await reactivateProfile.mutateAsync(reactivatingUser.id);
       setReactivatingUser(null);
+    }
+  };
+
+  const handlePermanentDeleteUser = async () => {
+    if (permanentDeletingUser) {
+      await permanentDeleteProfile.mutateAsync(permanentDeletingUser.id);
+      setPermanentDeletingUser(null);
     }
   };
 
@@ -100,6 +109,7 @@ const Admin = () => {
         onEditUser={setEditingUser}
         onDeactivateUser={setDeactivatingUser}
         onReactivateUser={setReactivatingUser}
+        onPermanentDeleteUser={setPermanentDeletingUser}
         onManagePermissions={setManagingUserPermissions}
       />
 
@@ -122,12 +132,16 @@ const Admin = () => {
         setDeactivatingUser={setDeactivatingUser}
         reactivatingUser={reactivatingUser}
         setReactivatingUser={setReactivatingUser}
+        permanentDeletingUser={permanentDeletingUser}
+        setPermanentDeletingUser={setPermanentDeletingUser}
         onDeleteBakery={handleDeleteBakery}
         onDeactivateUser={handleDeactivateUser}
         onReactivateUser={handleReactivateUser}
+        onPermanentDeleteUser={handlePermanentDeleteUser}
         deleteBakeryLoading={deleteBakery.isPending}
         deactivateUserLoading={deactivateProfile.isPending}
         reactivateUserLoading={reactivateProfile.isPending}
+        permanentDeleteUserLoading={permanentDeleteProfile.isPending}
       />
     </div>
   );

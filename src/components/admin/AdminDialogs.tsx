@@ -1,3 +1,4 @@
+
 import React from 'react';
 import CreateBakeryDialog from '@/components/admin/CreateBakeryDialog';
 import EditBakeryDialog from '@/components/admin/EditBakeryDialog';
@@ -44,12 +45,16 @@ interface AdminDialogsProps {
   setDeactivatingUser: (user: User | null) => void;
   reactivatingUser: User | null;
   setReactivatingUser: (user: User | null) => void;
+  permanentDeletingUser: User | null;
+  setPermanentDeletingUser: (user: User | null) => void;
   onDeleteBakery: () => void;
   onDeactivateUser: () => void;
   onReactivateUser: () => void;
+  onPermanentDeleteUser: () => void;
   deleteBakeryLoading: boolean;
   deactivateUserLoading: boolean;
   reactivateUserLoading: boolean;
+  permanentDeleteUserLoading: boolean;
 }
 
 const AdminDialogs = ({
@@ -71,12 +76,16 @@ const AdminDialogs = ({
   setDeactivatingUser,
   reactivatingUser,
   setReactivatingUser,
+  permanentDeletingUser,
+  setPermanentDeletingUser,
   onDeleteBakery,
   onDeactivateUser,
   onReactivateUser,
+  onPermanentDeleteUser,
   deleteBakeryLoading,
   deactivateUserLoading,
   reactivateUserLoading,
+  permanentDeleteUserLoading,
 }: AdminDialogsProps) => {
   return (
     <>
@@ -134,6 +143,15 @@ const AdminDialogs = ({
         onConfirm={onReactivateUser}
         isLoading={reactivateUserLoading}
         confirmText="Reaktiver"
+      />
+      <DeleteConfirmDialog
+        open={!!permanentDeletingUser}
+        onOpenChange={(open) => !open && setPermanentDeletingUser(null)}
+        title="Slett bruker permanent"
+        description={`Er du sikker på at du vil slette brukeren "${permanentDeletingUser?.name || permanentDeletingUser?.email}" PERMANENT? Denne handlingen kan IKKE angres og vil fjerne all brukerdata fra systemet.`}
+        onConfirm={onPermanentDeleteUser}
+        isLoading={permanentDeleteUserLoading}
+        confirmText="Slett permanent"
       />
     </>
   );

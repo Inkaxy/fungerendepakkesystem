@@ -50,7 +50,6 @@ export const useCreateProfile = () => {
       
       console.log('Creating user with email:', normalizedEmail);
 
-      // Create user with regular signUp (this will create both auth.users and profiles entry)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: normalizedEmail,
         password: profile.password,
@@ -72,10 +71,8 @@ export const useCreateProfile = () => {
 
       console.log('User created, checking if profile exists for ID:', authData.user.id);
 
-      // Wait a bit to ensure the profile trigger has run
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // First, check if the profile already exists
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('*')
@@ -86,7 +83,6 @@ export const useCreateProfile = () => {
 
       if (existingProfile) {
         console.log('Profile exists, updating it');
-        // Update the existing profile
         const { data, error } = await supabase
           .from('profiles')
           .update({
@@ -107,7 +103,6 @@ export const useCreateProfile = () => {
         profileData = data;
       } else {
         console.log('Profile does not exist, creating it manually');
-        // Create the profile manually if it doesn't exist
         const { data, error } = await supabase
           .from('profiles')
           .insert({
@@ -233,6 +228,48 @@ export const useDeleteProfile = () => {
       toast({
         title: "Feil",
         description: `Kunne ikke deaktivere bruker: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// NEW: Permanent delete function
+export const usePermanentDeleteProfile = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      console.log('Attempting to permanently delete user with ID:', id);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('User permanent deletion error:', error);
+        throw error;
+      }
+      
+      console.log('User permanently deleted successfully');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast({
+        title: "Suksess",
+        description: "Bruker permanent slettet",
+      });
+    },
+    onError: (error) => {
+      console.error('Permanent delete user error:', error);
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette bruker: ${error.message}`,
         variant: "destructive",
       });
     },
