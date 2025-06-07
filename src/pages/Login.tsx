@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -19,6 +18,29 @@ const Login = () => {
   
   const { signIn, signUp, user, isAuthenticating } = useAuthStore();
   const navigate = useNavigate();
+
+  // Demo credentials
+  const demoCredentials = {
+    email: 'demobakeri@gmail.com',
+    password: 'Demo123'
+  };
+
+  const handleDemoLogin = () => {
+    setEmail(demoCredentials.email);
+    setPassword(demoCredentials.password);
+    setActiveTab('login');
+  };
+
+  const handleDemoLoginAndSubmit = async () => {
+    const { error } = await signIn(demoCredentials.email, demoCredentials.password);
+    
+    if (error) {
+      toast.error(`Demo innlogging feilet: ${error.message}`);
+    } else {
+      toast.success('Demo innlogging vellykket!');
+      navigate('/dashboard');
+    }
+  };
 
   // Redirect if already logged in
   useEffect(() => {
@@ -89,6 +111,39 @@ const Login = () => {
           </CardHeader>
 
           <CardContent>
+            {/* Demo Login Section */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                <User className="h-4 w-4 mr-2" />
+                Demo Innlogging
+              </h3>
+              <p className="text-xs text-blue-600 mb-3">
+                Test systemet med forhåndsopprettede demo-legitimasjon
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleDemoLogin}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  Fyll inn demo-data
+                </Button>
+                <Button
+                  onClick={handleDemoLoginAndSubmit}
+                  size="sm"
+                  className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={isAuthenticating}
+                >
+                  {isAuthenticating ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    'Logg inn som demo'
+                  )}
+                </Button>
+              </div>
+            </div>
+
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Logg Inn</TabsTrigger>
