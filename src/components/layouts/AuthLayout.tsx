@@ -11,8 +11,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings } from 'lucide-react';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
+import { LogOut, User, Settings, Menu, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -20,6 +31,8 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const { user, profile, signOut } = useAuthStore();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -40,6 +53,23 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     }
   };
 
+  const navigationItems = [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Ordrer & Pakking', href: '/dashboard/orders' },
+    { name: 'Leveranser', href: '/dashboard/deliveries' },
+    { name: 'Kunder', href: '/dashboard/customers' },
+    { name: 'Rapporter', href: '/dashboard/reports' },
+  ];
+
+  // Add Admin for super_admin only
+  if (profile?.role === 'super_admin') {
+    navigationItems.push({ name: 'Admin', href: '/dashboard/admin' });
+  }
+
+  const isActiveRoute = (href: string) => {
+    return location.pathname === href;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -58,8 +88,36 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
               </span>
             </div>
 
-            {/* User menu */}
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex space-x-8">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    isActiveRoute(item.href)
+                      ? "text-primary border-b-2 border-primary pb-4"
+                      : "text-gray-700 hover:text-gray-900"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Mobile menu button + User menu */}
             <div className="flex items-center space-x-4">
+              {/* Mobile menu button */}
+              <Button
+                variant="ghost"
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+
+              {/* User info (hidden on mobile) */}
               {profile && (
                 <div className="hidden md:block text-right">
                   <div className="text-sm font-medium text-gray-900">
@@ -72,6 +130,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                 </div>
               )}
 
+              {/* User dropdown menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -112,6 +171,29 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
               </DropdownMenu>
             </div>
           </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 py-4">
+              <div className="space-y-2">
+                {navigationItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "block px-3 py-2 text-base font-medium rounded-md transition-colors",
+                      isActiveRoute(item.href)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

@@ -12,6 +12,11 @@ import { useAuthStore } from "@/stores/authStore";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Orders from "./pages/dashboard/Orders";
+import Deliveries from "./pages/dashboard/Deliveries";
+import Customers from "./pages/dashboard/Customers";
+import Reports from "./pages/dashboard/Reports";
+import Admin from "./pages/dashboard/Admin";
 import NotFound from "./pages/NotFound";
 
 // Components
@@ -55,6 +60,31 @@ function AppContent() {
           <Route path="/dashboard" element={
             <AuthLayout>
               <Dashboard />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/orders" element={
+            <AuthLayout>
+              <Orders />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/deliveries" element={
+            <AuthLayout>
+              <Deliveries />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/customers" element={
+            <AuthLayout>
+              <Customers />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/reports" element={
+            <AuthLayout>
+              <Reports />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/admin" element={
+            <AuthLayout>
+              <Admin />
             </AuthLayout>
           } />
         </Route>
