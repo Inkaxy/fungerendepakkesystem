@@ -1,16 +1,14 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Package, ArrowLeft, Users } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
+import SelectedProductsCard from '@/components/packing/SelectedProductsCard';
+import ProductsTable from '@/components/packing/ProductsTable';
 
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
@@ -90,13 +88,6 @@ const PackingProductOverview = () => {
     }
   };
 
-  const getProgressColor = (packed: number, total: number) => {
-    const percentage = (packed / total) * 100;
-    if (percentage === 100) return 'bg-green-500';
-    if (percentage > 0) return 'bg-orange-500';
-    return 'bg-gray-300';
-  };
-
   if (!date) {
     return <div>Ugyldig dato</div>;
   }
@@ -113,141 +104,29 @@ const PackingProductOverview = () => {
           <span>Tilbake til ordrer</span>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
+          </h1>
           <p className="text-muted-foreground">
             Velg opptil 3 produkter for pakking
           </p>
         </div>
       </div>
 
-      {/* Valgte produkter */}
       {selectedProducts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Valgte produkter ({selectedProducts.length}/3)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Varenummer</TableHead>
-                  <TableHead>Produktnavn</TableHead>
-                  <TableHead>Totalt antall</TableHead>
-                  <TableHead>Antall kunder</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {selectedProducts.map(productId => {
-                  const product = productStats[productId];
-                  const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
-                  return (
-                    <TableRow key={productId}>
-                      <TableCell className="font-medium">
-                        {product.productNumber || '-'}
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.totalQuantity} stk</TableCell>
-                      <TableCell>{product.customers.size} kunder</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
-                              style={{ width: `${progressPercentage}%` }}
-                            />
-                          </div>
-                          <span className="text-xs">{Math.round(progressPercentage)}%</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-            <div className="mt-4">
-              <Button 
-                onClick={handleStartPacking}
-                disabled={selectedProducts.length === 0 || createOrUpdateSession.isPending}
-                className="w-full"
-              >
-                <Package className="w-4 h-4 mr-2" />
-                Start pakking
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <SelectedProductsCard
+          selectedProducts={selectedProducts}
+          productStats={productStats}
+          onStartPacking={handleStartPacking}
+          isLoading={createOrUpdateSession.isPending}
+        />
       )}
 
-      {/* Produkter */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Produkter</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {productList.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">Velg</TableHead>
-                  <TableHead>Varenummer</TableHead>
-                  <TableHead>Produktnavn</TableHead>
-                  <TableHead>Totalt antall</TableHead>
-                  <TableHead>Antall kunder</TableHead>
-                  <TableHead>Fremgang</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {productList.map((product: any) => {
-                  const isSelected = selectedProducts.includes(product.id);
-                  const canSelect = selectedProducts.length < 3 || isSelected;
-                  const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
-
-                  return (
-                    <TableRow key={product.id} className={isSelected ? 'bg-blue-50' : ''}>
-                      <TableCell>
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={(checked) => handleProductSelection(product.id, checked as boolean)}
-                          disabled={!canSelect}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {product.productNumber || '-'}
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.totalQuantity} stk</TableCell>
-                      <TableCell>{product.customers.size} kunder</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
-                              style={{ width: `${progressPercentage}%` }}
-                            />
-                          </div>
-                          <span className="text-xs">{Math.round(progressPercentage)}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={progressPercentage === 100 ? "default" : "outline"}>
-                          {progressPercentage === 100 ? "Ferdig" : "Venter"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Ingen produkter funnet for denne dagen</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ProductsTable
+        products={productList}
+        selectedProducts={selectedProducts}
+        onProductSelection={handleProductSelection}
+      />
     </div>
   );
 };
