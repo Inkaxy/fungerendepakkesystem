@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -192,7 +191,6 @@ const PackingProductDetail = () => {
                 <TableRow>
                   <TableHead className="w-12">Pakket</TableHead>
                   <TableHead>Kunde</TableHead>
-                  <TableHead>Ordrenummer</TableHead>
                   <TableHead>Antall</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -209,7 +207,6 @@ const PackingProductDetail = () => {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{item.customerName}</TableCell>
-                      <TableCell>#{item.orderNumber}</TableCell>
                       <TableCell>{item.quantity} stk</TableCell>
                       <TableCell>
                         <Badge 
