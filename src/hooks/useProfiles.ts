@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -45,25 +44,28 @@ export const useCreateProfile = () => {
       role: Profile['role'];
       bakery_id?: string;
     }) => {
-      // First create user in Supabase Auth with password
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Create user with regular signUp (this will create both auth.users and profiles entry)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: profile.email,
         password: profile.password,
-        email_confirm: true,
-        user_metadata: {
-          name: profile.name,
+        options: {
+          data: {
+            name: profile.name,
+          }
         }
       });
 
       if (authError) throw authError;
+      if (!authData.user) throw new Error('Bruker ble ikke opprettet');
 
-      // Then update the profile that was automatically created
+      // Update the profile that was automatically created with the correct role and bakery
       const { data, error } = await supabase
         .from('profiles')
         .update({
           name: profile.name,
           role: profile.role,
           bakery_id: profile.bakery_id,
+          email_confirmed: true, // Since admin is creating this user
         })
         .eq('id', authData.user.id)
         .select()
@@ -76,7 +78,7 @@ export const useCreateProfile = () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: "Suksess",
-        description: "Bruker opprettet med passord",
+        description: "Bruker opprettet med passord. Brukeren kan nå logge inn.",
       });
     },
     onError: (error) => {
