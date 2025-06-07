@@ -1,4 +1,3 @@
-
 import React from 'react';
 import CreateBakeryDialog from '@/components/admin/CreateBakeryDialog';
 import EditBakeryDialog from '@/components/admin/EditBakeryDialog';
@@ -41,12 +40,16 @@ interface AdminDialogsProps {
   setManagingUserPermissions: (user: User | null) => void;
   deletingBakery: Bakery | null;
   setDeletingBakery: (bakery: Bakery | null) => void;
-  deletingUser: User | null;
-  setDeletingUser: (user: User | null) => void;
+  deactivatingUser: User | null;
+  setDeactivatingUser: (user: User | null) => void;
+  reactivatingUser: User | null;
+  setReactivatingUser: (user: User | null) => void;
   onDeleteBakery: () => void;
-  onDeleteUser: () => void;
+  onDeactivateUser: () => void;
+  onReactivateUser: () => void;
   deleteBakeryLoading: boolean;
-  deleteUserLoading: boolean;
+  deactivateUserLoading: boolean;
+  reactivateUserLoading: boolean;
 }
 
 const AdminDialogs = ({
@@ -64,12 +67,16 @@ const AdminDialogs = ({
   setManagingUserPermissions,
   deletingBakery,
   setDeletingBakery,
-  deletingUser,
-  setDeletingUser,
+  deactivatingUser,
+  setDeactivatingUser,
+  reactivatingUser,
+  setReactivatingUser,
   onDeleteBakery,
-  onDeleteUser,
+  onDeactivateUser,
+  onReactivateUser,
   deleteBakeryLoading,
-  deleteUserLoading,
+  deactivateUserLoading,
+  reactivateUserLoading,
 }: AdminDialogsProps) => {
   return (
     <>
@@ -111,13 +118,22 @@ const AdminDialogs = ({
         confirmText="Slett bakeri"
       />
       <DeleteConfirmDialog
-        open={!!deletingUser}
-        onOpenChange={(open) => !open && setDeletingUser(null)}
-        title="Slett bruker permanent"
-        description={`Er du sikker på at du vil slette brukeren "${deletingUser?.name || deletingUser?.email}" permanent? Denne handlingen kan ikke angres og vil fjerne brukeren fra systemet helt.`}
-        onConfirm={onDeleteUser}
-        isLoading={deleteUserLoading}
-        confirmText="Slett bruker"
+        open={!!deactivatingUser}
+        onOpenChange={(open) => !open && setDeactivatingUser(null)}
+        title="Deaktiver bruker"
+        description={`Er du sikker på at du vil deaktivere brukeren "${deactivatingUser?.name || deactivatingUser?.email}"? Brukeren vil ikke lenger kunne logge inn, men kan reaktiveres senere.`}
+        onConfirm={onDeactivateUser}
+        isLoading={deactivateUserLoading}
+        confirmText="Deaktiver"
+      />
+      <DeleteConfirmDialog
+        open={!!reactivatingUser}
+        onOpenChange={(open) => !open && setReactivatingUser(null)}
+        title="Reaktiver bruker"
+        description={`Er du sikker på at du vil reaktivere brukeren "${reactivatingUser?.name || reactivatingUser?.email}"? Brukeren vil igjen kunne logge inn i systemet.`}
+        onConfirm={onReactivateUser}
+        isLoading={reactivateUserLoading}
+        confirmText="Reaktiver"
       />
     </>
   );

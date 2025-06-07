@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Edit, UserX, MoreVertical, Settings, Building2 } from 'lucide-react';
+import { Users, Edit, UserCheck, UserX, MoreVertical, Settings, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -26,11 +26,18 @@ interface User {
 interface UsersSectionProps {
   profiles: User[] | undefined;
   onEditUser: (user: User) => void;
-  onDeleteUser: (user: User) => void;
+  onDeactivateUser: (user: User) => void;
+  onReactivateUser: (user: User) => void;
   onManagePermissions: (user: User) => void;
 }
 
-const UsersSection = ({ profiles, onEditUser, onDeleteUser, onManagePermissions }: UsersSectionProps) => {
+const UsersSection = ({ 
+  profiles, 
+  onEditUser, 
+  onDeactivateUser, 
+  onReactivateUser,
+  onManagePermissions 
+}: UsersSectionProps) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'super_admin':
@@ -105,13 +112,23 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser, onManagePermissions 
                       <Settings className="w-4 h-4 mr-2" />
                       Tilganger
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-destructive"
-                      onClick={() => onDeleteUser(user)}
-                    >
-                      <UserX className="w-4 h-4 mr-2" />
-                      Slett bruker
-                    </DropdownMenuItem>
+                    {user.is_active ? (
+                      <DropdownMenuItem 
+                        className="text-orange-600"
+                        onClick={() => onDeactivateUser(user)}
+                      >
+                        <UserX className="w-4 h-4 mr-2" />
+                        Deaktiver
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem 
+                        className="text-green-600"
+                        onClick={() => onReactivateUser(user)}
+                      >
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Reaktiver
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
