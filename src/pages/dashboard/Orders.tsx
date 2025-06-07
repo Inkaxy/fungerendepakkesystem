@@ -40,11 +40,22 @@ const Orders = () => {
     }
   };
 
-  // Create calendar markers for packing days
+  // Create calendar modifiers for packing days
   const calendarModifiers = {
-    packingDay: (date: Date) => {
+    packingDayReady: (date: Date) => {
       const dateStr = format(date, 'yyyy-MM-dd');
-      return packingSessions?.some(session => session.session_date === dateStr) || false;
+      const session = packingSessions?.find(s => s.session_date === dateStr);
+      return session?.status === 'ready';
+    },
+    packingDayInProgress: (date: Date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const session = packingSessions?.find(s => s.session_date === dateStr);
+      return session?.status === 'in_progress';
+    },
+    packingDayCompleted: (date: Date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const session = packingSessions?.find(s => s.session_date === dateStr);
+      return session?.status === 'completed';
     },
     hasOrders: (date: Date) => {
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -54,12 +65,6 @@ const Orders = () => {
       const today = new Date();
       return format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
     }
-  };
-
-  const getPackingSessionStatus = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const session = packingSessions?.find(s => s.session_date === dateStr);
-    return session?.status;
   };
 
   if (ordersLoading) {
@@ -154,15 +159,9 @@ const Orders = () => {
                 locale={nb}
                 modifiers={calendarModifiers}
                 modifiersClassNames={{
-                  packingDay: (date) => {
-                    const status = getPackingSessionStatus(date);
-                    switch (status) {
-                      case 'ready': return 'bg-blue-100 text-blue-800';
-                      case 'in_progress': return 'bg-orange-100 text-orange-800';
-                      case 'completed': return 'bg-green-100 text-green-800';
-                      default: return 'bg-gray-100 text-gray-800';
-                    }
-                  },
+                  packingDayReady: 'bg-blue-100 text-blue-800',
+                  packingDayInProgress: 'bg-orange-100 text-orange-800',
+                  packingDayCompleted: 'bg-green-100 text-green-800',
                   hasOrders: 'ring-2 ring-blue-200',
                   today: 'ring-2 ring-red-500'
                 }}

@@ -1,13 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
-import { Settings, Users, Building, Shield, UserPlus } from 'lucide-react';
+import { Settings, Users, Building, Shield, UserPlus, Loader2 } from 'lucide-react';
+import { useBakeries } from '@/hooks/useBakeries';
+import { useProfiles } from '@/hooks/useProfiles';
+import CreateBakeryDialog from '@/components/admin/CreateBakeryDialog';
+import CreateUserDialog from '@/components/admin/CreateUserDialog';
+import { format } from 'date-fns';
+import { nb } from 'date-fns/locale';
 
 const Admin = () => {
   const { profile } = useAuthStore();
+  const [showCreateBakery, setShowCreateBakery] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  
+  const { data: bakeries, isLoading: bakeriesLoading } = useBakeries();
+  const { data: profiles, isLoading: profilesLoading } = useProfiles();
 
   // Only super_admin should see this page
   if (profile?.role !== 'super_admin') {
@@ -20,46 +31,6 @@ const Admin = () => {
       </div>
     );
   }
-
-  const mockBakeries = [
-    {
-      id: 'BAK-001',
-      name: 'Demo Bakeri',
-      location: 'Oslo Sentrum',
-      users: 3,
-      status: 'active',
-      admin: 'Henrik Hansen'
-    },
-    {
-      id: 'BAK-002',
-      name: 'Nord Bakeri',
-      location: 'Bergen',
-      users: 5,
-      status: 'active',
-      admin: 'Maria Olsen'
-    }
-  ];
-
-  const mockUsers = [
-    {
-      id: 'USER-001',
-      name: 'Henrik Hansen',
-      email: 'henrik@nottero-bakeri.no',
-      role: 'super_admin',
-      bakery: 'Demo Bakeri',
-      status: 'active',
-      lastLogin: '2025-06-07 08:07'
-    },
-    {
-      id: 'USER-002',
-      name: 'Ole Packer',
-      email: 'ole@demo-bakeri.no',
-      role: 'bakery_user',
-      bakery: 'Demo Bakeri',
-      status: 'active',
-      lastLogin: '2025-06-06 14:30'
-    }
-  ];
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -74,11 +45,23 @@ const Admin = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' 
+  const getStatusBadge = (isActive: boolean) => {
+    return isActive 
       ? <Badge variant="default">Aktiv</Badge>
       : <Badge variant="secondary">Inaktiv</Badge>;
   };
+
+  if (bakeriesLoading || profilesLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  const totalBakeries = bakeries?.length || 0;
+  const totalUsers = profiles?.length || 0;
+  const superAdmins = profiles?.filter(p => p.role === 'super_admin').length || 0;
 
   return (
     <div className="space-y-6">
@@ -91,11 +74,11 @@ const Admin = () => {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setShowCreateBakery(true)}>
             <Building className="mr-2 h-4 w-4" />
             Nytt Bakeri
           </Button>
-          <Button>
+          <Button onClick={() => setShowCreateUser(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
             Ny Bruker
           </Button>
@@ -112,7 +95,7 @@ const Admin = () => {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
+            <div className="text-2xl font-bold">{totalBakeries}</div>
             <p className="text-xs text-muted-foreground">
               Alle aktive
             </p>
@@ -126,9 +109,9 @@ const Admin = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              +1 denne måneden
+              Alle registrerte
             </p>
           </CardContent>
         </Card>
@@ -140,9 +123,9 @@ const Admin = () => {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
+            <div className="text-2xl font-bold">{superAdmins}</div>
             <p className="text-xs text-muted-foreground">
-              Du
+              Systemadministratorer
             </p>
           </CardContent>
         </Card>
@@ -172,17 +155,20 @@ const Admin = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockBakeries.map((bakery) => (
+            {bakeries?.map((bakery) => (
               <div key={bakery.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">{bakery.name}</span>
-                    {getStatusBadge(bakery.status)}
+                    <Badge variant="default">Aktiv</Badge>
                   </div>
-                  <p className="text-sm text-gray-600">Lokasjon: {bakery.location}</p>
+                  {bakery.address && (
+                    <p className="text-sm text-gray-600">Adresse: {bakery.address}</p>
+                  )}
                   <div className="flex items-center space-x-4 text-xs text-gray-500">
-                    <span>{bakery.users} brukere</span>
-                    <span>Admin: {bakery.admin}</span>
+                    {bakery.email && <span>E-post: {bakery.email}</span>}
+                    {bakery.phone && <span>Telefon: {bakery.phone}</span>}
+                    <span>Opprettet: {format(new Date(bakery.created_at), 'dd.MM.yyyy', { locale: nb })}</span>
                   </div>
                 </div>
                 <div className="flex space-x-2">
@@ -197,6 +183,15 @@ const Admin = () => {
                 </div>
               </div>
             ))}
+            {bakeries?.length === 0 && (
+              <div className="text-center py-8">
+                <Building className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">Ingen bakerier</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Opprett ditt første bakeri for å komme i gang.
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -211,18 +206,22 @@ const Admin = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockUsers.map((user) => (
+            {profiles?.map((user) => (
               <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-medium">{user.name}</span>
+                    <span className="font-medium">{user.name || 'Navn ikke satt'}</span>
                     {getRoleBadge(user.role)}
-                    {getStatusBadge(user.status)}
+                    {getStatusBadge(user.is_active)}
                   </div>
                   <p className="text-sm text-gray-600">{user.email}</p>
                   <div className="flex items-center space-x-4 text-xs text-gray-500">
-                    <span>Bakeri: {user.bakery}</span>
-                    <span>Sist pålogget: {user.lastLogin}</span>
+                    {user.bakery && <span>Bakeri: {user.bakery.name}</span>}
+                    {user.last_login ? (
+                      <span>Sist pålogget: {format(new Date(user.last_login), 'dd.MM.yyyy HH:mm', { locale: nb })}</span>
+                    ) : (
+                      <span>Aldri pålogget</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex space-x-2">
@@ -235,9 +234,28 @@ const Admin = () => {
                 </div>
               </div>
             ))}
+            {profiles?.length === 0 && (
+              <div className="text-center py-8">
+                <Users className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">Ingen brukere</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Opprett din første bruker for å komme i gang.
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <CreateBakeryDialog 
+        open={showCreateBakery} 
+        onOpenChange={setShowCreateBakery} 
+      />
+      <CreateUserDialog 
+        open={showCreateUser} 
+        onOpenChange={setShowCreateUser} 
+      />
     </div>
   );
 };
