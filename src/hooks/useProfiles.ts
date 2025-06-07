@@ -98,7 +98,7 @@ export const useCreateProfile = () => {
           })
           .eq('id', authData.user.id)
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Profile update error:', error);
@@ -172,7 +172,7 @@ export const useUpdateProfile = () => {
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -200,29 +200,39 @@ export const useDeleteProfile = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Instead of deleting the user from auth.users (which requires admin privileges),
-      // we deactivate the user by setting is_active to false
+      // Get current user state to toggle
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('is_active')
+        .eq('id', id)
+        .single();
+
+      if (!currentProfile) throw new Error('Bruker ikke funnet');
+
+      // Toggle the active state
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          is_active: false,
+          is_active: !currentProfile.is_active,
           updated_at: new Date().toISOString()
         })
         .eq('id', id);
 
       if (error) throw error;
+      
+      return !currentProfile.is_active;
     },
-    onSuccess: () => {
+    onSuccess: (newActiveState) => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: "Suksess",
-        description: "Bruker deaktivert",
+        description: newActiveState ? "Bruker reaktivert" : "Bruker deaktivert",
       });
     },
     onError: (error) => {
       toast({
         title: "Feil",
-        description: `Kunne ikke deaktivere bruker: ${error.message}`,
+        description: `Kunne ikke endre brukerstatus: ${error.message}`,
         variant: "destructive",
       });
     },

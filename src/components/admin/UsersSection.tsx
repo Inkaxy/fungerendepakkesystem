@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Edit, UserX, MoreVertical, Settings } from 'lucide-react';
+import { Users, Edit, UserX, MoreVertical, Settings, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -45,8 +45,8 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser }: UsersSectionProps)
 
   const getStatusBadge = (isActive: boolean) => {
     return isActive 
-      ? <Badge variant="default">Aktiv</Badge>
-      : <Badge variant="secondary">Inaktiv</Badge>;
+      ? <Badge variant="default" className="bg-green-600">Aktiv</Badge>
+      : <Badge variant="secondary" className="bg-gray-400">Inaktiv</Badge>;
   };
 
   return (
@@ -69,7 +69,12 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser }: UsersSectionProps)
                 </div>
                 <p className="text-sm text-gray-600">{user.email}</p>
                 <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  {user.bakery && <span>Bakeri: {user.bakery.name}</span>}
+                  {user.bakery && (
+                    <div className="flex items-center space-x-1">
+                      <Building2 className="w-3 h-3" />
+                      <span>Bakeri: {user.bakery.name}</span>
+                    </div>
+                  )}
                   {user.last_login ? (
                     <span>Sist pålogget: {format(new Date(user.last_login), 'dd.MM.yyyy HH:mm', { locale: nb })}</span>
                   ) : (
