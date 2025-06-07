@@ -83,3 +83,63 @@ export const useUpdateCustomer = () => {
     },
   });
 };
+
+export const useDeleteCustomer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast({
+        title: "Suksess",
+        description: "Kunde slettet",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette kunde: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteAllCustomers = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast({
+        title: "Suksess",
+        description: "Alle kunder slettet",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette alle kunder: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};

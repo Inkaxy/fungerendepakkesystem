@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, Phone, Mail, MapPin, Loader2 } from 'lucide-react';
-import { useCustomers } from '@/hooks/useCustomers';
+import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2 } from 'lucide-react';
+import { useCustomers, useDeleteCustomer, useDeleteAllCustomers } from '@/hooks/useCustomers';
 import {
   Table,
   TableBody,
@@ -13,9 +12,36 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const Customers = () => {
   const { data: customers, isLoading, error } = useCustomers();
+  const deleteCustomer = useDeleteCustomer();
+  const deleteAllCustomers = useDeleteAllCustomers();
+  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
+
+  const handleDeleteCustomer = async (id: string) => {
+    setDeletingCustomerId(id);
+    try {
+      await deleteCustomer.mutateAsync(id);
+    } finally {
+      setDeletingCustomerId(null);
+    }
+  };
+
+  const handleDeleteAllCustomers = async () => {
+    await deleteAllCustomers.mutateAsync();
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -59,10 +85,37 @@ const Customers = () => {
             Administrer kunderegisteret og kontaktinformasjon
           </p>
         </div>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Ny Kunde
-        </Button>
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={!customers || customers.length === 0}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Slett alle
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Dette vil slette alle kunder permanent. Denne handlingen kan ikke angres.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteAllCustomers}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Slett alle
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Ny Kunde
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -217,6 +270,39 @@ const Customers = () => {
                         <Button size="sm">
                           Ny Ordre
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              disabled={deletingCustomerId === customer.id}
+                            >
+                              {deletingCustomerId === customer.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Slett kunde</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Er du sikker på at du vil slette kunden "{customer.name}"? 
+                                Denne handlingen kan ikke angres.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteCustomer(customer.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Slett
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

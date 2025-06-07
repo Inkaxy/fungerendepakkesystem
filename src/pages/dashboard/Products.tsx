@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useProducts, useCreateProduct } from '@/hooks/useProducts';
+import { useProducts, useCreateProduct, useDeleteProduct, useDeleteAllProducts } from '@/hooks/useProducts';
 import { useAuthStore } from '@/stores/authStore';
-import { Package, Plus, Search, Filter } from 'lucide-react';
+import { Package, Plus, Search, Filter, Trash2, Loader2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -37,6 +37,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -54,10 +65,13 @@ type ProductFormData = z.infer<typeof productSchema>;
 const Products = () => {
   const { data: products, isLoading } = useProducts();
   const createProduct = useCreateProduct();
+  const deleteProduct = useDeleteProduct();
+  const deleteAllProducts = useDeleteAllProducts();
   const { profile } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -94,6 +108,19 @@ const Products = () => {
     }
   };
 
+  const handleDeleteProduct = async (id: string) => {
+    setDeletingProductId(id);
+    try {
+      await deleteProduct.mutateAsync(id);
+    } finally {
+      setDeletingProductId(null);
+    }
+  };
+
+  const handleDeleteAllProducts = async () => {
+    await deleteAllProducts.mutateAsync();
+  };
+
   const filteredProducts = products?.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (product.product_number && product.product_number.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -123,104 +150,131 @@ const Products = () => {
           <h1 className="text-2xl font-bold text-gray-900">Produkter</h1>
           <p className="text-gray-600">Administrer produkter for ditt bakeri</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nytt Produkt
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Opprett nytt produkt</DialogTitle>
-              <DialogDescription>
-                Legg til et nytt produkt i produktkatalogen
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Produktnavn</FormLabel>
-                      <FormControl>
-                        <Input placeholder="F.eks. Rundstykker" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Kategori</FormLabel>
-                      <FormControl>
-                        <Input placeholder="F.eks. Brød" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pris (kr)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          placeholder="0.00" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Enhet</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={!products || products.length === 0}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Slett alle
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Dette vil slette alle produkter permanent. Denne handlingen kan ikke angres.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteAllProducts}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Slett alle
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nytt Produkt
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Opprett nytt produkt</DialogTitle>
+                <DialogDescription>
+                  Legg til et nytt produkt i produktkatalogen
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Produktnavn</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Velg enhet" />
-                          </SelectTrigger>
+                          <Input placeholder="F.eks. Rundstykker" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="stk">Stykk</SelectItem>
-                          <SelectItem value="kg">Kilogram</SelectItem>
-                          <SelectItem value="g">Gram</SelectItem>
-                          <SelectItem value="l">Liter</SelectItem>
-                          <SelectItem value="dl">Desiliter</SelectItem>
-                          <SelectItem value="pakke">Pakke</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Avbryt
-                  </Button>
-                  <Button type="submit" disabled={createProduct.isPending}>
-                    {createProduct.isPending ? 'Oppretter...' : 'Opprett'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kategori</FormLabel>
+                        <FormControl>
+                          <Input placeholder="F.eks. Brød" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pris (kr)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="0.00" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="unit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Enhet</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Velg enhet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="stk">Stykk</SelectItem>
+                            <SelectItem value="kg">Kilogram</SelectItem>
+                            <SelectItem value="g">Gram</SelectItem>
+                            <SelectItem value="l">Liter</SelectItem>
+                            <SelectItem value="dl">Desiliter</SelectItem>
+                            <SelectItem value="pakke">Pakke</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Avbryt
+                    </Button>
+                    <Button type="submit" disabled={createProduct.isPending}>
+                      {createProduct.isPending ? 'Oppretter...' : 'Opprett'}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats */}
@@ -355,6 +409,39 @@ const Products = () => {
                         <Button variant="outline" size="sm">
                           {product.is_active ? 'Deaktiver' : 'Aktiver'}
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              disabled={deletingProductId === product.id}
+                            >
+                              {deletingProductId === product.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Slett produkt</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Er du sikker på at du vil slette produktet "{product.name}"? 
+                                Denne handlingen kan ikke angres.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Slett
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

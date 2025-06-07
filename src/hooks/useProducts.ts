@@ -43,3 +43,63 @@ export const useCreateProduct = () => {
     },
   });
 };
+
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Suksess",
+        description: "Produkt slettet",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette produkt: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteAllProducts = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Suksess",
+        description: "Alle produkter slettet",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke slette alle produkter: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
