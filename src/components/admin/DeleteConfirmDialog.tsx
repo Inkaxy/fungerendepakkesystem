@@ -18,6 +18,7 @@ interface DeleteConfirmDialogProps {
   description: string;
   onConfirm: () => void;
   isLoading?: boolean;
+  confirmText?: string;
 }
 
 const DeleteConfirmDialog = ({ 
@@ -26,7 +27,8 @@ const DeleteConfirmDialog = ({
   title, 
   description, 
   onConfirm,
-  isLoading = false 
+  isLoading = false,
+  confirmText = "Slett"
 }: DeleteConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -44,7 +46,7 @@ const DeleteConfirmDialog = ({
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? 'Sletter...' : 'Slett'}
+            {isLoading ? (confirmText === "Deaktiver" ? 'Deaktiverer...' : 'Sletter...') : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

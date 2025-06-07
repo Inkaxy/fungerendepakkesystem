@@ -78,10 +78,11 @@ const AdminDialogs = ({
       <DeleteConfirmDialog
         open={!!deletingUser}
         onOpenChange={(open) => !open && setDeletingUser(null)}
-        title="Slett bruker"
-        description={`Er du sikker på at du vil slette brukeren "${deletingUser?.name || deletingUser?.email}"? Denne handlingen kan ikke angres.`}
+        title="Deaktiver bruker"
+        description={`Er du sikker på at du vil deaktivere brukeren "${deletingUser?.name || deletingUser?.email}"? Brukeren vil ikke lenger kunne logge inn, men kan reaktiveres senere.`}
         onConfirm={onDeleteUser}
         isLoading={deleteUserLoading}
+        confirmText="Deaktiver"
       />
     </>
   );

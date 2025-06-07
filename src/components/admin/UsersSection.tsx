@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Edit, Trash2, MoreVertical, Settings } from 'lucide-react';
+import { Users, Edit, UserX, MoreVertical, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -101,8 +101,8 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser }: UsersSectionProps)
                       className="text-destructive"
                       onClick={() => onDeleteUser(user)}
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Slett
+                      <UserX className="w-4 h-4 mr-2" />
+                      {user.is_active ? 'Deaktiver' : 'Reaktiver'}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

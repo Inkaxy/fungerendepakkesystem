@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -199,21 +200,29 @@ export const useDeleteProfile = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Delete from auth.users (this will cascade to profiles due to the foreign key)
-      const { error } = await supabase.auth.admin.deleteUser(id);
+      // Instead of deleting the user from auth.users (which requires admin privileges),
+      // we deactivate the user by setting is_active to false
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: "Suksess",
-        description: "Bruker slettet",
+        description: "Bruker deaktivert",
       });
     },
     onError: (error) => {
       toast({
         title: "Feil",
-        description: `Kunne ikke slette bruker: ${error.message}`,
+        description: `Kunne ikke deaktivere bruker: ${error.message}`,
         variant: "destructive",
       });
     },
