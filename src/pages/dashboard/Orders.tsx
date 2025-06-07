@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { useOrders, useOrdersByDateRange } from '@/hooks/useOrders';
 import { usePackingSessions } from '@/hooks/usePackingSessions';
 import OrderDetailsModal from '@/components/orders/OrderDetailsModal';
 import DataUploadModal from '@/components/orders/DataUploadModal';
+import PackingDateDetails from '@/components/orders/PackingDateDetails';
 import { Order } from '@/types/database';
 
 const Orders = () => {
@@ -157,7 +159,7 @@ const Orders = () => {
           <CardHeader>
             <CardTitle>Pakkekalender</CardTitle>
             <CardDescription>
-              Klikk på en dato for å se ordrer for den dagen
+              Klikk på en dato for å se alle ordrer for den dagen
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
@@ -201,61 +203,55 @@ const Orders = () => {
           </CardContent>
         </Card>
 
-        {/* Daily Orders - Updated with order details button */}
+        {/* Packing Date Details - New unified view */}
+        <PackingDateDetails 
+          selectedDate={selectedDate} 
+          orders={selectedDateOrders || []} 
+        />
+      </div>
+
+      {/* All Orders for Selected Date */}
+      {selectedDateOrders && selectedDateOrders.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>
-              Ordrer for {format(selectedDate, 'dd. MMMM yyyy', { locale: nb })}
+              Alle ordrer for {format(selectedDate, 'dd. MMMM yyyy', { locale: nb })}
             </CardTitle>
             <CardDescription>
-              {selectedDateOrders?.length || 0} ordrer denne dagen
+              {selectedDateOrders.length} ordrer denne dagen
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {dayOrdersLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : !selectedDateOrders || selectedDateOrders.length === 0 ? (
-              <div className="text-center py-8">
-                <CalendarIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">Ingen ordrer</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Ingen ordrer registrert for denne dagen.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {selectedDateOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium">{order.order_number}</span>
-                        {getStatusBadge(order.status)}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {order.customer?.name || 'Ukjent kunde'}
-                      </p>
-                      {order.total_amount && (
-                        <p className="text-sm text-gray-500">
-                          {order.total_amount.toLocaleString('nb-NO')} kr
-                        </p>
-                      )}
+            <div className="space-y-3">
+              {selectedDateOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-medium">{order.order_number}</span>
+                      {getStatusBadge(order.status)}
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleOrderDetails(order)}
-                    >
-                      Detaljer
-                    </Button>
+                    <p className="text-sm text-gray-600">
+                      {order.customer?.name || 'Ukjent kunde'}
+                    </p>
+                    {order.total_amount && (
+                      <p className="text-sm text-gray-500">
+                        {order.total_amount.toLocaleString('nb-NO')} kr
+                      </p>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleOrderDetails(order)}
+                  >
+                    Detaljer
+                  </Button>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
-      </div>
+      )}
 
       {/* Modals */}
       <OrderDetailsModal
