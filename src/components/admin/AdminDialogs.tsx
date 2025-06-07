@@ -14,6 +14,9 @@ interface User {
   id: string;
   name?: string;
   email?: string;
+  role: string;
+  bakery_id?: string;
+  is_active: boolean;
 }
 
 interface AdminDialogsProps {
