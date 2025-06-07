@@ -3,7 +3,12 @@ import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Loader2 } from 'lucide-react';
 import { useBakeries, useDeleteBakery } from '@/hooks/useBakeries';
-import { useProfiles, useDeleteProfile, useReactivateProfile, usePermanentDeleteProfile } from '@/hooks/useProfiles';
+import { 
+  useProfiles, 
+  useDeleteProfile, 
+  useReactivateProfile, 
+  usePermanentDeleteProfile 
+} from '@/hooks/useProfiles';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStats from '@/components/admin/AdminStats';
 import BakeriesSection from '@/components/admin/BakeriesSection';

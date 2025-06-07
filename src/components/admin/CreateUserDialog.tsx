@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCreateProfile } from '@/hooks/useProfiles';
+import { useCreateProfile } from '@/hooks/useCreateProfile';
 import { useBakeries } from '@/hooks/useBakeries';
 
 const createUserSchema = z.object({
