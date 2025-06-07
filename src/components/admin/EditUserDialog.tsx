@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -79,7 +78,7 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
   }, [user, open, form]);
 
   const selectedRole = form.watch('role');
-  const needsBakery = selectedRole === 'bakery_admin' || selectedRole === 'bakery_user';
+  const canSelectBakery = selectedRole === 'super_admin' || selectedRole === 'bakery_admin' || selectedRole === 'bakery_user';
 
   const onSubmit = async (data: EditUserForm) => {
     if (!user) return;
@@ -89,7 +88,7 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
         id: user.id,
         name: data.name,
         role: data.role,
-        bakery_id: needsBakery ? data.bakery_id : null,
+        bakery_id: canSelectBakery && data.bakery_id ? data.bakery_id : null,
         is_active: data.is_active,
       });
       onOpenChange(false);
@@ -146,13 +145,15 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
                 </FormItem>
               )}
             />
-            {needsBakery && (
+            {canSelectBakery && (
               <FormField
                 control={form.control}
                 name="bakery_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bakeri *</FormLabel>
+                    <FormLabel>
+                      Bakeri {selectedRole === 'super_admin' ? '(valgfritt)' : '*'}
+                    </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -160,6 +161,9 @@ const EditUserDialog = ({ open, onOpenChange, user }: EditUserDialogProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {selectedRole === 'super_admin' && (
+                          <SelectItem value="">Ingen bakeri (global tilgang)</SelectItem>
+                        )}
                         {bakeries?.map((bakery) => (
                           <SelectItem key={bakery.id} value={bakery.id}>
                             {bakery.name}
