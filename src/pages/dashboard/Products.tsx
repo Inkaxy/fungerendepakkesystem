@@ -38,7 +38,7 @@ import { toast } from 'sonner';
 const productSchema = z.object({
   name: z.string().min(1, 'Produktnavn er påkrevd'),
   category: z.string().min(1, 'Kategori er påkrevd'),
-  price: z.string().transform((val) => parseFloat(val) || 0),
+  price: z.number().min(0, 'Pris må være 0 eller høyere'),
   unit: z.string().min(1, 'Enhet er påkrevd'),
 });
 
@@ -57,7 +57,7 @@ const Products = () => {
     defaultValues: {
       name: '',
       category: 'Ingen kategori',
-      price: '0',
+      price: 0,
       unit: 'stk',
     },
   });
@@ -163,7 +163,13 @@ const Products = () => {
                     <FormItem>
                       <FormLabel>Pris (kr)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="0.00" 
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
