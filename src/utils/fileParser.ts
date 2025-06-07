@@ -5,7 +5,7 @@ export interface ParsedProduct {
   name: string;
   category?: string;
   is_active: boolean;
-  bakery_id: string; // Will be set from user context
+  bakery_id: string;
 }
 
 export interface ParsedCustomer {
@@ -15,7 +15,7 @@ export interface ParsedCustomer {
   email?: string;
   address?: string;
   status: 'active' | 'inactive' | 'blocked';
-  bakery_id: string; // Will be set from user context
+  bakery_id: string;
 }
 
 export interface ParsedOrder {
@@ -23,7 +23,7 @@ export interface ParsedOrder {
   delivery_date: string;
   status: 'pending' | 'confirmed' | 'in_progress' | 'packed' | 'delivered' | 'cancelled';
   customer_id: string;
-  bakery_id: string; // Will be set from user context
+  bakery_id: string;
   order_products: {
     product_id: string;
     quantity: number;
@@ -37,7 +37,7 @@ const removeLeadingZeros = (id: string): string => {
 };
 
 // Parse .PRD files (Products)
-export const parseProductFile = (fileContent: string): ParsedProduct[] => {
+export const parseProductFile = (fileContent: string, bakeryId: string): ParsedProduct[] => {
   const lines = fileContent.split('\n').filter(line => line.trim());
   const products: ParsedProduct[] = [];
   
@@ -77,7 +77,7 @@ export const parseProductFile = (fileContent: string): ParsedProduct[] => {
         name: productName,
         category: 'Imported',
         is_active: true,
-        bakery_id: '' // Will be set from user context
+        bakery_id: bakeryId
       });
       
     } catch (error) {
@@ -90,7 +90,7 @@ export const parseProductFile = (fileContent: string): ParsedProduct[] => {
 };
 
 // Parse .CUS files (Customers)
-export const parseCustomerFile = (fileContent: string): ParsedCustomer[] => {
+export const parseCustomerFile = (fileContent: string, bakeryId: string): ParsedCustomer[] => {
   const lines = fileContent.split('\n').filter(line => line.trim());
   const customers: ParsedCustomer[] = [];
   
@@ -146,7 +146,7 @@ export const parseCustomerFile = (fileContent: string): ParsedCustomer[] => {
         address: address || undefined,
         phone: phone || undefined,
         status: 'active',
-        bakery_id: '' // Will be set from user context
+        bakery_id: bakeryId
       });
       
     } catch (error) {
@@ -162,7 +162,8 @@ export const parseCustomerFile = (fileContent: string): ParsedCustomer[] => {
 export const parseOrderFile = (
   fileContent: string, 
   products: ParsedProduct[], 
-  customers: ParsedCustomer[]
+  customers: ParsedCustomer[],
+  bakeryId: string
 ): ParsedOrder[] => {
   const lines = fileContent.split('\n').filter(line => line.trim());
   const orders: ParsedOrder[] = [];
@@ -211,7 +212,7 @@ export const parseOrderFile = (
           delivery_date: formattedDate,
           status: 'pending',
           customer_id: customerId,
-          bakery_id: '', // Will be set from user context
+          bakery_id: bakeryId,
           order_products: []
         };
         orderGroups.set(orderKey, order);

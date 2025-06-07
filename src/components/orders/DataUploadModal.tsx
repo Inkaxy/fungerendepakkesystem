@@ -10,6 +10,7 @@ import { parseProductFile, parseCustomerFile, parseOrderFile } from '@/utils/fil
 import { useCreateCustomer } from '@/hooks/useCustomers';
 import { useCreateProduct } from '@/hooks/useProducts';
 import { useCreateOrder } from '@/hooks/useCreateOrder';
+import { useAuthStore } from '@/stores/authStore';
 
 interface DataUploadModalProps {
   isOpen: boolean;
@@ -42,13 +43,23 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
   const createCustomer = useCreateCustomer();
   const createProduct = useCreateProduct();
   const createOrder = useCreateOrder();
+  const { profile } = useAuthStore();
 
   const handleProductUpload = async (file: File) => {
+    if (!profile?.bakery_id) {
+      toast({
+        title: "Feil",
+        description: "Du må tilhøre et bakeri for å laste opp produkter",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUploadStatus(prev => ({ ...prev, products: 'uploading' }));
       
       const text = await file.text();
-      const products = parseProductFile(text);
+      const products = parseProductFile(text, profile.bakery_id);
       
       console.log('Parsed products:', products);
       
@@ -76,11 +87,20 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
   };
 
   const handleCustomerUpload = async (file: File) => {
+    if (!profile?.bakery_id) {
+      toast({
+        title: "Feil",
+        description: "Du må tilhøre et bakeri for å laste opp kunder",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUploadStatus(prev => ({ ...prev, customers: 'uploading' }));
       
       const text = await file.text();
-      const customers = parseCustomerFile(text);
+      const customers = parseCustomerFile(text, profile.bakery_id);
       
       console.log('Parsed customers:', customers);
       
@@ -108,6 +128,15 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
   };
 
   const handleOrderUpload = async (file: File) => {
+    if (!profile?.bakery_id) {
+      toast({
+        title: "Feil",
+        description: "Du må tilhøre et bakeri for å laste opp ordrer",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (uploadStatus.products !== 'success' || uploadStatus.customers !== 'success') {
       toast({
         title: "Mangler forutsetninger",
@@ -121,7 +150,7 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
       setUploadStatus(prev => ({ ...prev, orders: 'uploading' }));
       
       const text = await file.text();
-      const orders = parseOrderFile(text, uploadResults.products, uploadResults.customers);
+      const orders = parseOrderFile(text, uploadResults.products, uploadResults.customers, profile.bakery_id);
       
       console.log('Parsed orders:', orders);
       
@@ -159,6 +188,9 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
     }
   };
 
+  // Check if user has bakery access
+  const hasBakeryAccess = !!profile?.bakery_id;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -168,6 +200,15 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
             Last opp data
           </DialogTitle>
         </DialogHeader>
+
+        {!hasBakeryAccess && (
+          <div className="mb-4 p-4 bg-red-50 rounded-lg">
+            <h4 className="font-semibold text-red-800 mb-2">Mangler bakeri-tilgang:</h4>
+            <p className="text-sm text-red-700">
+              Du må tilhøre et bakeri for å kunne laste opp data. Kontakt en administrator for å få tildelt bakeri-tilgang.
+            </p>
+          </div>
+        )}
 
         <div className="mb-4 p-4 bg-blue-50 rounded-lg">
           <h4 className="font-semibold text-blue-800 mb-2">Viktig rekkefølge:</h4>
@@ -207,6 +248,7 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
               status={uploadStatus.products}
               exampleFormat="00123 Rundstykker hvete 1234567890123 25.50"
               formatDescription="Format: ProductID Produktnavn [metadata]"
+              disabled={!hasBakeryAccess}
             />
           </TabsContent>
 
@@ -220,7 +262,7 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
               status={uploadStatus.customers}
               exampleFormat="00010001    Kunde Navn    Adresse"
               formatDescription="Format: KundeID    Navn    Adresse (4+ mellomrom som separator)"
-              disabled={uploadStatus.products !== 'success'}
+              disabled={!hasBakeryAccess || uploadStatus.products !== 'success'}
             />
           </TabsContent>
 
@@ -234,7 +276,7 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
               status={uploadStatus.orders}
               exampleFormat="12345 ABC1234567XYZ 003 IGNORE 20241201"
               formatDescription="Format: ProductID CompositeField Quantity IgnoredField Date"
-              disabled={uploadStatus.products !== 'success' || uploadStatus.customers !== 'success'}
+              disabled={!hasBakeryAccess || uploadStatus.products !== 'success' || uploadStatus.customers !== 'success'}
             />
           </TabsContent>
         </Tabs>
