@@ -27,9 +27,10 @@ interface UsersSectionProps {
   profiles: User[] | undefined;
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  onManagePermissions: (user: User) => void;
 }
 
-const UsersSection = ({ profiles, onEditUser, onDeleteUser }: UsersSectionProps) => {
+const UsersSection = ({ profiles, onEditUser, onDeleteUser, onManagePermissions }: UsersSectionProps) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'super_admin':
@@ -98,7 +99,7 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser }: UsersSectionProps)
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onManagePermissions(user)}>
                       <Settings className="w-4 h-4 mr-2" />
                       Tilganger
                     </DropdownMenuItem>

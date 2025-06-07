@@ -13,8 +13,11 @@ import AdminDialogs from '@/components/admin/AdminDialogs';
 const Admin = () => {
   const { profile } = useAuthStore();
   const [showCreateBakery, setShowCreateBakery] = useState(false);
+  const [editingBakery, setEditingBakery] = useState<any>(null);
+  const [viewingBakeryUsers, setViewingBakeryUsers] = useState<any>(null);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [managingUserPermissions, setManagingUserPermissions] = useState<any>(null);
   const [deletingBakery, setDeletingBakery] = useState<any>(null);
   const [deletingUser, setDeletingUser] = useState<any>(null);
   
@@ -79,21 +82,30 @@ const Admin = () => {
       <BakeriesSection 
         bakeries={bakeries}
         onDeleteBakery={setDeletingBakery}
+        onEditBakery={setEditingBakery}
+        onViewUsers={setViewingBakeryUsers}
       />
 
       <UsersSection 
         profiles={profiles}
         onEditUser={setEditingUser}
         onDeleteUser={setDeletingUser}
+        onManagePermissions={setManagingUserPermissions}
       />
 
       <AdminDialogs
         showCreateBakery={showCreateBakery}
         setShowCreateBakery={setShowCreateBakery}
+        editingBakery={editingBakery}
+        setEditingBakery={setEditingBakery}
+        viewingBakeryUsers={viewingBakeryUsers}
+        setViewingBakeryUsers={setViewingBakeryUsers}
         showCreateUser={showCreateUser}
         setShowCreateUser={setShowCreateUser}
         editingUser={editingUser}
         setEditingUser={setEditingUser}
+        managingUserPermissions={managingUserPermissions}
+        setManagingUserPermissions={setManagingUserPermissions}
         deletingBakery={deletingBakery}
         setDeletingBakery={setDeletingBakery}
         deletingUser={deletingUser}

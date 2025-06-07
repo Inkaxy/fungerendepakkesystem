@@ -25,9 +25,11 @@ interface Bakery {
 interface BakeriesSectionProps {
   bakeries: Bakery[] | undefined;
   onDeleteBakery: (bakery: Bakery) => void;
+  onEditBakery: (bakery: Bakery) => void;
+  onViewUsers: (bakery: Bakery) => void;
 }
 
-const BakeriesSection = ({ bakeries, onDeleteBakery }: BakeriesSectionProps) => {
+const BakeriesSection = ({ bakeries, onDeleteBakery, onEditBakery, onViewUsers }: BakeriesSectionProps) => {
   return (
     <Card>
       <CardHeader>
@@ -55,7 +57,7 @@ const BakeriesSection = ({ bakeries, onDeleteBakery }: BakeriesSectionProps) => 
                 </div>
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => onViewUsers(bakery)}>
                   <Users className="w-4 h-4 mr-1" />
                   Brukere
                 </Button>
@@ -66,7 +68,7 @@ const BakeriesSection = ({ bakeries, onDeleteBakery }: BakeriesSectionProps) => 
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEditBakery(bakery)}>
                       <Edit className="w-4 h-4 mr-2" />
                       Rediger
                     </DropdownMenuItem>
