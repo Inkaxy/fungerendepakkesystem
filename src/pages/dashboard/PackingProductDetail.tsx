@@ -35,6 +35,7 @@ const PackingProductDetail = () => {
           orderId: order.id,
           orderNumber: order.order_number,
           customerName: order.customer?.name || 'Ukjent kunde',
+          customerNumber: order.customer?.customer_number || '',
           customerId: order.customer_id,
           quantity: item.quantity,
           packingStatus: item.packing_status,
@@ -44,10 +45,13 @@ const PackingProductDetail = () => {
         if (!acc.productName && item.product?.name) {
           acc.productName = item.product.name;
         }
+        if (!acc.productNumber && item.product?.product_number) {
+          acc.productNumber = item.product.product_number;
+        }
       }
     });
     return acc;
-  }, { items: [] as any[], productName: '' });
+  }, { items: [] as any[], productName: '', productNumber: '' });
 
   // Initialize packed items from database
   useEffect(() => {
@@ -119,7 +123,14 @@ const PackingProductDetail = () => {
             Tilbake til oversikt
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{currentProductData?.productName}</h1>
+            <h1 className="text-2xl font-bold">
+              {currentProductData?.productName}
+              {currentProductData?.productNumber && (
+                <span className="ml-2 text-lg text-muted-foreground">
+                  ({currentProductData.productNumber})
+                </span>
+              )}
+            </h1>
             <p className="text-muted-foreground">
               {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })} • 
               Produkt {currentIndex + 1} av {selectedProducts.length}
@@ -190,6 +201,7 @@ const PackingProductDetail = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">Pakket</TableHead>
+                  <TableHead>Kundenummer</TableHead>
                   <TableHead>Kunde</TableHead>
                   <TableHead>Antall</TableHead>
                   <TableHead>Status</TableHead>
@@ -205,6 +217,9 @@ const PackingProductDetail = () => {
                           checked={isChecked}
                           onCheckedChange={(checked) => handleItemToggle(item.key, checked as boolean)}
                         />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {item.customerNumber || '-'}
                       </TableCell>
                       <TableCell className="font-medium">{item.customerName}</TableCell>
                       <TableCell>{item.quantity} stk</TableCell>

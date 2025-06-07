@@ -25,11 +25,13 @@ const PackingProductOverview = () => {
     order.order_products?.forEach(item => {
       const productId = item.product_id;
       const productName = item.product?.name || `Produkt ID: ${productId}`;
+      const productNumber = item.product?.product_number || '';
       
       if (!acc[productId]) {
         acc[productId] = {
           id: productId,
           name: productName,
+          productNumber: productNumber,
           totalQuantity: 0,
           packedQuantity: 0,
           customers: new Set<string>(),
@@ -128,6 +130,7 @@ const PackingProductOverview = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Varenummer</TableHead>
                   <TableHead>Produktnavn</TableHead>
                   <TableHead>Totalt antall</TableHead>
                   <TableHead>Antall kunder</TableHead>
@@ -140,6 +143,9 @@ const PackingProductOverview = () => {
                   const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
                   return (
                     <TableRow key={productId}>
+                      <TableCell className="font-medium">
+                        {product.productNumber || '-'}
+                      </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.totalQuantity} stk</TableCell>
                       <TableCell>{product.customers.size} kunder</TableCell>
@@ -184,6 +190,7 @@ const PackingProductOverview = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">Velg</TableHead>
+                  <TableHead>Varenummer</TableHead>
                   <TableHead>Produktnavn</TableHead>
                   <TableHead>Totalt antall</TableHead>
                   <TableHead>Antall kunder</TableHead>
@@ -205,6 +212,9 @@ const PackingProductOverview = () => {
                           onCheckedChange={(checked) => handleProductSelection(product.id, checked as boolean)}
                           disabled={!canSelect}
                         />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {product.productNumber || '-'}
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.totalQuantity} stk</TableCell>
