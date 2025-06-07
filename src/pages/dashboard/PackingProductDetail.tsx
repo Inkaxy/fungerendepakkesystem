@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, ArrowLeft, ArrowRight, Check, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
@@ -72,8 +73,6 @@ const PackingProductDetail = () => {
   };
 
   const handleSaveProgress = async () => {
-    // Here you would update the order_products table with packing status
-    // For now, we'll just show a toast
     toast({
       title: "Fremgang lagret",
       description: `${packedItems.size} elementer markert som pakket`,
@@ -87,7 +86,6 @@ const PackingProductDetail = () => {
         state: { selectedProducts }
       });
     } else {
-      // All products done, go back to overview
       navigate(`/dashboard/orders/packing/${date}`);
     }
   };
@@ -104,18 +102,6 @@ const PackingProductDetail = () => {
   const totalItems = currentProductData?.items.length || 0;
   const packedCount = packedItems.size;
   const progressPercentage = totalItems > 0 ? (packedCount / totalItems) * 100 : 0;
-
-  // Group items by customer
-  const itemsByCustomer = currentProductData?.items.reduce((acc, item) => {
-    if (!acc[item.customerId]) {
-      acc[item.customerId] = {
-        customerName: item.customerName,
-        items: []
-      };
-    }
-    acc[item.customerId].items.push(item);
-    return acc;
-  }, {} as Record<string, any>) || {};
 
   if (!date || !productId) {
     return <div>Ugyldig dato eller produkt</div>;
@@ -191,62 +177,61 @@ const PackingProductDetail = () => {
         </CardContent>
       </Card>
 
-      {/* Items by Customer */}
-      <div className="space-y-4">
-        {Object.entries(itemsByCustomer).map(([customerId, customerData]: [string, any]) => (
-          <Card key={customerId}>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="w-5 h-5" />
-                <span>{customerData.customerName}</span>
-                <Badge variant="outline">
-                  {customerData.items.length} ordrelinje{customerData.items.length !== 1 ? 'r' : ''}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {customerData.items.map((item: any) => {
+      {/* Kunder */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="w-5 h-5" />
+            <span>Kunder</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {currentProductData?.items.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">Pakket</TableHead>
+                  <TableHead>Kunde</TableHead>
+                  <TableHead>Ordrenummer</TableHead>
+                  <TableHead>Antall</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentProductData.items.map((item: any) => {
                   const isChecked = packedItems.has(item.key);
                   return (
-                    <div key={item.key} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
+                    <TableRow key={item.key} className={isChecked ? 'bg-green-50' : ''}>
+                      <TableCell>
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={(checked) => handleItemToggle(item.key, checked as boolean)}
                         />
-                        <div>
-                          <p className="font-medium">Ordre #{item.orderNumber}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {item.quantity} stk
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                      </TableCell>
+                      <TableCell className="font-medium">{item.customerName}</TableCell>
+                      <TableCell>#{item.orderNumber}</TableCell>
+                      <TableCell>{item.quantity} stk</TableCell>
+                      <TableCell>
                         <Badge 
                           variant={isChecked ? "default" : "outline"}
                           className={isChecked ? "bg-green-500" : ""}
                         >
                           {isChecked ? "Pakket" : "Venter"}
                         </Badge>
-                      </div>
-                    </div>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {Object.keys(itemsByCustomer).length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Ingen ordrer funnet for dette produktet</p>
-          </CardContent>
-        </Card>
-      )}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8">
+              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Ingen ordrer funnet for dette produktet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

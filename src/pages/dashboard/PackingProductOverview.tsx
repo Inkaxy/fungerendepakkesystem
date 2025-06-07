@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, ArrowLeft, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
@@ -117,97 +118,126 @@ const PackingProductOverview = () => {
         </div>
       </div>
 
-      {/* Selection Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Valgte produkter ({selectedProducts.length}/3)</span>
-            <Button 
-              onClick={handleStartPacking}
-              disabled={selectedProducts.length === 0 || createOrUpdateSession.isPending}
-            >
-              <Package className="w-4 h-4 mr-2" />
-              Start pakking
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        {selectedProducts.length > 0 && (
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {selectedProducts.map(productId => {
-                const product = productStats[productId];
-                return (
-                  <Badge key={productId} variant="default">
-                    {product.name}
-                  </Badge>
-                );
-              })}
-            </div>
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Product List */}
-      <div className="grid gap-4">
-        {productList.map((product: any) => {
-          const isSelected = selectedProducts.includes(product.id);
-          const canSelect = selectedProducts.length < 3 || isSelected;
-          const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
-
-          return (
-            <Card key={product.id} className={`transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={(checked) => handleProductSelection(product.id, checked as boolean)}
-                      disabled={!canSelect}
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{product.name}</h3>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                        <span className="flex items-center">
-                          <Package className="w-4 h-4 mr-1" />
-                          {product.totalQuantity} stk totalt
-                        </span>
-                        <span className="flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
-                          {product.customers.size} kunder
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {product.packedQuantity} / {product.totalQuantity} pakket
-                    </div>
-                    <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
-                      <div 
-                        className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
-                        style={{ width: `${progressPercentage}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {Math.round(progressPercentage)}%
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {productList.length === 0 && (
+      {/* Valgte produkter */}
+      {selectedProducts.length > 0 && (
         <Card>
-          <CardContent className="text-center py-8">
-            <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Ingen produkter funnet for denne dagen</p>
+          <CardHeader>
+            <CardTitle>Valgte produkter ({selectedProducts.length}/3)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produktnavn</TableHead>
+                  <TableHead>Totalt antall</TableHead>
+                  <TableHead>Antall kunder</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {selectedProducts.map(productId => {
+                  const product = productStats[productId];
+                  const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
+                  return (
+                    <TableRow key={productId}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.totalQuantity} stk</TableCell>
+                      <TableCell>{product.customers.size} kunder</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
+                              style={{ width: `${progressPercentage}%` }}
+                            />
+                          </div>
+                          <span className="text-xs">{Math.round(progressPercentage)}%</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+            <div className="mt-4">
+              <Button 
+                onClick={handleStartPacking}
+                disabled={selectedProducts.length === 0 || createOrUpdateSession.isPending}
+                className="w-full"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Start pakking
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Produkter */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Produkter</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {productList.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">Velg</TableHead>
+                  <TableHead>Produktnavn</TableHead>
+                  <TableHead>Totalt antall</TableHead>
+                  <TableHead>Antall kunder</TableHead>
+                  <TableHead>Fremgang</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productList.map((product: any) => {
+                  const isSelected = selectedProducts.includes(product.id);
+                  const canSelect = selectedProducts.length < 3 || isSelected;
+                  const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
+
+                  return (
+                    <TableRow key={product.id} className={isSelected ? 'bg-blue-50' : ''}>
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => handleProductSelection(product.id, checked as boolean)}
+                          disabled={!canSelect}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.totalQuantity} stk</TableCell>
+                      <TableCell>{product.customers.size} kunder</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
+                              style={{ width: `${progressPercentage}%` }}
+                            />
+                          </div>
+                          <span className="text-xs">{Math.round(progressPercentage)}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={progressPercentage === 100 ? "default" : "outline"}>
+                          {progressPercentage === 100 ? "Ferdig" : "Venter"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8">
+              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Ingen produkter funnet for denne dagen</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
