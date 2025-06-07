@@ -23,12 +23,21 @@ interface UploadStatus {
   orders: 'idle' | 'uploading' | 'success' | 'error';
 }
 
+interface IdMapping {
+  [originalId: string]: string; // originalId -> databaseUUID
+}
+
 const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     products: 'idle',
     customers: 'idle',
     orders: 'idle'
   });
+  
+  // Store ID mappings
+  const [productIdMapping, setProductIdMapping] = useState<IdMapping>({});
+  const [customerIdMapping, setCustomerIdMapping] = useState<IdMapping>({});
+  
   const [uploadResults, setUploadResults] = useState<{
     products: any[];
     customers: any[];
@@ -69,13 +78,25 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
       
       console.log('Parsed products:', products);
       
-      // Save products to database
+      // Store ID mappings as we create products
+      const newProductMapping: IdMapping = {};
+      const createdProducts = [];
+      
+      // Save products to database and build mapping
       for (const product of products) {
         console.log('Creating product:', product);
-        await createProduct.mutateAsync(product);
+        const { original_id, ...productData } = product; // Extract original_id
+        const createdProduct = await createProduct.mutateAsync(productData);
+        
+        // Store mapping: original numeric ID -> database UUID
+        newProductMapping[original_id] = createdProduct.id;
+        createdProducts.push(createdProduct);
+        
+        console.log(`Mapped product ID ${original_id} -> ${createdProduct.id}`);
       }
       
-      setUploadResults(prev => ({ ...prev, products }));
+      setProductIdMapping(newProductMapping);
+      setUploadResults(prev => ({ ...prev, products: createdProducts }));
       setUploadStatus(prev => ({ ...prev, products: 'success' }));
       
       toast({
@@ -111,12 +132,24 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
       
       console.log('Parsed customers:', customers);
       
-      // Save customers to database
+      // Store ID mappings as we create customers
+      const newCustomerMapping: IdMapping = {};
+      const createdCustomers = [];
+      
+      // Save customers to database and build mapping
       for (const customer of customers) {
-        await createCustomer.mutateAsync(customer);
+        const { original_id, ...customerData } = customer; // Extract original_id
+        const createdCustomer = await createCustomer.mutateAsync(customerData);
+        
+        // Store mapping: original numeric ID -> database UUID
+        newCustomerMapping[original_id] = createdCustomer.id;
+        createdCustomers.push(createdCustomer);
+        
+        console.log(`Mapped customer ID ${original_id} -> ${createdCustomer.id}`);
       }
       
-      setUploadResults(prev => ({ ...prev, customers }));
+      setCustomerIdMapping(newCustomerMapping);
+      setUploadResults(prev => ({ ...prev, customers: createdCustomers }));
       setUploadStatus(prev => ({ ...prev, customers: 'success' }));
       
       toast({
@@ -157,21 +190,76 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
       setUploadStatus(prev => ({ ...prev, orders: 'uploading' }));
       
       const text = await file.text();
-      const orders = parseOrderFile(text, uploadResults.products, uploadResults.customers, profile.bakery_id);
+      const orders = parseOrderFile(text, profile.bakery_id);
       
       console.log('Parsed orders:', orders);
+      console.log('Product ID mapping:', productIdMapping);
+      console.log('Customer ID mapping:', customerIdMapping);
       
-      // Save orders to database
+      const createdOrders = [];
+      
+      // Convert orders using ID mappings
       for (const order of orders) {
-        await createOrder.mutateAsync(order);
+        // Convert customer ID using mapping
+        const customerUuid = customerIdMapping[order.customer_original_id];
+        if (!customerUuid) {
+          console.error(`No mapping found for customer ID: ${order.customer_original_id}`);
+          toast({
+            title: "Feil ved ordreopprettelse",
+            description: `Kunde med ID ${order.customer_original_id} ikke funnet. Sørg for at kunder er lastet opp først.`,
+            variant: "destructive",
+          });
+          continue;
+        }
+        
+        // Convert product IDs using mapping
+        const convertedOrderProducts = [];
+        for (const orderProduct of order.order_products) {
+          const productUuid = productIdMapping[orderProduct.product_original_id];
+          if (!productUuid) {
+            console.error(`No mapping found for product ID: ${orderProduct.product_original_id}`);
+            toast({
+              title: "Feil ved ordreopprettelse",
+              description: `Produkt med ID ${orderProduct.product_original_id} ikke funnet. Sørg for at produkter er lastet opp først.`,
+              variant: "destructive",
+            });
+            continue;
+          }
+          
+          convertedOrderProducts.push({
+            product_id: productUuid, // Use UUID instead of original ID
+            quantity: orderProduct.quantity,
+            packing_status: orderProduct.packing_status
+          });
+        }
+        
+        // Skip order if no valid products
+        if (convertedOrderProducts.length === 0) {
+          console.warn(`Skipping order ${order.order_number} - no valid products found`);
+          continue;
+        }
+        
+        // Create order with converted IDs
+        const orderToCreate = {
+          order_number: order.order_number,
+          delivery_date: order.delivery_date,
+          status: order.status,
+          customer_id: customerUuid, // Use UUID instead of original ID
+          bakery_id: order.bakery_id,
+          order_products: convertedOrderProducts
+        };
+        
+        console.log('Creating order:', orderToCreate);
+        const createdOrder = await createOrder.mutateAsync(orderToCreate);
+        createdOrders.push(createdOrder);
       }
       
-      setUploadResults(prev => ({ ...prev, orders }));
+      setUploadResults(prev => ({ ...prev, orders: createdOrders }));
       setUploadStatus(prev => ({ ...prev, orders: 'success' }));
       
       toast({
         title: "Ordrer lastet opp",
-        description: `${orders.length} ordrer ble importert`,
+        description: `${createdOrders.length} ordrer ble importert`,
       });
     } catch (error) {
       console.error('Order upload error:', error);
@@ -216,6 +304,8 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
           <div>Bakeri navn: {profile?.bakery_name || 'Ikke satt'}</div>
           <div>Rolle: {profile?.role || 'Ikke satt'}</div>
           <div>Har bakeri-tilgang: {hasBakeryAccess ? 'Ja' : 'Nei'}</div>
+          <div>Produkter mappet: {Object.keys(productIdMapping).length}</div>
+          <div>Kunder mappet: {Object.keys(customerIdMapping).length}</div>
         </div>
 
         {!hasBakeryAccess && (
@@ -237,6 +327,9 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
             <li>2. Last opp kunder (.CUS filer) deretter</li>
             <li>3. Last opp ordrer (.OD0 filer) til slutt</li>
           </ol>
+          <p className="text-xs text-blue-600 mt-2">
+            Systemet lager automatisk mapping mellom numeriske ID-er i filene og database UUID-er.
+          </p>
         </div>
 
         <Tabs defaultValue="products" className="w-full">
