@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/dashboard/Orders";
 import Deliveries from "./pages/dashboard/Deliveries";
+import Products from "./pages/dashboard/Products";
 import Customers from "./pages/dashboard/Customers";
 import Reports from "./pages/dashboard/Reports";
 import Admin from "./pages/dashboard/Admin";
@@ -70,6 +71,11 @@ function AppContent() {
           <Route path="/dashboard/deliveries" element={
             <AuthLayout>
               <Deliveries />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/products" element={
+            <AuthLayout>
+              <Products />
             </AuthLayout>
           } />
           <Route path="/dashboard/customers" element={

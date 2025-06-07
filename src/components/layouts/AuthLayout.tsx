@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
@@ -57,6 +56,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Ordrer & Pakking', href: '/dashboard/orders' },
     { name: 'Leveranser', href: '/dashboard/deliveries' },
+    { name: 'Produkter', href: '/dashboard/products' },
     { name: 'Kunder', href: '/dashboard/customers' },
     { name: 'Rapporter', href: '/dashboard/reports' },
   ];
