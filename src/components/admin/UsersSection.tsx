@@ -62,20 +62,22 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser, onManagePermissions 
         <div className="space-y-4">
           {profiles?.map((user) => (
             <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">{user.name || 'Navn ikke satt'}</span>
                   {getRoleBadge(user.role)}
                   {getStatusBadge(user.is_active)}
                 </div>
                 <p className="text-sm text-gray-600">{user.email}</p>
+                {user.bakery && (
+                  <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-md">
+                    <Building2 className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700">
+                      Bakeri: {user.bakery.name}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  {user.bakery && (
-                    <div className="flex items-center space-x-1">
-                      <Building2 className="w-3 h-3" />
-                      <span>Bakeri: {user.bakery.name}</span>
-                    </div>
-                  )}
                   {user.last_login ? (
                     <span>Sist pålogget: {format(new Date(user.last_login), 'dd.MM.yyyy HH:mm', { locale: nb })}</span>
                   ) : (
@@ -108,7 +110,7 @@ const UsersSection = ({ profiles, onEditUser, onDeleteUser, onManagePermissions 
                       onClick={() => onDeleteUser(user)}
                     >
                       <UserX className="w-4 h-4 mr-2" />
-                      {user.is_active ? 'Deaktiver' : 'Reaktiver'}
+                      Slett bruker
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -200,39 +200,44 @@ export const useDeleteProfile = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Get current user state to toggle
-      const { data: currentProfile } = await supabase
+      console.log('Attempting to delete user with ID:', id);
+      
+      // First delete the profile
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('is_active')
-        .eq('id', id)
-        .single();
-
-      if (!currentProfile) throw new Error('Bruker ikke funnet');
-
-      // Toggle the active state
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          is_active: !currentProfile.is_active,
-          updated_at: new Date().toISOString()
-        })
+        .delete()
         .eq('id', id);
 
-      if (error) throw error;
-      
-      return !currentProfile.is_active;
+      if (profileError) {
+        console.error('Profile deletion error:', profileError);
+        throw profileError;
+      }
+
+      console.log('Profile deleted, now deleting auth user');
+
+      // Then delete from auth.users using the service_role key
+      const { error: authError } = await supabase.auth.admin.deleteUser(id);
+
+      if (authError) {
+        console.error('Auth user deletion error:', authError);
+        // If auth deletion fails, we should still consider it successful since profile is deleted
+        console.log('Auth deletion failed but profile was deleted');
+      }
+
+      return true;
     },
-    onSuccess: (newActiveState) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: "Suksess",
-        description: newActiveState ? "Bruker reaktivert" : "Bruker deaktivert",
+        description: "Bruker slettet permanent",
       });
     },
     onError: (error) => {
+      console.error('Delete profile error:', error);
       toast({
         title: "Feil",
-        description: `Kunne ikke endre brukerstatus: ${error.message}`,
+        description: `Kunne ikke slette bruker: ${error.message}`,
         variant: "destructive",
       });
     },

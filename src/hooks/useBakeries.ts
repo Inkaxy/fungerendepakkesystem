@@ -99,21 +99,31 @@ export const useDeleteBakery = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('Attempting to delete bakery with ID:', id);
+      
       const { error } = await supabase
         .from('bakeries')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Bakery deletion error:', error);
+        throw error;
+      }
+      
+      console.log('Bakery deleted successfully');
+      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bakeries'] });
+      queryClient.invalidateQueries({ queryKey: ['profiles'] }); // Also refresh profiles since bakery relationship might change
       toast({
         title: "Suksess",
         description: "Bakeri slettet",
       });
     },
     onError: (error) => {
+      console.error('Delete bakery mutation error:', error);
       toast({
         title: "Feil",
         description: `Kunne ikke slette bakeri: ${error.message}`,

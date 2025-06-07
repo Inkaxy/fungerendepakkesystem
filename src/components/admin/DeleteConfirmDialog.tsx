@@ -46,7 +46,7 @@ const DeleteConfirmDialog = ({
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? (confirmText === "Deaktiver" ? 'Deaktiverer...' : 'Sletter...') : confirmText}
+            {isLoading ? 'Sletter...' : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

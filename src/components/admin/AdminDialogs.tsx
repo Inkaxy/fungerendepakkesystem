@@ -105,22 +105,19 @@ const AdminDialogs = ({
         open={!!deletingBakery}
         onOpenChange={(open) => !open && setDeletingBakery(null)}
         title="Slett bakeri"
-        description={`Er du sikker på at du vil slette bakeriet "${deletingBakery?.name}"? Denne handlingen kan ikke angres.`}
+        description={`Er du sikker på at du vil slette bakeriet "${deletingBakery?.name}"? Denne handlingen kan ikke angres og alle tilknyttede data vil bli slettet.`}
         onConfirm={onDeleteBakery}
         isLoading={deleteBakeryLoading}
+        confirmText="Slett bakeri"
       />
       <DeleteConfirmDialog
         open={!!deletingUser}
         onOpenChange={(open) => !open && setDeletingUser(null)}
-        title={deletingUser?.is_active ? "Deaktiver bruker" : "Reaktiver bruker"}
-        description={
-          deletingUser?.is_active 
-            ? `Er du sikker på at du vil deaktivere brukeren "${deletingUser?.name || deletingUser?.email}"? Brukeren vil ikke lenger kunne logge inn, men kan reaktiveres senere.`
-            : `Er du sikker på at du vil reaktivere brukeren "${deletingUser?.name || deletingUser?.email}"? Brukeren vil kunne logge inn igjen.`
-        }
+        title="Slett bruker permanent"
+        description={`Er du sikker på at du vil slette brukeren "${deletingUser?.name || deletingUser?.email}" permanent? Denne handlingen kan ikke angres og vil fjerne brukeren fra systemet helt.`}
         onConfirm={onDeleteUser}
         isLoading={deleteUserLoading}
-        confirmText={deletingUser?.is_active ? "Deaktiver" : "Reaktiver"}
+        confirmText="Slett bruker"
       />
     </>
   );
