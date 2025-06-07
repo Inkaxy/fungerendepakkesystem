@@ -45,11 +45,17 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
   const createOrder = useCreateOrder();
   const { profile } = useAuthStore();
 
+  console.log('DataUploadModal - Current profile:', profile);
+  console.log('DataUploadModal - Bakery ID:', profile?.bakery_id);
+
   const handleProductUpload = async (file: File) => {
+    console.log('Product upload started with bakery_id:', profile?.bakery_id);
+    
     if (!profile?.bakery_id) {
+      console.error('No bakery_id found in profile:', profile);
       toast({
         title: "Feil",
-        description: "Du må tilhøre et bakeri for å laste opp produkter",
+        description: `Du må tilhøre et bakeri for å laste opp produkter. Profil: ${profile?.name}, Bakeri ID: ${profile?.bakery_id}`,
         variant: "destructive",
       });
       return;
@@ -65,6 +71,7 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
       
       // Save products to database
       for (const product of products) {
+        console.log('Creating product:', product);
         await createProduct.mutateAsync(product);
       }
       
@@ -201,11 +208,24 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
           </DialogTitle>
         </DialogHeader>
 
+        {/* Debug information */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+          <div><strong>Debug info:</strong></div>
+          <div>Bruker: {profile?.name || 'Ikke lastet'}</div>
+          <div>Bakeri ID: {profile?.bakery_id || 'Ikke satt'}</div>
+          <div>Bakeri navn: {profile?.bakery_name || 'Ikke satt'}</div>
+          <div>Rolle: {profile?.role || 'Ikke satt'}</div>
+          <div>Har bakeri-tilgang: {hasBakeryAccess ? 'Ja' : 'Nei'}</div>
+        </div>
+
         {!hasBakeryAccess && (
           <div className="mb-4 p-4 bg-red-50 rounded-lg">
             <h4 className="font-semibold text-red-800 mb-2">Mangler bakeri-tilgang:</h4>
             <p className="text-sm text-red-700">
               Du må tilhøre et bakeri for å kunne laste opp data. Kontakt en administrator for å få tildelt bakeri-tilgang.
+            </p>
+            <p className="text-xs text-red-600 mt-2">
+              Teknisk info: bakery_id er {profile?.bakery_id ? `"${profile.bakery_id}"` : 'null/undefined'}
             </p>
           </div>
         )}
