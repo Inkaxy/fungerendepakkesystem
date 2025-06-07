@@ -11,7 +11,6 @@ export const useProducts = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
@@ -37,17 +36,10 @@ export const useCreateProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast({
-        title: "Suksess",
-        description: "Produkt opprettet",
-      });
     },
     onError: (error) => {
-      toast({
-        title: "Feil",
-        description: `Kunne ikke opprette produkt: ${error.message}`,
-        variant: "destructive",
-      });
+      console.error('Product creation error:', error);
+      throw error;
     },
   });
 };

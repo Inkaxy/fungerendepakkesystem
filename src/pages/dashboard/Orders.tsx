@@ -1,17 +1,22 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Package, Plus, Calendar as CalendarIcon, Users, Clock, Loader2 } from 'lucide-react';
+import { Package, Upload, Calendar as CalendarIcon, Users, Clock, Loader2 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders, useOrdersByDateRange } from '@/hooks/useOrders';
 import { usePackingSessions } from '@/hooks/usePackingSessions';
+import OrderDetailsModal from '@/components/orders/OrderDetailsModal';
+import DataUploadModal from '@/components/orders/DataUploadModal';
+import { Order } from '@/types/database';
 
 const Orders = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [showDataUpload, setShowDataUpload] = useState(false);
   
   const currentMonth = format(selectedDate, 'yyyy-MM');
   const monthStart = format(startOfMonth(selectedDate), 'yyyy-MM-dd');
@@ -38,6 +43,11 @@ const Orders = () => {
       default:
         return <Badge variant="outline">Ukjent</Badge>;
     }
+  };
+
+  const handleOrderDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
   };
 
   // Create calendar modifiers for packing days
@@ -89,9 +99,9 @@ const Orders = () => {
             Administrer ordrer og planlegg pakkedager
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Ny Ordre
+        <Button onClick={() => setShowDataUpload(true)}>
+          <Upload className="mr-2 h-4 w-4" />
+          Last opp data
         </Button>
       </div>
 
@@ -191,7 +201,7 @@ const Orders = () => {
           </CardContent>
         </Card>
 
-        {/* Daily Orders */}
+        {/* Daily Orders - Updated with order details button */}
         <Card>
           <CardHeader>
             <CardTitle>
@@ -232,7 +242,11 @@ const Orders = () => {
                         </p>
                       )}
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleOrderDetails(order)}
+                    >
                       Detaljer
                     </Button>
                   </div>
@@ -242,6 +256,21 @@ const Orders = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        isOpen={showOrderDetails}
+        onClose={() => {
+          setShowOrderDetails(false);
+          setSelectedOrder(null);
+        }}
+      />
+
+      <DataUploadModal
+        isOpen={showDataUpload}
+        onClose={() => setShowDataUpload(false)}
+      />
     </div>
   );
 };
