@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye } from 'lucide-react';
 import { useCustomers, useDeleteCustomer, useDeleteAllCustomers } from '@/hooks/useCustomers';
 import {
   Table,
@@ -24,12 +24,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+} from '@/components/ui/dialog';
+import CreateCustomerDialog from '@/components/customers/CreateCustomerDialog';
+import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
+import CustomerDetailsCard from '@/components/customers/CustomerDetailsCard';
+import { Customer } from '@/types/database';
 
 const Customers = () => {
   const { data: customers, isLoading, error } = useCustomers();
   const deleteCustomer = useDeleteCustomer();
   const deleteAllCustomers = useDeleteAllCustomers();
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
 
   const handleDeleteCustomer = async (id: string) => {
     setDeletingCustomerId(id);
@@ -112,7 +123,7 @@ const Customers = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
             Ny Kunde
           </Button>
@@ -200,7 +211,7 @@ const Customers = () => {
                 Kom i gang ved å opprette din første kunde.
               </p>
               <div className="mt-6">
-                <Button>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   Ny Kunde
                 </Button>
@@ -235,7 +246,19 @@ const Customers = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setViewingCustomer(customer)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Vis
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setEditingCustomer(customer)}
+                        >
                           Rediger
                         </Button>
                         <Button size="sm">
@@ -283,6 +306,32 @@ const Customers = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <CreateCustomerDialog 
+        open={isCreateDialogOpen} 
+        onOpenChange={setIsCreateDialogOpen}
+      />
+      
+      <EditCustomerDialog 
+        customer={editingCustomer}
+        open={!!editingCustomer}
+        onOpenChange={(open) => !open && setEditingCustomer(null)}
+      />
+
+      <Dialog open={!!viewingCustomer} onOpenChange={(open) => !open && setViewingCustomer(null)}>
+        <DialogContent className="max-w-2xl">
+          {viewingCustomer && (
+            <CustomerDetailsCard 
+              customer={viewingCustomer}
+              onEdit={() => {
+                setEditingCustomer(viewingCustomer);
+                setViewingCustomer(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

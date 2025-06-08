@@ -36,10 +36,51 @@ export const useCreateProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Suksess",
+        description: "Produkt opprettet",
+      });
     },
     onError: (error) => {
       console.error('Product creation error:', error);
-      throw error;
+      toast({
+        title: "Feil",
+        description: `Kunne ikke opprette produkt: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('products')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Suksess",
+        description: "Produkt oppdatert",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke oppdatere produkt: ${error.message}`,
+        variant: "destructive",
+      });
     },
   });
 };

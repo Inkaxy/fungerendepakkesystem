@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useProducts, useCreateProduct, useDeleteProduct, useDeleteAllProducts } from '@/hooks/useProducts';
+import { useProducts, useCreateProduct, useDeleteProduct, useDeleteAllProducts, useUpdateProduct } from '@/hooks/useProducts';
 import { useAuthStore } from '@/stores/authStore';
-import { Package, Plus, Search, Filter, Trash2, Loader2 } from 'lucide-react';
+import { Package, Plus, Search, Filter, Trash2, Loader2, Edit } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -52,6 +53,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
+import EditProductDialog from '@/components/products/EditProductDialog';
+import { Product } from '@/types/database';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Produktnavn er påkrevd'),
@@ -65,12 +68,14 @@ type ProductFormData = z.infer<typeof productSchema>;
 const Products = () => {
   const { data: products, isLoading } = useProducts();
   const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const deleteAllProducts = useDeleteAllProducts();
   const { profile } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   const form = useForm<ProductFormData>({
@@ -106,6 +111,10 @@ const Products = () => {
       console.error('Error creating product:', error);
       toast.error('Feil ved opprettelse av produkt');
     }
+  };
+
+  const handleUpdateProduct = async (productData: Partial<Product> & { id: string }) => {
+    await updateProduct.mutateAsync(productData);
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -403,7 +412,12 @@ const Products = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setEditingProduct(product)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
                           Rediger
                         </Button>
                         <Button variant="outline" size="sm">
@@ -451,6 +465,15 @@ const Products = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Product Dialog */}
+      <EditProductDialog
+        product={editingProduct}
+        open={!!editingProduct}
+        onOpenChange={(open) => !open && setEditingProduct(null)}
+        onSubmit={handleUpdateProduct}
+        isLoading={updateProduct.isPending}
+      />
     </div>
   );
 };
