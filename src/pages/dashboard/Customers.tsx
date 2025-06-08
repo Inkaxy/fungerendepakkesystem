@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye, Monitor, Copy, ExternalLink } from 'lucide-react';
+import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye, Monitor } from 'lucide-react';
 import { useCustomers, useDeleteCustomer, useDeleteAllCustomers, useUpdateCustomer } from '@/hooks/useCustomers';
 import {
   Table,
@@ -33,6 +31,8 @@ import { useToast } from '@/hooks/use-toast';
 import CreateCustomerDialog from '@/components/customers/CreateCustomerDialog';
 import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import CustomerDetailsCard from '@/components/customers/CustomerDetailsCard';
+import DisplayModeSelector from '@/components/customers/DisplayModeSelector';
+import DisplayManagementCard from '@/components/customers/DisplayManagementCard';
 import { Customer } from '@/types/database';
 
 const Customers = () => {
@@ -66,9 +66,9 @@ const Customers = () => {
         has_dedicated_display: hasDedicatedDisplay,
       });
       toast({
-        title: hasDedicatedDisplay ? "Eget display aktivert" : "Eget display deaktivert",
+        title: hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert",
         description: hasDedicatedDisplay 
-          ? `${customer.name} har nå eget display`
+          ? `${customer.name} har nå sitt eget private display`
           : `${customer.name} vises nå på felles display`,
       });
     } catch (error) {
@@ -80,8 +80,8 @@ const Customers = () => {
     }
   };
 
-  const copyDisplayUrl = (displayUrl: string) => {
-    const fullUrl = `${window.location.origin}/display/${displayUrl}`;
+  const copyDisplayUrl = (displayPath: string) => {
+    const fullUrl = `${window.location.origin}${displayPath}`;
     navigator.clipboard.writeText(fullUrl);
     toast({
       title: "URL kopiert",
@@ -89,22 +89,8 @@ const Customers = () => {
     });
   };
 
-  const copySharedDisplayUrl = () => {
-    const fullUrl = `${window.location.origin}/display/shared`;
-    navigator.clipboard.writeText(fullUrl);
-    toast({
-      title: "URL kopiert",
-      description: "Felles display-URL er kopiert til utklippstavlen",
-    });
-  };
-
-  const openDisplayUrl = (displayUrl: string) => {
-    const fullUrl = `${window.location.origin}/display/${displayUrl}`;
-    window.open(fullUrl, '_blank');
-  };
-
-  const openSharedDisplayUrl = () => {
-    const fullUrl = `${window.location.origin}/display/shared`;
+  const openDisplayUrl = (displayPath: string) => {
+    const fullUrl = `${window.location.origin}${displayPath}`;
     window.open(fullUrl, '_blank');
   };
 
@@ -147,26 +133,12 @@ const Customers = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kunder</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Kundeadministrasjon</h1>
           <p className="text-muted-foreground">
-            Administrer kunderegisteret. Kunder kan vises på felles display eller ha eget display.
+            Moderne display-løsninger for optimal kundeopplevelse
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={copySharedDisplayUrl}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            Kopier felles display URL
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={openSharedDisplayUrl}
-          >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Åpne felles display
-          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" disabled={!customers || customers.length === 0}>
@@ -199,61 +171,64 @@ const Customers = () => {
         </div>
       </div>
 
+      {/* Display Management Card */}
+      <DisplayManagementCard />
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-blue-900">
               Totale kunder
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-blue-900">{totalCustomers}</div>
+            <p className="text-xs text-blue-600">
               Registrerte kunder
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-green-900">
               Aktive kunder
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeCustomers.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-green-900">{activeCustomers.length}</div>
+            <p className="text-xs text-green-600">
               {totalCustomers > 0 ? Math.round((activeCustomers.length / totalCustomers) * 100) : 0}% av totale
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-purple-900">
               Felles display
             </CardTitle>
-            <Monitor className="h-4 w-4 text-muted-foreground" />
+            <Monitor className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sharedDisplayCustomers.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Vises på felles display
+            <div className="text-2xl font-bold text-purple-900">{sharedDisplayCustomers.length}</div>
+            <p className="text-xs text-purple-600">
+              Kunder på hovedvisning
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Eget display
+            <CardTitle className="text-sm font-medium text-indigo-900">
+              Private displays
             </CardTitle>
-            <Monitor className="h-4 w-4 text-muted-foreground" />
+            <Monitor className="h-4 w-4 text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dedicatedDisplayCustomers.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Har eget display
+            <div className="text-2xl font-bold text-indigo-900">{dedicatedDisplayCustomers.length}</div>
+            <p className="text-xs text-indigo-600">
+              Eksklusive visninger
             </p>
           </CardContent>
         </Card>
@@ -264,7 +239,7 @@ const Customers = () => {
         <CardHeader>
           <CardTitle>Kunde Oversikt</CardTitle>
           <CardDescription>
-            Administrer hvilke kunder som vises på felles display eller har eget display
+            Moderne administrasjon av kunde-displays med avansert funksjonalitet
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -289,8 +264,7 @@ const Customers = () => {
                   <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Display Type</TableHead>
-                  <TableHead>Display URL</TableHead>
+                  <TableHead>Display Konfigurasjon</TableHead>
                   <TableHead>Adresse</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
@@ -304,40 +278,12 @@ const Customers = () => {
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={customer.has_dedicated_display || false}
-                          onCheckedChange={(checked) => handleToggleDisplay(customer, checked)}
-                        />
-                        <Badge variant={customer.has_dedicated_display ? "default" : "secondary"} className="text-xs">
-                          {customer.has_dedicated_display ? "Eget display" : "Felles display"}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {customer.has_dedicated_display && customer.display_url ? (
-                        <div className="flex items-center space-x-1">
-                          <code className="text-xs bg-gray-100 px-2 py-1 rounded truncate max-w-32">
-                            /display/{customer.display_url}
-                          </code>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => customer.display_url && copyDisplayUrl(customer.display_url)}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => customer.display_url && openDisplayUrl(customer.display_url)}
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Felles display</span>
-                      )}
+                      <DisplayModeSelector
+                        customer={customer}
+                        onToggleDisplay={handleToggleDisplay}
+                        onCopyUrl={copyDisplayUrl}
+                        onOpenUrl={openDisplayUrl}
+                      />
                     </TableCell>
                     <TableCell>
                       {customer.address ? (
