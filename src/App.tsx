@@ -22,6 +22,10 @@ import Reports from "./pages/dashboard/Reports";
 import Admin from "./pages/dashboard/Admin";
 import NotFound from "./pages/NotFound";
 
+// Display Pages
+import SharedDisplay from "./pages/display/SharedDisplay";
+import CustomerDisplay from "./pages/display/CustomerDisplay";
+
 // Components
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthLayout from "@/components/layouts/AuthLayout";
@@ -57,6 +61,10 @@ function AppContent() {
         {/* Public routes */}
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+        
+        {/* Display routes (public) */}
+        <Route path="/display/shared" element={<SharedDisplay />} />
+        <Route path="/display/:displayUrl" element={<CustomerDisplay />} />
         
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

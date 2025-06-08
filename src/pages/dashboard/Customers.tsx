@@ -89,8 +89,22 @@ const Customers = () => {
     });
   };
 
+  const copySharedDisplayUrl = () => {
+    const fullUrl = `${window.location.origin}/display/shared`;
+    navigator.clipboard.writeText(fullUrl);
+    toast({
+      title: "URL kopiert",
+      description: "Felles display-URL er kopiert til utklippstavlen",
+    });
+  };
+
   const openDisplayUrl = (displayUrl: string) => {
     const fullUrl = `${window.location.origin}/display/${displayUrl}`;
+    window.open(fullUrl, '_blank');
+  };
+
+  const openSharedDisplayUrl = () => {
+    const fullUrl = `${window.location.origin}/display/shared`;
     window.open(fullUrl, '_blank');
   };
 
@@ -126,6 +140,7 @@ const Customers = () => {
   const activeCustomers = customers?.filter(c => c.status === 'active') || [];
   const totalCustomers = customers?.length || 0;
   const dedicatedDisplayCustomers = customers?.filter(c => c.has_dedicated_display) || [];
+  const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display) || [];
 
   return (
     <div className="space-y-6">
@@ -134,10 +149,24 @@ const Customers = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Kunder</h1>
           <p className="text-muted-foreground">
-            Administrer kunderegisteret. Alle kunder vises på felles display som standard.
+            Administrer kunderegisteret. Kunder kan vises på felles display eller ha eget display.
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={copySharedDisplayUrl}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Kopier felles display URL
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={openSharedDisplayUrl}
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Åpne felles display
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" disabled={!customers || customers.length === 0}>
@@ -171,7 +200,7 @@ const Customers = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -208,9 +237,23 @@ const Customers = () => {
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCustomers - dedicatedDisplayCustomers.length}</div>
+            <div className="text-2xl font-bold">{sharedDisplayCustomers.length}</div>
             <p className="text-xs text-muted-foreground">
               Vises på felles display
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Eget display
+            </CardTitle>
+            <Monitor className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dedicatedDisplayCustomers.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Har eget display
             </p>
           </CardContent>
         </Card>
@@ -221,7 +264,7 @@ const Customers = () => {
         <CardHeader>
           <CardTitle>Kunde Oversikt</CardTitle>
           <CardDescription>
-            Alle kunder vises på felles display som standard
+            Administrer hvilke kunder som vises på felles display eller har eget display
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -246,7 +289,8 @@ const Customers = () => {
                   <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Display</TableHead>
+                  <TableHead>Display Type</TableHead>
+                  <TableHead>Display URL</TableHead>
                   <TableHead>Adresse</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
@@ -260,9 +304,40 @@ const Customers = () => {
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-xs">
-                        Felles display
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={customer.has_dedicated_display || false}
+                          onCheckedChange={(checked) => handleToggleDisplay(customer, checked)}
+                        />
+                        <Badge variant={customer.has_dedicated_display ? "default" : "secondary"} className="text-xs">
+                          {customer.has_dedicated_display ? "Eget display" : "Felles display"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {customer.has_dedicated_display && customer.display_url ? (
+                        <div className="flex items-center space-x-1">
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded truncate max-w-32">
+                            /display/{customer.display_url}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => customer.display_url && copyDisplayUrl(customer.display_url)}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => customer.display_url && openDisplayUrl(customer.display_url)}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Felles display</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {customer.address ? (
