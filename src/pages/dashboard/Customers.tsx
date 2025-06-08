@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye } from 'lucide-react';
+import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye, Monitor } from 'lucide-react';
 import { useCustomers, useDeleteCustomer, useDeleteAllCustomers } from '@/hooks/useCustomers';
 import {
   Table,
@@ -31,6 +31,7 @@ import {
 import CreateCustomerDialog from '@/components/customers/CreateCustomerDialog';
 import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import CustomerDetailsCard from '@/components/customers/CustomerDetailsCard';
+import DisplayManagementDialog from '@/components/customers/DisplayManagementDialog';
 import { Customer } from '@/types/database';
 
 const Customers = () => {
@@ -41,6 +42,7 @@ const Customers = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
+  const [displayManagementCustomer, setDisplayManagementCustomer] = useState<Customer | null>(null);
 
   const handleDeleteCustomer = async (id: string) => {
     setDeletingCustomerId(id);
@@ -224,6 +226,7 @@ const Customers = () => {
                   <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Display</TableHead>
                   <TableHead>Adresse</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
@@ -236,6 +239,17 @@ const Customers = () => {
                     </TableCell>
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
+                    <TableCell>
+                      {customer.display_url ? (
+                        <Badge variant="outline" className="text-xs">
+                          Tildelt
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          Ikke tildelt
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {customer.address ? (
                         <div className="flex items-center">
@@ -253,6 +267,14 @@ const Customers = () => {
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           Vis
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setDisplayManagementCustomer(customer)}
+                        >
+                          <Monitor className="w-4 h-4 mr-1" />
+                          Display
                         </Button>
                         <Button 
                           variant="outline" 
@@ -332,6 +354,12 @@ const Customers = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <DisplayManagementDialog
+        customer={displayManagementCustomer!}
+        open={!!displayManagementCustomer}
+        onOpenChange={(open) => !open && setDisplayManagementCustomer(null)}
+      />
     </div>
   );
 };
