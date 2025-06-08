@@ -122,7 +122,7 @@ const CustomersTable = ({
               </TableCell>
               <TableCell>
                 <Badge variant={customer.has_dedicated_display ? 'default' : 'secondary'}>
-                  {customer.has_dedicated_display ? 'Privat' : 'Inaktiv'}
+                  {customer.has_dedicated_display ? 'Egen' : 'Felles'}
                 </Badge>
               </TableCell>
               <TableCell>
