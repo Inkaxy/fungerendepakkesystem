@@ -355,11 +355,13 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
-      <DisplayManagementDialog
-        customer={displayManagementCustomer!}
-        open={!!displayManagementCustomer}
-        onOpenChange={(open) => !open && setDisplayManagementCustomer(null)}
-      />
+      {displayManagementCustomer && (
+        <DisplayManagementDialog
+          customer={displayManagementCustomer}
+          open={!!displayManagementCustomer}
+          onOpenChange={(open) => !open && setDisplayManagementCustomer(null)}
+        />
+      )}
     </div>
   );
 };
