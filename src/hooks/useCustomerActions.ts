@@ -1,0 +1,70 @@
+
+import { useState } from 'react';
+import { useDeleteCustomer, useDeleteAllCustomers, useUpdateCustomer } from '@/hooks/useCustomers';
+import { useToast } from '@/hooks/use-toast';
+import { Customer } from '@/types/database';
+
+export const useCustomerActions = () => {
+  const deleteCustomer = useDeleteCustomer();
+  const deleteAllCustomers = useDeleteAllCustomers();
+  const updateCustomer = useUpdateCustomer();
+  const { toast } = useToast();
+  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
+
+  const handleDeleteCustomer = async (id: string) => {
+    setDeletingCustomerId(id);
+    try {
+      await deleteCustomer.mutateAsync(id);
+    } finally {
+      setDeletingCustomerId(null);
+    }
+  };
+
+  const handleDeleteAllCustomers = async () => {
+    await deleteAllCustomers.mutateAsync();
+  };
+
+  const handleToggleDisplay = async (customer: Customer, hasDedicatedDisplay: boolean) => {
+    try {
+      await updateCustomer.mutateAsync({
+        id: customer.id,
+        has_dedicated_display: hasDedicatedDisplay,
+      });
+      toast({
+        title: hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert",
+        description: hasDedicatedDisplay 
+          ? `${customer.name} har nå sitt eget private display`
+          : `${customer.name} vises nå på felles display`,
+      });
+    } catch (error) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke oppdatere display-innstilling",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyDisplayUrl = (displayPath: string) => {
+    const fullUrl = `${window.location.origin}${displayPath}`;
+    navigator.clipboard.writeText(fullUrl);
+    toast({
+      title: "URL kopiert",
+      description: "Display-URL er kopiert til utklippstavlen",
+    });
+  };
+
+  const openDisplayUrl = (displayPath: string) => {
+    const fullUrl = `${window.location.origin}${displayPath}`;
+    window.open(fullUrl, '_blank');
+  };
+
+  return {
+    deletingCustomerId,
+    handleDeleteCustomer,
+    handleDeleteAllCustomers,
+    handleToggleDisplay,
+    copyDisplayUrl,
+    openDisplayUrl,
+  };
+};
