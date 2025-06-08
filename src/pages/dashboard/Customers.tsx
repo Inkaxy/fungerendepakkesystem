@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -212,11 +213,7 @@ const Customers = () => {
                   <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Kontaktperson</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead>E-post</TableHead>
                   <TableHead>Adresse</TableHead>
-                  <TableHead>Opprettet</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
               </TableHeader>
@@ -228,23 +225,6 @@ const Customers = () => {
                     </TableCell>
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
-                    <TableCell>{customer.contact_person || '-'}</TableCell>
-                    <TableCell>
-                      {customer.phone ? (
-                        <div className="flex items-center">
-                          <Phone className="w-3 h-3 mr-1" />
-                          {customer.phone}
-                        </div>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {customer.email ? (
-                        <div className="flex items-center">
-                          <Mail className="w-3 h-3 mr-1" />
-                          {customer.email}
-                        </div>
-                      ) : '-'}
-                    </TableCell>
                     <TableCell>
                       {customer.address ? (
                         <div className="flex items-center">
@@ -253,17 +233,8 @@ const Customers = () => {
                         </div>
                       ) : '-'}
                     </TableCell>
-                    <TableCell>
-                      {new Date(customer.created_at).toLocaleDateString('nb-NO')}
-                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        {customer.email && (
-                          <Button variant="outline" size="sm">
-                            <Mail className="w-4 h-4 mr-1" />
-                            Kontakt
-                          </Button>
-                        )}
                         <Button variant="outline" size="sm">
                           Rediger
                         </Button>
