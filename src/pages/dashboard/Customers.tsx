@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye, Monitor } from 'lucide-react';
-import { useCustomers, useDeleteCustomer, useDeleteAllCustomers } from '@/hooks/useCustomers';
+import { Switch } from '@/components/ui/switch';
+import { Users, UserPlus, Phone, Mail, MapPin, Loader2, Trash2, Eye, Monitor, Copy, ExternalLink } from 'lucide-react';
+import { useCustomers, useDeleteCustomer, useDeleteAllCustomers, useUpdateCustomer } from '@/hooks/useCustomers';
 import {
   Table,
   TableBody,
@@ -28,21 +29,22 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import CreateCustomerDialog from '@/components/customers/CreateCustomerDialog';
 import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import CustomerDetailsCard from '@/components/customers/CustomerDetailsCard';
-import DisplayManagementDialog from '@/components/customers/DisplayManagementDialog';
 import { Customer } from '@/types/database';
 
 const Customers = () => {
   const { data: customers, isLoading, error } = useCustomers();
   const deleteCustomer = useDeleteCustomer();
   const deleteAllCustomers = useDeleteAllCustomers();
+  const updateCustomer = useUpdateCustomer();
+  const { toast } = useToast();
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
-  const [displayManagementCustomer, setDisplayManagementCustomer] = useState<Customer | null>(null);
 
   const handleDeleteCustomer = async (id: string) => {
     setDeletingCustomerId(id);
@@ -55,6 +57,41 @@ const Customers = () => {
 
   const handleDeleteAllCustomers = async () => {
     await deleteAllCustomers.mutateAsync();
+  };
+
+  const handleToggleDisplay = async (customer: Customer, hasDedicatedDisplay: boolean) => {
+    try {
+      await updateCustomer.mutateAsync({
+        id: customer.id,
+        has_dedicated_display: hasDedicatedDisplay,
+      });
+      toast({
+        title: hasDedicatedDisplay ? "Eget display aktivert" : "Eget display deaktivert",
+        description: hasDedicatedDisplay 
+          ? `${customer.name} har nå eget display`
+          : `${customer.name} vises nå på felles display`,
+      });
+    } catch (error) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke oppdatere display-innstilling",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyDisplayUrl = (displayUrl: string) => {
+    const fullUrl = `${window.location.origin}/display/${displayUrl}`;
+    navigator.clipboard.writeText(fullUrl);
+    toast({
+      title: "URL kopiert",
+      description: "Display-URL er kopiert til utklippstavlen",
+    });
+  };
+
+  const openDisplayUrl = (displayUrl: string) => {
+    const fullUrl = `${window.location.origin}/display/${displayUrl}`;
+    window.open(fullUrl, '_blank');
   };
 
   const getStatusBadge = (status: string) => {
@@ -88,6 +125,7 @@ const Customers = () => {
 
   const activeCustomers = customers?.filter(c => c.status === 'active') || [];
   const totalCustomers = customers?.length || 0;
+  const dedicatedDisplayCustomers = customers?.filter(c => c.has_dedicated_display) || [];
 
   return (
     <div className="space-y-6">
@@ -96,7 +134,7 @@ const Customers = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Kunder</h1>
           <p className="text-muted-foreground">
-            Administrer kunderegisteret og kontaktinformasjon
+            Administrer kunderegisteret og display-innstillinger
           </p>
         </div>
         <div className="flex gap-2">
@@ -165,32 +203,28 @@ const Customers = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Med e-post
+              Eget display
             </CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
+            <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {customers?.filter(c => c.email).length || 0}
-            </div>
+            <div className="text-2xl font-bold">{dedicatedDisplayCustomers.length}</div>
             <p className="text-xs text-muted-foreground">
-              Har registrert e-post
+              Har eget display aktivert
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Med telefon
+              Felles display
             </CardTitle>
-            <Phone className="h-4 w-4 text-muted-foreground" />
+            <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {customers?.filter(c => c.phone).length || 0}
-            </div>
+            <div className="text-2xl font-bold">{totalCustomers - dedicatedDisplayCustomers.length}</div>
             <p className="text-xs text-muted-foreground">
-              Har registrert telefon
+              Vises på felles display
             </p>
           </CardContent>
         </Card>
@@ -201,7 +235,7 @@ const Customers = () => {
         <CardHeader>
           <CardTitle>Kunde Oversikt</CardTitle>
           <CardDescription>
-            Alle registrerte kunder og deres informasjon
+            Alle registrerte kunder og deres display-innstillinger
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -226,7 +260,8 @@ const Customers = () => {
                   <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Display</TableHead>
+                  <TableHead>Eget display</TableHead>
+                  <TableHead>Display URL</TableHead>
                   <TableHead>Adresse</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
@@ -240,13 +275,40 @@ const Customers = () => {
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
                     <TableCell>
-                      {customer.display_url ? (
-                        <Badge variant="outline" className="text-xs">
-                          Tildelt
-                        </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={customer.has_dedicated_display || false}
+                          onCheckedChange={(checked) => handleToggleDisplay(customer, checked)}
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          {customer.has_dedicated_display ? 'Eget' : 'Felles'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {customer.has_dedicated_display && customer.display_url ? (
+                        <div className="flex items-center space-x-1">
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {customer.display_url}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyDisplayUrl(customer.display_url!)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDisplayUrl(customer.display_url!)}
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </div>
                       ) : (
                         <Badge variant="secondary" className="text-xs">
-                          Ikke tildelt
+                          Felles display
                         </Badge>
                       )}
                     </TableCell>
@@ -267,14 +329,6 @@ const Customers = () => {
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           Vis
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setDisplayManagementCustomer(customer)}
-                        >
-                          <Monitor className="w-4 h-4 mr-1" />
-                          Display
                         </Button>
                         <Button 
                           variant="outline" 
@@ -354,14 +408,6 @@ const Customers = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {displayManagementCustomer && (
-        <DisplayManagementDialog
-          customer={displayManagementCustomer}
-          open={!!displayManagementCustomer}
-          onOpenChange={(open) => !open && setDisplayManagementCustomer(null)}
-        />
-      )}
     </div>
   );
 };

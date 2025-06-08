@@ -42,13 +42,13 @@ export type Database = {
       customers: {
         Row: {
           address: string | null
-          assigned_display_station_id: string | null
           bakery_id: string
           contact_person: string | null
           created_at: string | null
           customer_number: string | null
           display_url: string | null
           email: string | null
+          has_dedicated_display: boolean | null
           id: string
           name: string
           phone: string | null
@@ -57,13 +57,13 @@ export type Database = {
         }
         Insert: {
           address?: string | null
-          assigned_display_station_id?: string | null
           bakery_id: string
           contact_person?: string | null
           created_at?: string | null
           customer_number?: string | null
           display_url?: string | null
           email?: string | null
+          has_dedicated_display?: boolean | null
           id?: string
           name: string
           phone?: string | null
@@ -72,13 +72,13 @@ export type Database = {
         }
         Update: {
           address?: string | null
-          assigned_display_station_id?: string | null
           bakery_id?: string
           contact_person?: string | null
           created_at?: string | null
           customer_number?: string | null
           display_url?: string | null
           email?: string | null
+          has_dedicated_display?: boolean | null
           id?: string
           name?: string
           phone?: string | null
@@ -87,187 +87,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "customers_assigned_display_station_id_fkey"
-            columns: ["assigned_display_station_id"]
-            isOneToOne: false
-            referencedRelation: "display_stations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "customers_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: false
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      display_assignments: {
-        Row: {
-          assigned_at: string
-          created_at: string
-          customer_id: string
-          display_station_id: string
-          display_url: string
-          id: string
-          is_active: boolean
-          updated_at: string
-        }
-        Insert: {
-          assigned_at?: string
-          created_at?: string
-          customer_id: string
-          display_station_id: string
-          display_url: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-        }
-        Update: {
-          assigned_at?: string
-          created_at?: string
-          customer_id?: string
-          display_station_id?: string
-          display_url?: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "display_assignments_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "display_assignments_display_station_id_fkey"
-            columns: ["display_station_id"]
-            isOneToOne: false
-            referencedRelation: "display_stations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      display_settings: {
-        Row: {
-          accent_color: string
-          animation_speed: number
-          background_color: string
-          created_at: string
-          customer_id: string | null
-          display_station_id: string
-          enable_animations: boolean
-          font_size: number
-          header_height: number
-          id: string
-          products_per_view: number
-          rotation_interval: number
-          show_customer_info: boolean
-          show_delivery_date: boolean
-          show_notes: boolean
-          show_product_images: boolean
-          show_quantities: boolean
-          text_color: string
-          updated_at: string
-        }
-        Insert: {
-          accent_color?: string
-          animation_speed?: number
-          background_color?: string
-          created_at?: string
-          customer_id?: string | null
-          display_station_id: string
-          enable_animations?: boolean
-          font_size?: number
-          header_height?: number
-          id?: string
-          products_per_view?: number
-          rotation_interval?: number
-          show_customer_info?: boolean
-          show_delivery_date?: boolean
-          show_notes?: boolean
-          show_product_images?: boolean
-          show_quantities?: boolean
-          text_color?: string
-          updated_at?: string
-        }
-        Update: {
-          accent_color?: string
-          animation_speed?: number
-          background_color?: string
-          created_at?: string
-          customer_id?: string | null
-          display_station_id?: string
-          enable_animations?: boolean
-          font_size?: number
-          header_height?: number
-          id?: string
-          products_per_view?: number
-          rotation_interval?: number
-          show_customer_info?: boolean
-          show_delivery_date?: boolean
-          show_notes?: boolean
-          show_product_images?: boolean
-          show_quantities?: boolean
-          text_color?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "display_settings_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "display_settings_display_station_id_fkey"
-            columns: ["display_station_id"]
-            isOneToOne: false
-            referencedRelation: "display_stations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      display_stations: {
-        Row: {
-          bakery_id: string
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          is_shared: boolean
-          location: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          is_shared?: boolean
-          location?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          is_shared?: boolean
-          location?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "display_stations_bakery_id_fkey"
             columns: ["bakery_id"]
             isOneToOne: false
             referencedRelation: "bakeries"

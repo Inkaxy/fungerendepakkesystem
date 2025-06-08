@@ -1,4 +1,3 @@
-
 export interface Customer {
   id: string;
   bakery_id: string;
@@ -10,7 +9,7 @@ export interface Customer {
   address?: string;
   status: 'active' | 'inactive' | 'blocked';
   display_url?: string;
-  assigned_display_station_id?: string;
+  has_dedicated_display?: boolean;
   created_at: string;
   updated_at: string;
 }
