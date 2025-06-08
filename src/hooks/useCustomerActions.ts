@@ -15,13 +15,35 @@ export const useCustomerActions = () => {
     setDeletingCustomerId(id);
     try {
       await deleteCustomer.mutateAsync(id);
+      toast({
+        title: "Suksess",
+        description: "Kunde slettet",
+      });
+    } catch (error) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke slette kunde",
+        variant: "destructive",
+      });
     } finally {
       setDeletingCustomerId(null);
     }
   };
 
   const handleDeleteAllCustomers = async () => {
-    await deleteAllCustomers.mutateAsync();
+    try {
+      await deleteAllCustomers.mutateAsync();
+      toast({
+        title: "Suksess",
+        description: "Alle kunder slettet",
+      });
+    } catch (error) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke slette alle kunder",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleToggleDisplay = async (customer: Customer, hasDedicatedDisplay: boolean) => {
@@ -47,10 +69,17 @@ export const useCustomerActions = () => {
 
   const copyDisplayUrl = (displayPath: string) => {
     const fullUrl = `${window.location.origin}${displayPath}`;
-    navigator.clipboard.writeText(fullUrl);
-    toast({
-      title: "URL kopiert",
-      description: "Display-URL er kopiert til utklippstavlen",
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      toast({
+        title: "URL kopiert",
+        description: "Display-URL er kopiert til utklippstavlen",
+      });
+    }).catch(() => {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke kopiere URL",
+        variant: "destructive",
+      });
     });
   };
 
