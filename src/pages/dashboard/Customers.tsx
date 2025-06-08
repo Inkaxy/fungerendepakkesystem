@@ -134,7 +134,7 @@ const Customers = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Kunder</h1>
           <p className="text-muted-foreground">
-            Administrer kunderegisteret og display-innstillinger
+            Administrer kunderegisteret. Alle kunder vises på felles display som standard.
           </p>
         </div>
         <div className="flex gap-2">
@@ -171,7 +171,7 @@ const Customers = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -203,20 +203,6 @@ const Customers = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Eget display
-            </CardTitle>
-            <Monitor className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{dedicatedDisplayCustomers.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Har eget display aktivert
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
               Felles display
             </CardTitle>
             <Monitor className="h-4 w-4 text-muted-foreground" />
@@ -235,7 +221,7 @@ const Customers = () => {
         <CardHeader>
           <CardTitle>Kunde Oversikt</CardTitle>
           <CardDescription>
-            Alle registrerte kunder og deres display-innstillinger
+            Alle kunder vises på felles display som standard
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -260,8 +246,7 @@ const Customers = () => {
                   <TableHead>Kundenummer</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Eget display</TableHead>
-                  <TableHead>Display URL</TableHead>
+                  <TableHead>Display</TableHead>
                   <TableHead>Adresse</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
@@ -275,42 +260,9 @@ const Customers = () => {
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{getStatusBadge(customer.status)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={customer.has_dedicated_display || false}
-                          onCheckedChange={(checked) => handleToggleDisplay(customer, checked)}
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {customer.has_dedicated_display ? 'Eget' : 'Felles'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {customer.has_dedicated_display && customer.display_url ? (
-                        <div className="flex items-center space-x-1">
-                          <Badge variant="outline" className="text-xs font-mono">
-                            {customer.display_url}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyDisplayUrl(customer.display_url!)}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDisplayUrl(customer.display_url!)}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">
-                          Felles display
-                        </Badge>
-                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        Felles display
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {customer.address ? (

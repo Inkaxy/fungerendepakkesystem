@@ -1,3 +1,4 @@
+
 export interface Customer {
   id: string;
   bakery_id: string;
@@ -65,51 +66,4 @@ export interface PackingSession {
   status: 'ready' | 'in_progress' | 'completed';
   created_at: string;
   updated_at: string;
-}
-
-export interface DisplayStation {
-  id: string;
-  bakery_id: string;
-  name: string;
-  description?: string;
-  location?: string;
-  is_active: boolean;
-  is_shared: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DisplaySettings {
-  id: string;
-  display_station_id: string;
-  customer_id?: string;
-  font_size: number;
-  background_color: string;
-  text_color: string;
-  accent_color: string;
-  header_height: number;
-  enable_animations: boolean;
-  animation_speed: number;
-  rotation_interval: number;
-  show_customer_info: boolean;
-  show_delivery_date: boolean;
-  products_per_view: number;
-  show_product_images: boolean;
-  show_quantities: boolean;
-  show_notes: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DisplayAssignment {
-  id: string;
-  customer_id: string;
-  display_station_id: string;
-  display_url: string;
-  is_active: boolean;
-  assigned_at: string;
-  created_at: string;
-  updated_at: string;
-  customer?: Customer;
-  display_station?: DisplayStation;
 }
