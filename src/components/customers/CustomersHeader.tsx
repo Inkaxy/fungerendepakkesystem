@@ -1,72 +1,73 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Search, UserPlus, QrCode, MoreHorizontal } from 'lucide-react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface CustomersHeaderProps {
   customersCount: number;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
   onCreateCustomer: () => void;
-  onDeleteAllCustomers: () => void;
+  onGenerateQrCodes: () => void;
+  onBulkActions: () => void;
+  selectedCount: number;
 }
 
-const CustomersHeader = ({ customersCount, onCreateCustomer, onDeleteAllCustomers }: CustomersHeaderProps) => {
+const CustomersHeader = ({ 
+  customersCount, 
+  searchTerm, 
+  onSearchChange, 
+  onCreateCustomer,
+  onGenerateQrCodes,
+  onBulkActions,
+  selectedCount
+}: CustomersHeaderProps) => {
   return (
-    <div className="bg-white border rounded-lg p-6 shadow-sm">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kunder</h1>
-          <p className="text-gray-600 mt-1">
-            Administrer dine {customersCount} registrerte kunder
-          </p>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 rounded bg-muted flex items-center justify-center">
+            <span className="text-xs">👥</span>
+          </div>
+          <h1 className="text-xl font-semibold">
+            Kundeoversikt ({customersCount} kunder)
+          </h1>
         </div>
-        
-        <div className="flex gap-3">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                disabled={customersCount === 0}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Slett alle
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Dette vil slette alle {customersCount} kunder permanent. 
-                  Denne handlingen kan ikke angres.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={onDeleteAllCustomers}
-                  className="bg-red-500 hover:bg-red-600"
-                >
-                  Slett alle kunder
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Søk etter kundenavn, adresse eller kontaktinfo..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          {selectedCount > 0 && (
+            <Button variant="outline" onClick={onBulkActions}>
+              Flere handlinger
+            </Button>
+          )}
           
-          <Button onClick={onCreateCustomer}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Ny Kunde
+          <Button variant="outline" onClick={onGenerateQrCodes}>
+            <QrCode className="w-4 h-4 mr-2" />
+            Generer alle QR-koder
           </Button>
+
+          <span className="text-sm text-muted-foreground">
+            Viser {customersCount} av {customersCount} resultater
+          </span>
         </div>
       </div>
     </div>

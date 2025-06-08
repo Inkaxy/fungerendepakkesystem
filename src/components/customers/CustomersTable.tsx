@@ -1,8 +1,5 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Eye, Trash2, Loader2, Edit3 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -11,159 +8,184 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import DisplayModeSelector from './DisplayModeSelector';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Settings,
+  Eye,
+  Edit,
+  Trash2,
+  Copy,
+  ExternalLink,
+  MoreHorizontal,
+  MapPin,
+  QrCode
+} from 'lucide-react';
 import { Customer } from '@/types/database';
 
 interface CustomersTableProps {
   customers: Customer[];
+  selectedCustomers: string[];
+  onSelectCustomer: (customerId: string, selected: boolean) => void;
+  onSelectAll: (selected: boolean) => void;
   deletingCustomerId: string | null;
   onViewCustomer: (customer: Customer) => void;
   onEditCustomer: (customer: Customer) => void;
   onDeleteCustomer: (id: string) => void;
   onToggleDisplay: (customer: Customer, hasDedicatedDisplay: boolean) => void;
-  onCopyUrl: (url: string) => void;
-  onOpenUrl: (url: string) => void;
+  onCopyUrl: (displayPath: string) => void;
+  onOpenUrl: (displayPath: string) => void;
+  onShowQrCode: (customer: Customer) => void;
 }
 
-const CustomersTable = ({ 
-  customers, 
+const CustomersTable = ({
+  customers,
+  selectedCustomers,
+  onSelectCustomer,
+  onSelectAll,
   deletingCustomerId,
   onViewCustomer,
   onEditCustomer,
   onDeleteCustomer,
   onToggleDisplay,
   onCopyUrl,
-  onOpenUrl
+  onOpenUrl,
+  onShowQrCode,
 }: CustomersTableProps) => {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Aktiv</Badge>;
-      case 'inactive':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Inaktiv</Badge>;
-      case 'blocked':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Blokkert</Badge>;
-      default:
-        return <Badge variant="outline">Ukjent</Badge>;
-    }
+  const allSelected = customers.length > 0 && selectedCustomers.length === customers.length;
+  const someSelected = selectedCustomers.length > 0;
+
+  const getDisplayPath = (customer: Customer) => {
+    return customer.has_dedicated_display
+      ? `/display/customer/${customer.id}`
+      : '/display/shared';
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
-            <TableHead className="font-medium">Kundenummer</TableHead>
-            <TableHead className="font-medium">Kundenavn</TableHead>
-            <TableHead className="font-medium">Status</TableHead>
-            <TableHead className="font-medium">Display</TableHead>
-            <TableHead className="font-medium">Adresse</TableHead>
-            <TableHead className="font-medium">Kontakt</TableHead>
-            <TableHead className="text-right font-medium">Handlinger</TableHead>
+          <TableRow>
+            <TableHead className="w-12">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={onSelectAll}
+                aria-label="Velg alle kunder"
+              />
+            </TableHead>
+            <TableHead>Kunde #</TableHead>
+            <TableHead>Kundenavn</TableHead>
+            <TableHead>Adresse</TableHead>
+            <TableHead>E-post</TableHead>
+            <TableHead>Telefon</TableHead>
+            <TableHead>Skjerm</TableHead>
+            <TableHead>Ordre</TableHead>
+            <TableHead className="text-right">Handlinger</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {customers.map((customer) => (
-            <TableRow key={customer.id} className="hover:bg-gray-50">
+            <TableRow key={customer.id}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedCustomers.includes(customer.id)}
+                  onCheckedChange={(checked) => onSelectCustomer(customer.id, !!checked)}
+                  aria-label={`Velg ${customer.name}`}
+                />
+              </TableCell>
               <TableCell className="font-mono text-sm">
-                {customer.customer_number || (
-                  <span className="text-gray-400 italic">-</span>
-                )}
+                {customer.customer_number || '-'}
               </TableCell>
               <TableCell className="font-medium">{customer.name}</TableCell>
-              <TableCell>{getStatusBadge(customer.status)}</TableCell>
               <TableCell>
-                <div className="max-w-xs">
-                  <DisplayModeSelector
-                    customer={customer}
-                    onToggleDisplay={onToggleDisplay}
-                    onCopyUrl={onCopyUrl}
-                    onOpenUrl={onOpenUrl}
-                  />
-                </div>
+                {customer.address ? (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="w-3 h-3 mr-1" />
+                    {customer.address}
+                  </div>
+                ) : (
+                  '-'
+                )}
               </TableCell>
-              <TableCell className="text-sm text-gray-600">
-                {customer.address || <span className="text-gray-400 italic">-</span>}
+              <TableCell className="text-sm">
+                {customer.email || '-'}
+              </TableCell>
+              <TableCell className="text-sm">
+                {customer.phone || '-'}
               </TableCell>
               <TableCell>
-                <div className="text-sm space-y-1">
-                  {customer.contact_person && (
-                    <div className="text-gray-600">{customer.contact_person}</div>
-                  )}
-                  {customer.email && (
-                    <div className="text-gray-500">{customer.email}</div>
-                  )}
-                  {customer.phone && (
-                    <div className="text-gray-500">{customer.phone}</div>
-                  )}
-                  {!customer.contact_person && !customer.email && !customer.phone && (
-                    <span className="text-gray-400 italic">-</span>
-                  )}
-                </div>
+                <Badge variant={customer.has_dedicated_display ? 'default' : 'secondary'}>
+                  {customer.has_dedicated_display ? 'Privat' : 'Inaktiv'}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">4 ordre</span>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end space-x-1">
-                  <Button 
-                    variant="ghost" 
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="ghost"
                     size="sm"
-                    onClick={() => onViewCustomer(customer)}
+                    onClick={() => onShowQrCode(customer)}
                     className="h-8 w-8 p-0"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Settings className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onEditCustomer(customer)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        disabled={deletingCustomerId === customer.id}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        {deletingCustomerId === customer.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Slett kunde</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Er du sikker på at du vil slette kunden "{customer.name}"? 
-                          Denne handlingen kan ikke angres.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => onDeleteCustomer(customer.id)}
-                          className="bg-red-500 hover:bg-red-600"
-                        >
-                          Slett
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onViewCustomer(customer)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Vis detaljer
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEditCustomer(customer)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Rediger
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onCopyUrl(getDisplayPath(customer))}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Kopier URL
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onOpenUrl(getDisplayPath(customer))}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Åpne display
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onDeleteCustomer(customer.id)}
+                        className="text-red-600"
+                        disabled={deletingCustomerId === customer.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Slett
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDeleteCustomer(customer.id)}
+                    disabled={deletingCustomerId === customer.id}
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
