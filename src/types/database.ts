@@ -8,7 +8,7 @@ export interface Customer {
   phone?: string;
   email?: string;
   address?: string;
-  status: 'active' | 'inactive' | 'blocked';
+  status: string;
   display_url?: string;
   has_dedicated_display?: boolean;
   created_at: string;
