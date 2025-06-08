@@ -49,7 +49,7 @@ export const useCreateDisplayAssignment = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (assignment: Omit<DisplayAssignment, 'id' | 'created_at' | 'updated_at' | 'assigned_at'>) => {
+    mutationFn: async (assignment: Omit<DisplayAssignment, 'id' | 'created_at' | 'updated_at' | 'assigned_at' | 'display_url'>) => {
       // Generer unik display URL
       const { data: urlData } = await supabase.rpc('generate_display_url');
       
