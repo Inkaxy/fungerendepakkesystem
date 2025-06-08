@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Monitor } from 'lucide-react';
+import { Users, Monitor, TrendingUp, Zap } from 'lucide-react';
 import { Customer } from '@/types/database';
 
 interface CustomersStatsProps {
@@ -14,64 +14,104 @@ const CustomersStats = ({ customers }: CustomersStatsProps) => {
   const dedicatedDisplayCustomers = customers.filter(c => c.has_dedicated_display);
   const sharedDisplayCustomers = customers.filter(c => !c.has_dedicated_display);
 
+  const statsCards = [
+    {
+      title: 'Totale kunder',
+      value: totalCustomers,
+      subtitle: 'Registrerte kunder',
+      icon: Users,
+      gradient: 'from-blue-500 to-cyan-500',
+      bgGradient: 'from-blue-50 to-cyan-50',
+      borderColor: 'border-blue-200',
+      textColor: 'text-blue-900',
+      iconColor: 'text-blue-600',
+      emoji: '🏪'
+    },
+    {
+      title: 'Aktive kunder',
+      value: activeCustomers.length,
+      subtitle: `${totalCustomers > 0 ? Math.round((activeCustomers.length / totalCustomers) * 100) : 0}% av totale`,
+      icon: TrendingUp,
+      gradient: 'from-emerald-500 to-green-500',
+      bgGradient: 'from-emerald-50 to-green-50',
+      borderColor: 'border-emerald-200',
+      textColor: 'text-emerald-900',
+      iconColor: 'text-emerald-600',
+      emoji: '📈'
+    },
+    {
+      title: 'Felles display',
+      value: sharedDisplayCustomers.length,
+      subtitle: 'Kunder på hovedvisning',
+      icon: Monitor,
+      gradient: 'from-purple-500 to-pink-500',
+      bgGradient: 'from-purple-50 to-pink-50',
+      borderColor: 'border-purple-200',
+      textColor: 'text-purple-900',
+      iconColor: 'text-purple-600',
+      emoji: '📺'
+    },
+    {
+      title: 'Private displays',
+      value: dedicatedDisplayCustomers.length,
+      subtitle: 'Eksklusive visninger',
+      icon: Zap,
+      gradient: 'from-amber-500 to-orange-500',
+      bgGradient: 'from-amber-50 to-orange-50',
+      borderColor: 'border-amber-200',
+      textColor: 'text-amber-900',
+      iconColor: 'text-amber-600',
+      emoji: '⚡'
+    }
+  ];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-blue-900">
-            Totale kunder
-          </CardTitle>
-          <Users className="h-4 w-4 text-blue-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-blue-900">{totalCustomers}</div>
-          <p className="text-xs text-blue-600">
-            Registrerte kunder
-          </p>
-        </CardContent>
-      </Card>
-      <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-green-900">
-            Aktive kunder
-          </CardTitle>
-          <Users className="h-4 w-4 text-green-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-900">{activeCustomers.length}</div>
-          <p className="text-xs text-green-600">
-            {totalCustomers > 0 ? Math.round((activeCustomers.length / totalCustomers) * 100) : 0}% av totale
-          </p>
-        </CardContent>
-      </Card>
-      <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-purple-900">
-            Felles display
-          </CardTitle>
-          <Monitor className="h-4 w-4 text-purple-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-purple-900">{sharedDisplayCustomers.length}</div>
-          <p className="text-xs text-purple-600">
-            Kunder på hovedvisning
-          </p>
-        </CardContent>
-      </Card>
-      <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-indigo-900">
-            Private displays
-          </CardTitle>
-          <Monitor className="h-4 w-4 text-indigo-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-indigo-900">{dedicatedDisplayCustomers.length}</div>
-          <p className="text-xs text-indigo-600">
-            Eksklusive visninger
-          </p>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {statsCards.map((card, index) => (
+        <Card 
+          key={index}
+          className={`
+            relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg
+            bg-gradient-to-br ${card.bgGradient} ${card.borderColor} border-2
+            group cursor-pointer
+          `}
+        >
+          <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+          
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className={`text-sm font-semibold ${card.textColor} flex items-center space-x-2`}>
+                <span className="text-lg">{card.emoji}</span>
+                <span>{card.title}</span>
+              </CardTitle>
+            </div>
+            <div className={`p-2 rounded-lg bg-white/70 ${card.iconColor} group-hover:scale-110 transition-transform duration-200`}>
+              <card.icon className="h-4 w-4" />
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-1">
+            <div className={`text-3xl font-bold ${card.textColor} tracking-tight`}>
+              {card.value}
+            </div>
+            <p className={`text-xs ${card.iconColor} font-medium`}>
+              {card.subtitle}
+            </p>
+            
+            {/* Progress bar */}
+            <div className="mt-3 w-full bg-white/50 rounded-full h-1.5">
+              <div 
+                className={`bg-gradient-to-r ${card.gradient} h-1.5 rounded-full transition-all duration-1000 delay-200`}
+                style={{ 
+                  width: card.title === 'Aktive kunder' && totalCustomers > 0 
+                    ? `${(activeCustomers.length / totalCustomers) * 100}%`
+                    : card.value > 0 ? '100%' : '0%'
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
