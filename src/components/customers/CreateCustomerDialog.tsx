@@ -73,8 +73,9 @@ const CreateCustomerDialog = ({ open, onOpenChange }: CreateCustomerDialogProps)
 
     try {
       await createCustomer.mutateAsync({
-        ...data,
+        name: data.name,
         bakery_id: profile.bakery_id,
+        status: data.status,
         email: data.email || undefined,
         customer_number: data.customer_number || undefined,
         contact_person: data.contact_person || undefined,
