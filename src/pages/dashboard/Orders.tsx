@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +46,7 @@ const Orders = () => {
     }
   };
 
-  const handleOrderDetails = (order: Order) => {
+  const handleOrderDetails = (order: any) => {
     setSelectedOrder(order);
     setShowOrderDetails(true);
   };
@@ -223,7 +222,7 @@ const Orders = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {selectedDateOrders.map((order) => (
+              {selectedDateOrders.map((order: any) => (
                 <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <div className="flex items-center space-x-2 mb-1">

@@ -34,7 +34,7 @@ export interface Order {
   customer_id: string;
   order_number: string;
   delivery_date: string;
-  status: 'pending' | 'confirmed' | 'in_progress' | 'packed' | 'delivered' | 'cancelled';
+  status: string; // Changed from union type to string to match database
   total_amount?: number;
   notes?: string;
   created_at: string;
@@ -49,7 +49,7 @@ export interface OrderProduct {
   product_id: string;
   quantity: number;
   unit_price?: number;
-  packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
+  packing_status: string; // Changed from union type to string to match database
   created_at: string;
   updated_at: string;
   product?: Product;
