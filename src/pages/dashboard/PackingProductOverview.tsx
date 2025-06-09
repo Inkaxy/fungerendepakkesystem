@@ -67,6 +67,22 @@ const PackingProductOverview = () => {
     }
   };
 
+  const handleProductActivate = (productId: string) => {
+    // If product is already selected, navigate to it
+    if (selectedProducts.includes(productId)) {
+      navigate(`/dashboard/orders/packing/${date}/${productId}`, {
+        state: { selectedProducts }
+      });
+    } else if (selectedProducts.length < 3) {
+      // If not selected and we have room, select it and navigate
+      const newSelectedProducts = [...selectedProducts, productId];
+      setSelectedProducts(newSelectedProducts);
+      navigate(`/dashboard/orders/packing/${date}/${productId}`, {
+        state: { selectedProducts: newSelectedProducts }
+      });
+    }
+  };
+
   const handleStartPacking = async () => {
     if (selectedProducts.length === 0) return;
     
@@ -128,6 +144,7 @@ const PackingProductOverview = () => {
         products={productList}
         selectedProducts={selectedProducts}
         onProductSelection={handleProductSelection}
+        onProductActivate={handleProductActivate}
       />
     </div>
   );
