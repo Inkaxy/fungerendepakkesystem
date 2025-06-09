@@ -18,18 +18,20 @@ const PackingProductOverview = () => {
   const { data: orders } = useOrders(date);
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
 
-  // Calculate product statistics
+  // Calculate product statistics with category from products table
   const productStats = orders?.reduce((acc, order) => {
     order.order_products?.forEach(item => {
       const productId = item.product_id;
       const productName = item.product?.name || `Produkt ID: ${productId}`;
       const productNumber = item.product?.product_number || '';
+      const productCategory = item.product?.category || 'Ingen kategori';
       
       if (!acc[productId]) {
         acc[productId] = {
           id: productId,
           name: productName,
           productNumber: productNumber,
+          category: productCategory,
           totalQuantity: 0,
           packedQuantity: 0,
           customers: new Set<string>(),
@@ -54,7 +56,7 @@ const PackingProductOverview = () => {
   }, {} as Record<string, any>) || {};
 
   const productList = Object.values(productStats).sort((a: any, b: any) => 
-    b.totalQuantity - a.totalQuantity
+    a.name.localeCompare(b.name)
   );
 
   const handleProductSelection = (productId: string, checked: boolean) => {

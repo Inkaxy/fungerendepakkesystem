@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import PackingProductHeader from '@/components/packing/PackingProductHeader';
 import PackingProgressCard from '@/components/packing/PackingProgressCard';
 import CustomerPackingTable from '@/components/packing/CustomerPackingTable';
+import ProductCategoryBadge from '@/components/packing/ProductCategoryBadge';
 
 const PackingProductDetail = () => {
   const { date, productId } = useParams<{ date: string; productId: string }>();
@@ -21,7 +22,7 @@ const PackingProductDetail = () => {
   const { data: orders } = useOrders(date);
   const updateOrderStatus = useUpdateOrderStatus();
 
-  // Find current product data
+  // Find current product data with category
   const currentProductData = orders?.reduce((acc, order) => {
     order.order_products?.forEach(item => {
       if (item.product_id === productId) {
@@ -44,10 +45,13 @@ const PackingProductDetail = () => {
         if (!acc.productNumber && item.product?.product_number) {
           acc.productNumber = item.product.product_number;
         }
+        if (!acc.productCategory && item.product?.category) {
+          acc.productCategory = item.product.category;
+        }
       }
     });
     return acc;
-  }, { items: [] as any[], productName: '', productNumber: '' });
+  }, { items: [] as any[], productName: '', productNumber: '', productCategory: '' });
 
   // Initialize packed items from database
   useEffect(() => {
@@ -123,6 +127,15 @@ const PackingProductDetail = () => {
         canGoBack={currentIndex > 0}
         isLastProduct={currentIndex >= selectedProducts.length - 1}
       />
+
+      {currentProductData?.productCategory && (
+        <div className="flex justify-center">
+          <ProductCategoryBadge 
+            category={currentProductData.productCategory} 
+            className="text-sm"
+          />
+        </div>
+      )}
 
       <PackingProgressCard
         packedCount={packedCount}
