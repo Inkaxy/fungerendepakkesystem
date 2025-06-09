@@ -41,19 +41,28 @@ export const useUpdateMultipleOrderProductsPackingStatus = () => {
 
   return useMutation({
     mutationFn: async ({ orderProductIds, packingStatus }: { orderProductIds: string[]; packingStatus: string }) => {
-      const updates = orderProductIds.map(id => ({
-        id,
-        packing_status: packingStatus,
-        updated_at: new Date().toISOString()
-      }));
+      // Use Promise.all to update multiple records individually
+      const updatePromises = orderProductIds.map(id => 
+        supabase
+          .from('order_products')
+          .update({ 
+            packing_status: packingStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single()
+      );
 
-      const { data, error } = await supabase
-        .from('order_products')
-        .upsert(updates)
-        .select();
+      const results = await Promise.all(updatePromises);
+      
+      // Check for any errors
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        throw new Error(`Failed to update ${errors.length} records`);
+      }
 
-      if (error) throw error;
-      return data;
+      return results.map(result => result.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
