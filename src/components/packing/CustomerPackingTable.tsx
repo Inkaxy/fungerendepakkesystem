@@ -41,7 +41,7 @@ const CustomerPackingTable = ({ items, packedItems, onItemToggle }: CustomerPack
                 <TableHead className="w-12">Pakket</TableHead>
                 <TableHead>Kundenummer</TableHead>
                 <TableHead>Kunde</TableHead>
-                <TableHead>Antall</TableHead>
+                <TableHead className="w-24 text-center font-semibold">Antall</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -60,7 +60,11 @@ const CustomerPackingTable = ({ items, packedItems, onItemToggle }: CustomerPack
                       {item.customerNumber || '-'}
                     </TableCell>
                     <TableCell className="font-medium">{item.customerName}</TableCell>
-                    <TableCell>{item.quantity} stk</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline" className="font-bold text-base px-3 py-1">
+                        {item.quantity}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge 
                         variant={isChecked ? "default" : "outline"}

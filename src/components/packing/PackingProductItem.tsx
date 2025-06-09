@@ -54,9 +54,9 @@ const PackingProductItem = ({
             )}
           </div>
           <div className="mt-1">
-            <span className="text-xs text-muted-foreground">
-              Antall: {item.quantity}
-            </span>
+            <Badge variant="secondary" className="font-semibold text-sm">
+              {item.quantity} stk
+            </Badge>
           </div>
         </div>
       </div>
