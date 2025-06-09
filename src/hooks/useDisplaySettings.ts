@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -30,8 +31,17 @@ export interface DisplaySettings {
   progress_background_color: string;
   progress_height: number;
   show_progress_percentage: boolean;
-  // Removed unnecessary settings for packing display
   auto_refresh_interval: number;
+  // Legacy status colors for backward compatibility
+  status_in_progress_color?: string;
+  status_completed_color?: string;
+  status_pending_color?: string;
+  status_delivered_color?: string;
+  // Additional display options
+  show_customer_info?: boolean;
+  show_order_numbers?: boolean;
+  show_delivery_dates?: boolean;
+  show_product_images?: boolean;
 }
 
 export const useDisplaySettings = () => {
@@ -48,8 +58,14 @@ export const useDisplaySettings = () => {
       // Map old status colors to new packing status colors for backward compatibility
       const mappedData = {
         ...data,
-        packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
-        packing_status_completed_color: data.status_completed_color || '#10b981',
+        packing_status_ongoing_color: data.packing_status_ongoing_color || data.status_in_progress_color || '#3b82f6',
+        packing_status_completed_color: data.packing_status_completed_color || data.status_completed_color || '#10b981',
+        // Set defaults for missing properties
+        show_customer_info: data.show_customer_info ?? true,
+        show_order_numbers: data.show_order_numbers ?? true,
+        show_delivery_dates: data.show_delivery_dates ?? true,
+        show_product_images: data.show_product_images ?? false,
+        status_pending_color: data.status_pending_color || '#f59e0b',
       };
       
       return mappedData as DisplaySettings;

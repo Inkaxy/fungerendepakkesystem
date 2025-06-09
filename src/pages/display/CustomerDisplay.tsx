@@ -71,7 +71,7 @@ const CustomerDisplay = () => {
 
   const customerPackingData = packingData?.find(data => data.id === customer.id);
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
-  const statusColors = settings ? packingStatusColorMap(settings) : {};
+  const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
@@ -170,6 +170,12 @@ const CustomerDisplay = () => {
                       {product.product_name}
                     </h3>
                     <p 
+                      className="text-sm mb-1"
+                      style={{ color: settings?.product_accent_color || '#6b7280' }}
+                    >
+                      Kategori: {product.product_category}
+                    </p>
+                    <p 
                       className="text-lg"
                       style={{ color: settings?.product_accent_color || '#6b7280' }}
                     >
@@ -213,8 +219,8 @@ const CustomerDisplay = () => {
                       className="text-lg px-4 py-2 font-semibold"
                       style={{
                         backgroundColor: product.packing_status === 'completed' 
-                          ? statusColors.completed || '#10b981'
-                          : statusColors.ongoing || '#3b82f6',
+                          ? statusColors.completed
+                          : statusColors.ongoing,
                         color: 'white'
                       }}
                     >
@@ -274,8 +280,8 @@ const CustomerDisplay = () => {
                 className="text-2xl px-6 py-3 font-bold"
                 style={{
                   backgroundColor: customerPackingData.overall_status === 'completed' 
-                    ? statusColors.completed || '#10b981'
-                    : statusColors.ongoing || '#3b82f6',
+                    ? statusColors.completed
+                    : statusColors.ongoing,
                   color: 'white'
                 }}
               >

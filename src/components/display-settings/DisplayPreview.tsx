@@ -115,7 +115,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                   <Badge
                     className="text-xs"
                     style={{ 
-                      backgroundColor: settings.status_in_progress_color,
+                      backgroundColor: settings.packing_status_ongoing_color,
                       color: 'white'
                     }}
                   >

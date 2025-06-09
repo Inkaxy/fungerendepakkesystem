@@ -47,3 +47,10 @@ export const packingStatusColorMap = (settings: DisplaySettings) => ({
   ongoing: settings.packing_status_ongoing_color,
   completed: settings.packing_status_completed_color,
 });
+
+export const statusColorMap = (settings: DisplaySettings) => ({
+  pending: settings.status_pending_color || '#f59e0b',
+  in_progress: settings.packing_status_ongoing_color,
+  completed: settings.packing_status_completed_color,
+  delivered: settings.status_delivered_color || '#059669',
+});

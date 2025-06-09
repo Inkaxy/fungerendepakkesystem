@@ -7,6 +7,7 @@ export interface PackingProduct {
   id: string;
   product_id: string;
   product_name: string;
+  product_category: string;
   quantity_ordered: number;
   quantity_packed: number;
   packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
@@ -37,7 +38,7 @@ export const usePackingData = (customerId?: string, date?: string) => {
             product_id,
             quantity,
             packing_status,
-            product:products(id, name)
+            product:products(id, name, category)
           )
         `)
         .eq('delivery_date', targetDate)
@@ -82,13 +83,19 @@ export const usePackingData = (customerId?: string, date?: string) => {
             // quantity_packed would come from actual packing tracking
             existingProduct.quantity_packed = existingProduct.quantity_packed || 0;
           } else {
+            // Ensure packing_status is a valid enum value
+            const validPackingStatus = (['pending', 'in_progress', 'packed', 'completed'].includes(op.packing_status || '')) 
+              ? op.packing_status as 'pending' | 'in_progress' | 'packed' | 'completed'
+              : 'pending';
+
             customer!.products.push({
               id: op.id,
               product_id: op.product_id,
               product_name: op.product.name,
+              product_category: op.product.category || 'Ingen kategori',
               quantity_ordered: op.quantity,
               quantity_packed: 0, // This would be tracked separately
-              packing_status: op.packing_status || 'pending',
+              packing_status: validPackingStatus,
             });
           }
         });
