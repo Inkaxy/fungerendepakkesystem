@@ -1,21 +1,23 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Package, Clock, MapPin, RefreshCw } from 'lucide-react';
+import { RefreshCw, Package2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
-import { useOrders } from '@/hooks/useOrders';
+import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
+import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
   const { data: customers, isLoading: customersLoading } = useCustomers();
-  const { data: orders, isLoading: ordersLoading } = useOrders();
+  const { data: settings } = useDisplaySettings();
   
   // Enable real-time updates
   useRealTimeOrders();
@@ -24,17 +26,21 @@ const CustomerDisplay = () => {
   // Find customer by display_url
   const customer = customers?.find(c => c.display_url === displayUrl);
   
-  if (customersLoading || ordersLoading) {
+  const { data: packingData, isLoading: packingLoading } = usePackingData(
+    customer?.id, 
+    format(new Date(), 'yyyy-MM-dd')
+  );
+
+  if (customersLoading || packingLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center"
+           style={settings ? generateDisplayStyles(settings) : {}}>
         <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">Laster...</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">
-              Henter kundeinformasjon...
-            </p>
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p>Laster pakkeskjerm...</p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -43,235 +49,253 @@ const CustomerDisplay = () => {
   
   if (!customer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center"
+           style={settings ? generateDisplayStyles(settings) : {}}>
         <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">Kunde ikke funnet</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-center text-gray-600">
+          <CardContent className="text-center p-8">
+            <h1 className="text-xl font-bold mb-4">Kunde ikke funnet</h1>
+            <p className="text-gray-600 mb-4">
               Ingen kunde funnet for denne display-URL-en.
             </p>
-            <div className="text-center">
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.href = '/display/shared'}
-              >
-                Gå til felles display
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/display/shared'}
+            >
+              Gå til felles display
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Filter orders for this specific customer
-  const customerOrders = orders?.filter(order => order.customer_id === customer.id) || [];
-  
-  const todaysOrders = customerOrders.filter(order => 
-    order.delivery_date === format(new Date(), 'yyyy-MM-dd')
-  );
+  const customerPackingData = packingData?.find(data => data.id === customer.id);
+  const displayStyles = settings ? generateDisplayStyles(settings) : {};
+  const statusColors = settings ? packingStatusColorMap(settings) : {};
 
-  const upcomingOrders = customerOrders.filter(order => 
-    new Date(order.delivery_date) > new Date() && 
-    order.delivery_date !== format(new Date(), 'yyyy-MM-dd')
-  ).slice(0, 5);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header with refresh button */}
-        <div className="flex justify-between items-start mb-8">
-          <div className="text-center flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+  if (!customerPackingData || customerPackingData.products.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8"
+           style={displayStyles}>
+        <Card className="max-w-2xl w-full">
+          <CardContent className="text-center p-12">
+            <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
+            <h1 
+              className="text-4xl font-bold mb-4"
+              style={{ color: settings?.header_text_color || '#111827' }}
+            >
               {customer.name}
             </h1>
-            {customer.customer_number && (
-              <p className="text-xl text-gray-600">
-                Kundenummer: {customer.customer_number}
-              </p>
-            )}
-            {customer.contact_person && (
-              <p className="text-lg text-gray-500">
-                Kontaktperson: {customer.contact_person}
-              </p>
-            )}
+            <p 
+              className="text-xl mb-6"
+              style={{ color: settings?.text_color || '#6b7280' }}
+            >
+              Ingen pakking planlagt for i dag
+            </p>
+            <Button variant="outline" onClick={triggerRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Oppdater
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen p-8" style={displayStyles}>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header with customer name and refresh */}
+        <div className="flex justify-between items-center">
+          <div className="text-center flex-1">
+            <h1 
+              className="font-bold mb-2"
+              style={{ 
+                fontSize: settings?.header_font_size ? `${settings.header_font_size}px` : '3rem',
+                color: settings?.header_text_color || '#111827'
+              }}
+            >
+              {customer.name}
+            </h1>
+            <p 
+              className="text-xl"
+              style={{ 
+                color: settings?.text_color || '#6b7280',
+                fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
+              }}
+            >
+              Pakkeskjerm - {format(new Date(), 'dd. MMMM yyyy', { locale: nb })}
+            </p>
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={triggerRefresh}
             className="ml-4"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="h-5 w-5 mr-2" />
             Oppdater
           </Button>
         </div>
 
-        {/* Customer Information */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl">Kundeinformasjon</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {customer.phone && (
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">Telefon: {customer.phone}</span>
+        {/* Products to pack (max 3) */}
+        <Card
+          style={{
+            backgroundColor: settings?.card_background_color || '#ffffff',
+            borderColor: settings?.card_border_color || '#e5e7eb',
+            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+          }}
+        >
+          <CardContent className="p-8">
+            <div className="space-y-6">
+              {customerPackingData.products.map((product, index) => (
+                <div 
+                  key={product.id}
+                  className="flex items-center justify-between p-6 rounded-lg"
+                  style={{
+                    backgroundColor: settings?.product_card_color || '#f9fafb',
+                    borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+                  }}
+                >
+                  {/* Product info */}
+                  <div className="flex-1">
+                    <h3 
+                      className="font-bold mb-2"
+                      style={{ 
+                        color: settings?.product_text_color || '#111827',
+                        fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
+                      }}
+                    >
+                      {product.product_name}
+                    </h3>
+                    <p 
+                      className="text-lg"
+                      style={{ color: settings?.product_accent_color || '#6b7280' }}
+                    >
+                      {product.quantity_packed} av {product.quantity_ordered} pakket
+                    </p>
+                  </div>
+
+                  {/* Progress */}
+                  <div className="flex-1 mx-8">
+                    <div className="relative">
+                      <div 
+                        className="w-full rounded-full"
+                        style={{ 
+                          backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                          height: settings?.progress_height ? `${settings.progress_height * 2}px` : '16px'
+                        }}
+                      >
+                        <div 
+                          className="rounded-full transition-all duration-300"
+                          style={{ 
+                            backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                            height: settings?.progress_height ? `${settings.progress_height * 2}px` : '16px',
+                            width: `${Math.round((product.quantity_packed / product.quantity_ordered) * 100)}%`
+                          }}
+                        />
+                      </div>
+                      {settings?.show_progress_percentage && (
+                        <div 
+                          className="absolute right-0 top-0 transform translate-x-full ml-4 text-lg font-semibold"
+                          style={{ color: settings?.text_color || '#374151' }}
+                        >
+                          {Math.round((product.quantity_packed / product.quantity_ordered) * 100)}%
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status badge */}
+                  <div className="flex-shrink-0">
+                    <Badge
+                      className="text-lg px-4 py-2 font-semibold"
+                      style={{
+                        backgroundColor: product.packing_status === 'completed' 
+                          ? statusColors.completed || '#10b981'
+                          : statusColors.ongoing || '#3b82f6',
+                        color: 'white'
+                      }}
+                    >
+                      {product.packing_status === 'completed' ? 'Ferdig pakket' : 'Pågående'}
+                    </Badge>
+                  </div>
                 </div>
-              )}
-              {customer.email && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">E-post: {customer.email}</span>
-                </div>
-              )}
-              {customer.address && (
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">{customer.address}</span>
-                </div>
-              )}
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Dagens Ordrer
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{todaysOrders.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Leveres i dag
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Kommende Ordrer
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{upcomingOrders.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Planlagte ordrer
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Totale Ordrer
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{customerOrders.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Alle registrerte ordrer
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Today's Orders */}
-        {todaysOrders.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-xl">
-                Dagens Ordrer - {format(new Date(), 'dd. MMMM yyyy', { locale: nb })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {todaysOrders.map((order) => (
-                  <div key={order.id} className="border rounded-lg p-4 bg-green-50">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-semibold">Ordre: {order.order_number}</h3>
-                        <p className="text-sm text-gray-600">
-                          Leveringsdato: {format(new Date(order.delivery_date), 'dd. MMMM yyyy', { locale: nb })}
-                        </p>
-                      </div>
-                      <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
-                        {order.status}
-                      </Badge>
-                    </div>
-                    {order.order_products && order.order_products.length > 0 && (
-                      <div className="mt-2">
-                        <h4 className="text-sm font-medium mb-2">Produkter:</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {order.order_products.map((orderProduct) => (
-                            <div key={orderProduct.id} className="text-sm bg-white p-3 rounded border">
-                              <div className="flex justify-between">
-                                <span className="font-medium">{orderProduct.product?.name}</span>
-                                <span className="text-gray-600">x{orderProduct.quantity}</span>
-                              </div>
-                              {orderProduct.unit_price && (
-                                <div className="text-xs text-gray-500">
-                                  {orderProduct.unit_price} kr per {orderProduct.product?.unit || 'stk'}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {order.notes && (
-                      <div className="mt-2 p-2 bg-yellow-50 rounded">
-                        <p className="text-sm"><strong>Notat:</strong> {order.notes}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+        {/* Overall status */}
+        <Card
+          className="text-center"
+          style={{
+            backgroundColor: settings?.card_background_color || '#ffffff',
+            borderColor: settings?.card_border_color || '#e5e7eb',
+            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+          }}
+        >
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center space-x-6">
+              <div>
+                <p 
+                  className="text-xl mb-2"
+                  style={{ color: settings?.text_color || '#6b7280' }}
+                >
+                  Total fremdrift
+                </p>
+                <p 
+                  className="text-4xl font-bold"
+                  style={{ color: settings?.text_color || '#111827' }}
+                >
+                  {customerPackingData.progress_percentage}%
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Upcoming Orders */}
-        {upcomingOrders.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-xl">Kommende Ordrer</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {upcomingOrders.map((order) => (
-                  <div key={order.id} className="border rounded-lg p-3 bg-blue-50">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h4 className="font-medium">Ordre: {order.order_number}</h4>
-                        <p className="text-sm text-gray-600">
-                          Leveres: {format(new Date(order.delivery_date), 'dd. MMMM yyyy', { locale: nb })}
-                        </p>
-                      </div>
-                      <Badge variant="outline">
-                        {order.order_products?.length || 0} produkter
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex-1 max-w-md">
+                <div 
+                  className="w-full rounded-full"
+                  style={{ 
+                    backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                    height: settings?.progress_height ? `${settings.progress_height * 3}px` : '24px'
+                  }}
+                >
+                  <div 
+                    className="rounded-full transition-all duration-300"
+                    style={{ 
+                      backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                      height: settings?.progress_height ? `${settings.progress_height * 3}px` : '24px',
+                      width: `${customerPackingData.progress_percentage}%`
+                    }}
+                  />
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <Badge
+                className="text-2xl px-6 py-3 font-bold"
+                style={{
+                  backgroundColor: customerPackingData.overall_status === 'completed' 
+                    ? statusColors.completed || '#10b981'
+                    : statusColors.ongoing || '#3b82f6',
+                  color: 'white'
+                }}
+              >
+                {customerPackingData.overall_status === 'completed' ? 'Ferdig pakket' : 'Pågående'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-gray-500">
-          <p>Sist oppdatert: {format(new Date(), 'HH:mm:ss', { locale: nb })}</p>
-          <p className="text-xs mt-1">Automatisk oppdatering hvert 30. sekund</p>
+        <div className="text-center">
+          <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
+            Sist oppdatert: {format(new Date(), 'HH:mm:ss', { locale: nb })}
+          </p>
+          <p 
+            className="text-sm mt-1"
+            style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}
+          >
+            Automatisk oppdatering hvert 30. sekund
+          </p>
         </div>
       </div>
     </div>

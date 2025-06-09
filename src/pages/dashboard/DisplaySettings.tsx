@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, Settings2, Palette, BarChart3, Activity } from 'lucide-react';
+import { Save, Eye, Settings2, Palette, Activity } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
 import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab';
 import ProductsSettingsTab from '@/components/display-settings/ProductsSettingsTab';
@@ -46,7 +46,7 @@ const DisplaySettings = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p>Laster display-innstillinger...</p>
+            <p>Laster pakkeskjerm-innstillinger...</p>
           </div>
         </div>
       </div>
@@ -58,9 +58,9 @@ const DisplaySettings = () => {
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Display Innstillinger</h1>
+          <h1 className="text-3xl font-bold">Pakkeskjerm Innstillinger</h1>
           <p className="text-gray-600 mt-2">
-            Tilpass utseendet og oppførselen til kundedisplayene dine
+            Tilpass utseendet og oppførselen til pakkeskjermene dine
           </p>
         </div>
         <div className="flex space-x-2">
@@ -85,7 +85,7 @@ const DisplaySettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Settings2 className="h-5 w-5 mr-2" />
-                Tilpassingsalternativer
+                Pakkeskjerm Tilpassinger
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -100,7 +100,7 @@ const DisplaySettings = () => {
                     <span className="hidden sm:inline">Produkter</span>
                   </TabsTrigger>
                   <TabsTrigger value="status" className="flex items-center space-x-2">
-                    <BarChart3 className="h-4 w-4" />
+                    <Activity className="h-4 w-4" />
                     <span className="hidden sm:inline">Status</span>
                   </TabsTrigger>
                   <TabsTrigger value="progress" className="flex items-center space-x-2">

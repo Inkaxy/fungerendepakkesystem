@@ -33,10 +33,8 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--product-card-color': settings.product_card_color,
     '--product-text-color': settings.product_text_color,
     '--product-accent-color': settings.product_accent_color,
-    '--status-pending': settings.status_pending_color,
-    '--status-in-progress': settings.status_in_progress_color,
-    '--status-completed': settings.status_completed_color,
-    '--status-delivered': settings.status_delivered_color,
+    '--packing-status-ongoing': settings.packing_status_ongoing_color,
+    '--packing-status-completed': settings.packing_status_completed_color,
     '--progress-bar-color': settings.progress_bar_color,
     '--progress-bg-color': settings.progress_background_color,
     '--progress-height': `${settings.progress_height}px`,
@@ -45,10 +43,7 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
   } as React.CSSProperties & { [key: string]: string };
 };
 
-export const statusColorMap = (settings: DisplaySettings) => ({
-  pending: settings.status_pending_color,
-  in_progress: settings.status_in_progress_color,
-  packed: settings.status_completed_color,
-  completed: settings.status_completed_color,
-  delivered: settings.status_delivered_color,
+export const packingStatusColorMap = (settings: DisplaySettings) => ({
+  ongoing: settings.packing_status_ongoing_color,
+  completed: settings.packing_status_completed_color,
 });

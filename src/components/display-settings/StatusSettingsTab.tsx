@@ -11,23 +11,21 @@ interface StatusSettingsTabProps {
 }
 
 const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
-  const statusItems = [
-    { key: 'pending', label: 'Venter', field: 'status_pending_color' as keyof DisplaySettings },
-    { key: 'in_progress', label: 'Under arbeid', field: 'status_in_progress_color' as keyof DisplaySettings },
-    { key: 'completed', label: 'Fullført', field: 'status_completed_color' as keyof DisplaySettings },
-    { key: 'delivered', label: 'Levert', field: 'status_delivered_color' as keyof DisplaySettings },
+  const packingStatusItems = [
+    { key: 'ongoing', label: 'Pågående', field: 'packing_status_ongoing_color' as keyof DisplaySettings },
+    { key: 'completed', label: 'Ferdig pakket', field: 'packing_status_completed_color' as keyof DisplaySettings },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Status Colors */}
+      {/* Packing Status Colors */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Status Farger</CardTitle>
+          <CardTitle className="text-lg">Pakkestatus Farger</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {statusItems.map((status) => (
+            {packingStatusItems.map((status) => (
               <ColorPicker
                 key={status.key}
                 label={status.label}
@@ -43,19 +41,19 @@ const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
       {/* Status Preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Status Forhåndsvisning</CardTitle>
+          <CardTitle className="text-lg">Pakkestatus Forhåndsvisning</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <p className="text-sm text-gray-600 mb-4">
-              Slik vil status-indikatorene se ut på displayet:
+              Slik vil status-indikatorene se ut på pakkeskjermen:
             </p>
             <div className="flex flex-wrap gap-3">
-              {statusItems.map((status) => (
+              {packingStatusItems.map((status) => (
                 <Badge
                   key={status.key}
                   variant="secondary"
-                  className="px-3 py-1"
+                  className="px-4 py-2 text-lg font-semibold"
                   style={{ 
                     backgroundColor: settings[status.field] as string,
                     color: 'white'
@@ -66,30 +64,38 @@ const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
               ))}
             </div>
             
-            {/* Example order card with status */}
-            <div className="mt-6 p-4 border rounded-lg bg-white">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-medium">Ordre #12345</h4>
-                  <p className="text-sm text-gray-600">Kunde: Eksempel Bakeri AS</p>
+            {/* Example packing card */}
+            <div className="mt-6 p-6 border rounded-lg bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-bold text-xl mb-2">Eksempel Produkt</h4>
+                  <p className="text-lg text-gray-600">15 av 20 pakket</p>
+                </div>
+                <div className="flex-1 mx-6">
+                  <div 
+                    className="w-full rounded-full bg-gray-200"
+                    style={{ height: `${(settings.progress_height || 8) * 2}px` }}
+                  >
+                    <div 
+                      className="rounded-full transition-all duration-300"
+                      style={{ 
+                        backgroundColor: settings.progress_bar_color || '#3b82f6',
+                        height: `${(settings.progress_height || 8) * 2}px`,
+                        width: '75%'
+                      }}
+                    />
+                  </div>
+                  <div className="text-right mt-1 font-semibold">75%</div>
                 </div>
                 <Badge
-                  variant="secondary"
+                  className="text-lg px-4 py-2 font-semibold"
                   style={{ 
-                    backgroundColor: settings.status_in_progress_color,
+                    backgroundColor: settings.packing_status_ongoing_color || '#3b82f6',
                     color: 'white'
                   }}
                 >
-                  Under arbeid
+                  Pågående
                 </Badge>
-              </div>
-              <div className="mt-3 flex space-x-2">
-                <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: settings.status_pending_color, color: 'white' }}>
-                  2 venter
-                </span>
-                <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: settings.status_completed_color, color: 'white' }}>
-                  3 fullført
-                </span>
               </div>
             </div>
           </div>

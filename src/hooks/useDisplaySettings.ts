@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,18 +23,14 @@ export interface DisplaySettings {
   product_text_color: string;
   product_accent_color: string;
   product_card_size: number;
-  status_pending_color: string;
-  status_in_progress_color: string;
-  status_completed_color: string;
-  status_delivered_color: string;
+  // Packing-specific settings
+  packing_status_ongoing_color: string;
+  packing_status_completed_color: string;
   progress_bar_color: string;
   progress_background_color: string;
   progress_height: number;
   show_progress_percentage: boolean;
-  show_customer_info: boolean;
-  show_order_numbers: boolean;
-  show_delivery_dates: boolean;
-  show_product_images: boolean;
+  // Removed unnecessary settings for packing display
   auto_refresh_interval: number;
 }
 
@@ -49,7 +44,15 @@ export const useDisplaySettings = () => {
         .single();
 
       if (error) throw error;
-      return data as DisplaySettings;
+      
+      // Map old status colors to new packing status colors for backward compatibility
+      const mappedData = {
+        ...data,
+        packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
+        packing_status_completed_color: data.status_completed_color || '#10b981',
+      };
+      
+      return mappedData as DisplaySettings;
     },
   });
 };
