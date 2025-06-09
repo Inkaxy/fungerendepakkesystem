@@ -42,7 +42,7 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--progress-height': `${settings.progress_height}px`,
     '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
     ...backgroundStyle,
-  } as React.CSSProperties;
+  } as React.CSSProperties & { [key: string]: string };
 };
 
 export const statusColorMap = (settings: DisplaySettings) => ({
