@@ -55,11 +55,11 @@ export const useDisplaySettings = () => {
 
       if (error) throw error;
       
-      // Map old status colors to new packing status colors for backward compatibility
+      // Map database fields to interface properties, using legacy names as fallbacks
       const mappedData = {
         ...data,
-        packing_status_ongoing_color: data.packing_status_ongoing_color || data.status_in_progress_color || '#3b82f6',
-        packing_status_completed_color: data.packing_status_completed_color || data.status_completed_color || '#10b981',
+        packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
+        packing_status_completed_color: data.status_completed_color || '#10b981',
         // Set defaults for missing properties
         show_customer_info: data.show_customer_info ?? true,
         show_order_numbers: data.show_order_numbers ?? true,
