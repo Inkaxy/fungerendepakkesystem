@@ -37,7 +37,7 @@ const customerSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email('Ugyldig e-postadresse').optional().or(z.literal('')),
   address: z.string().optional(),
-  status: z.enum(['active', 'inactive', 'blocked']),
+  status: z.string(),
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
