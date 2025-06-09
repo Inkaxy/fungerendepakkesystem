@@ -9,6 +9,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 import SelectedProductsCard from '@/components/packing/SelectedProductsCard';
 import ProductsTable from '@/components/packing/ProductsTable';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
@@ -111,41 +112,49 @@ const PackingProductOverview = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/dashboard/orders')}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Tilbake til ordrer</span>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
-          </h1>
-          <p className="text-muted-foreground">
-            Velg opptil 3 produkter for pakking
-          </p>
+    <div className="h-screen flex flex-col">
+      {/* Header and controls - fixed at top */}
+      <div className="flex-shrink-0 p-6 space-y-6">
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/dashboard/orders')}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Tilbake til ordrer</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
+            </h1>
+            <p className="text-muted-foreground">
+              Velg opptil 3 produkter for pakking
+            </p>
+          </div>
         </div>
+
+        {selectedProducts.length > 0 && (
+          <SelectedProductsCard
+            selectedProducts={selectedProducts}
+            productStats={productStats}
+            onStartPacking={handleStartPacking}
+            isLoading={createOrUpdateSession.isPending}
+          />
+        )}
       </div>
 
-      {selectedProducts.length > 0 && (
-        <SelectedProductsCard
-          selectedProducts={selectedProducts}
-          productStats={productStats}
-          onStartPacking={handleStartPacking}
-          isLoading={createOrUpdateSession.isPending}
-        />
-      )}
-
-      <ProductsTable
-        products={productList}
-        selectedProducts={selectedProducts}
-        onProductSelection={handleProductSelection}
-        onProductActivate={handleProductActivate}
-      />
+      {/* Products table - scrollable */}
+      <div className="flex-1 px-6 pb-6 min-h-0">
+        <ScrollArea className="h-full">
+          <ProductsTable
+            products={productList}
+            selectedProducts={selectedProducts}
+            onProductSelection={handleProductSelection}
+            onProductActivate={handleProductActivate}
+          />
+        </ScrollArea>
+      </div>
     </div>
   );
 };
