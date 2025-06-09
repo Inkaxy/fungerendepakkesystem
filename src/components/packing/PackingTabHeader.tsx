@@ -23,24 +23,27 @@ const PackingTabHeader = ({
   getProductProgress
 }: PackingTabHeaderProps) => {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+    <div className="w-full">
+      <div className="flex space-x-1 w-full">
         {products.map((product) => {
           const progress = getProductProgress(product.id);
           return (
             <button
               key={product.id}
               onClick={() => onTabChange(product.id)}
-              className={`px-4 py-3 rounded-md text-sm font-medium transition-colors relative ${
+              className={`flex-1 px-6 py-4 rounded-lg text-base font-semibold transition-all duration-200 relative border-2 ${
                 activeTab === product.id
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-lg border-primary scale-105'
+                  : 'bg-background text-foreground hover:bg-muted border-border hover:border-muted-foreground'
               }`}
             >
               <div className="text-center">
-                <div className="font-medium">{product.name}</div>
+                <div className="font-semibold text-lg">{product.name}</div>
+                <div className="text-sm mt-2 opacity-90">
+                  {progress.packed}/{progress.total} pakket
+                </div>
                 <div className="text-xs mt-1 opacity-75">
-                  {progress.packed}/{progress.total}
+                  {progress.percentage}% ferdig
                 </div>
               </div>
             </button>

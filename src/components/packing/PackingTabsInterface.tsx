@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import PackingTabHeader from './PackingTabHeader';
 import PackingProductCard from './PackingProductCard';
 import DeviationDialog from './DeviationDialog';
@@ -47,6 +48,7 @@ const PackingTabsInterface = ({
     item?: CustomerItem;
     productName?: string;
   }>({ isOpen: false });
+  const { toast } = useToast();
 
   const getProductProgress = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -72,14 +74,42 @@ const PackingTabsInterface = ({
     if (deviationDialog.item) {
       const hasDeviation = actualQuantity !== deviationDialog.item.quantity;
       onItemDeviation(deviationDialog.item.key, hasDeviation, actualQuantity);
+      
+      // Auto-save feedback
+      toast({
+        title: "Avvik registrert",
+        description: `Avvik for ${deviationDialog.item.customerName} er automatisk lagret`,
+      });
     }
     setDeviationDialog({ isOpen: false });
+  };
+
+  const handleItemToggle = (itemKey: string, checked: boolean) => {
+    onItemToggle(itemKey, checked);
+    
+    // Auto-save feedback
+    const item = products
+      .flatMap(p => p.items)
+      .find(i => i.key === itemKey);
+    
+    if (item) {
+      toast({
+        title: checked ? "Element pakket" : "Pakking fjernet",
+        description: `${item.customerName} - automatisk lagret`,
+      });
+    }
+  };
+
+  const handleMarkAllPacked = (productId: string) => {
+    onMarkAllPacked(productId);
+    
+    // Auto-save feedback handled in parent component
   };
 
   const currentProduct = products.find(p => p.id === activeTab);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PackingTabHeader
         products={products}
         activeTab={activeTab}
@@ -93,9 +123,9 @@ const PackingTabsInterface = ({
           progress={getProductProgress(currentProduct.id)}
           packedItems={packedItems}
           deviationItems={deviationItems}
-          onItemToggle={onItemToggle}
+          onItemToggle={handleItemToggle}
           onDeviationClick={handleDeviationClick}
-          onMarkAllPacked={onMarkAllPacked}
+          onMarkAllPacked={handleMarkAllPacked}
         />
       )}
 

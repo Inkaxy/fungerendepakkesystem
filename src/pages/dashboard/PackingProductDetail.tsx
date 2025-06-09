@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders, useUpdateOrderStatus } from '@/hooks/useOrders';
@@ -5,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import PackingProductHeader from '@/components/packing/PackingProductHeader';
-import PackingProgressCard from '@/components/packing/PackingProgressCard';
 import CustomerPackingTable from '@/components/packing/CustomerPackingTable';
 import ProductCategoryBadge from '@/components/packing/ProductCategoryBadge';
 import PackingTabsInterface from '@/components/packing/PackingTabsInterface';
@@ -183,17 +183,7 @@ const PackingProductDetail = () => {
     
     toast({
       title: "Alle elementer markert som pakket",
-      description: `${product.items.length} elementer for ${product.name} er markert som pakket`,
-    });
-  };
-
-  const handleSaveProgress = async () => {
-    const totalPacked = packedItems.size;
-    const totalDeviations = deviationItems.size;
-    
-    toast({
-      title: "Fremgang lagret",
-      description: `${totalPacked} elementer pakket, ${totalDeviations} avvik registrert`,
+      description: `${product.items.length} elementer for ${product.name} er automatisk lagret`,
     });
   };
 
@@ -221,11 +211,6 @@ const PackingProductDetail = () => {
     navigate(`/dashboard/orders/packing/${date}`);
   };
 
-  const totalItems = isMultiProductMode 
-    ? allProductsData.reduce((sum, product) => sum + product.items.length, 0)
-    : currentProductData?.items.length || 0;
-  const packedCount = packedItems.size;
-
   if (!date || !productId) {
     return <div>Ugyldig dato eller produkt</div>;
   }
@@ -245,12 +230,6 @@ const PackingProductDetail = () => {
           onNext={() => {}}
           canGoBack={false}
           isLastProduct={true}
-        />
-
-        <PackingProgressCard
-          packedCount={packedCount}
-          totalItems={totalItems}
-          onSaveProgress={handleSaveProgress}
         />
 
         <PackingTabsInterface
@@ -289,12 +268,6 @@ const PackingProductDetail = () => {
           />
         </div>
       )}
-
-      <PackingProgressCard
-        packedCount={packedCount}
-        totalItems={totalItems}
-        onSaveProgress={handleSaveProgress}
-      />
 
       <CustomerPackingTable
         items={currentProductData?.items || []}
