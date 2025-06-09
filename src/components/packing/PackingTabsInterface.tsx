@@ -182,10 +182,7 @@ const PackingTabsInterface = ({
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-xs text-muted-foreground">
-                              Ordre: {item.orderNumber}
-                            </span>
+                          <div className="mt-1">
                             <span className="text-xs text-muted-foreground">
                               Antall: {item.quantity}
                             </span>
