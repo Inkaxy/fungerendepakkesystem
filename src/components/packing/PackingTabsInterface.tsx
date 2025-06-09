@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PackingTabHeader from './PackingTabHeader';
@@ -75,35 +74,25 @@ const PackingTabsInterface = ({
       const hasDeviation = actualQuantity !== deviationDialog.item.quantity;
       onItemDeviation(deviationDialog.item.key, hasDeviation, actualQuantity);
       
-      // Auto-save feedback
-      toast({
-        title: "Avvik registrert",
-        description: `Avvik for ${deviationDialog.item.customerName} er automatisk lagret`,
-      });
+      // Auto-save feedback - removed since database save is handled in parent
+      if (hasDeviation) {
+        toast({
+          title: "Avvik registrert",
+          description: `Avvik for ${deviationDialog.item.customerName} er registrert`,
+        });
+      }
     }
     setDeviationDialog({ isOpen: false });
   };
 
   const handleItemToggle = (itemKey: string, checked: boolean) => {
+    // Database save is handled in parent component
     onItemToggle(itemKey, checked);
-    
-    // Auto-save feedback
-    const item = products
-      .flatMap(p => p.items)
-      .find(i => i.key === itemKey);
-    
-    if (item) {
-      toast({
-        title: checked ? "Element pakket" : "Pakking fjernet",
-        description: `${item.customerName} - automatisk lagret`,
-      });
-    }
   };
 
   const handleMarkAllPacked = (productId: string) => {
+    // Database save is handled in parent component
     onMarkAllPacked(productId);
-    
-    // Auto-save feedback handled in parent component
   };
 
   const currentProduct = products.find(p => p.id === activeTab);

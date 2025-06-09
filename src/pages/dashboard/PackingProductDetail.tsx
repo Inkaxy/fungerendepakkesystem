@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useOrders, useUpdateOrderStatus } from '@/hooks/useOrders';
+import { useOrders } from '@/hooks/useOrders';
+import { useUpdateOrderProductPackingStatus, useUpdateMultipleOrderProductsPackingStatus } from '@/hooks/useOrderProducts';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
@@ -27,7 +27,8 @@ const PackingProductDetail = () => {
   const [showReport, setShowReport] = useState(false);
   
   const { data: orders } = useOrders(date);
-  const updateOrderStatus = useUpdateOrderStatus();
+  const updateOrderProductStatus = useUpdateOrderProductPackingStatus();
+  const updateMultipleOrderProductsStatus = useUpdateMultipleOrderProductsPackingStatus();
 
   // Prepare data for all selected products when in multi-product mode - using useMemo
   const allProductsData = useMemo(() => {
@@ -131,9 +132,23 @@ const PackingProductDetail = () => {
       );
       setPackedItems(alreadyPacked);
     }
-  }, [orders, isMultiProductMode]); // Only depend on orders and isMultiProductMode
+  }, [orders, isMultiProductMode]);
 
-  const handleItemToggle = (itemKey: string, checked: boolean) => {
+  const handleItemToggle = async (itemKey: string, checked: boolean) => {
+    // Find the item to get its orderProductId
+    let targetItem;
+    if (isMultiProductMode) {
+      for (const product of allProductsData) {
+        targetItem = product.items.find(item => item.key === itemKey);
+        if (targetItem) break;
+      }
+    } else {
+      targetItem = currentProductData?.items.find(item => item.key === itemKey);
+    }
+
+    if (!targetItem) return;
+
+    // Update local state immediately for better UX
     const newPackedItems = new Set(packedItems);
     if (checked) {
       newPackedItems.add(itemKey);
@@ -150,6 +165,23 @@ const PackingProductDetail = () => {
       newPackedItems.delete(itemKey);
     }
     setPackedItems(newPackedItems);
+
+    // Save to database
+    try {
+      await updateOrderProductStatus.mutateAsync({
+        orderProductId: targetItem.orderProductId,
+        packingStatus: checked ? 'packed' : 'pending'
+      });
+
+      toast({
+        title: checked ? "Element pakket" : "Pakking fjernet",
+        description: `${targetItem.customerName} - lagret i database`,
+      });
+    } catch (error) {
+      // Revert local state on error
+      setPackedItems(packedItems);
+      console.error('Failed to update packing status:', error);
+    }
   };
 
   const handleItemDeviation = (itemKey: string, hasDeviation: boolean, actualQuantity?: number) => {
@@ -173,28 +205,44 @@ const PackingProductDetail = () => {
     setDeviationQuantities(newDeviationQuantities);
   };
 
-  const handleMarkAllPacked = (productIdToMark: string) => {
+  const handleMarkAllPacked = async (productIdToMark: string) => {
     const product = allProductsData.find(p => p.id === productIdToMark);
     if (!product) return;
 
+    // Update local state immediately
     const newPackedItems = new Set(packedItems);
     const newDeviationItems = new Set(deviationItems);
     const newDeviationQuantities = new Map(deviationQuantities);
     
     product.items.forEach(item => {
       newPackedItems.add(item.key);
-      newDeviationItems.delete(item.key); // Remove any deviations
-      newDeviationQuantities.delete(item.key); // Remove deviation quantities
+      newDeviationItems.delete(item.key);
+      newDeviationQuantities.delete(item.key);
     });
     
     setPackedItems(newPackedItems);
     setDeviationItems(newDeviationItems);
     setDeviationQuantities(newDeviationQuantities);
-    
-    toast({
-      title: "Alle elementer markert som pakket",
-      description: `${product.items.length} elementer for ${product.name} er automatisk lagret`,
-    });
+
+    // Save to database
+    try {
+      const orderProductIds = product.items.map(item => item.orderProductId);
+      await updateMultipleOrderProductsStatus.mutateAsync({
+        orderProductIds,
+        packingStatus: 'packed'
+      });
+
+      toast({
+        title: "Alle elementer markert som pakket",
+        description: `${product.items.length} elementer for ${product.name} er lagret i database`,
+      });
+    } catch (error) {
+      // Revert local state on error
+      setPackedItems(packedItems);
+      setDeviationItems(deviationItems);
+      setDeviationQuantities(deviationQuantities);
+      console.error('Failed to update multiple packing statuses:', error);
+    }
   };
 
   const handleNextProduct = () => {
