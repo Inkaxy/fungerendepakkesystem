@@ -7,11 +7,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Customer } from '@/types/database';
 import { QrCode, Copy, ExternalLink, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { getDisplayPath, getDisplayUrl, generateQrCodeUrl } from '@/utils/displayUtils';
 
 interface QrCodeModalProps {
   customer: Customer | null;
@@ -31,22 +30,11 @@ const QrCodeModal = ({
   onOpenUrl,
 }: QrCodeModalProps) => {
   const [showQrCode, setShowQrCode] = useState(false);
-  const { toast } = useToast();
 
   if (!customer) return null;
 
-  const getDisplayPath = (customer: Customer) => {
-    return customer.has_dedicated_display
-      ? `/display/customer/${customer.id}`
-      : '/display/shared';
-  };
-
   const displayPath = getDisplayPath(customer);
-  const fullUrl = `${window.location.origin}${displayPath}`;
-
-  const generateQrCodeUrl = (url: string) => {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
-  };
+  const fullUrl = getDisplayUrl(customer);
 
   const handleShowQrCode = () => {
     setShowQrCode(!showQrCode);
@@ -166,6 +154,7 @@ const QrCodeModal = ({
               <li>QR-koden kan scannes for enkel tilgang til skjermen</li>
               <li>Skjermen viser real-time status for kundens ordrer</li>
               <li>URL kan deles direkte med kunden</li>
+              <li>Automatisk oppdatering hvert 30. sekund</li>
             </ul>
           </div>
         </div>

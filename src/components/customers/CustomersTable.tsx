@@ -9,7 +9,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
@@ -26,9 +25,11 @@ import {
   ExternalLink,
   MoreHorizontal,
   MapPin,
-  QrCode
 } from 'lucide-react';
 import { Customer } from '@/types/database';
+import { useOrderCounts } from '@/hooks/useOrderCounts';
+import { getDisplayPath } from '@/utils/displayUtils';
+import DisplayStatusBadge from './DisplayStatusBadge';
 
 interface CustomersTableProps {
   customers: Customer[];
@@ -60,13 +61,8 @@ const CustomersTable = ({
   onShowQrCode,
 }: CustomersTableProps) => {
   const allSelected = customers.length > 0 && selectedCustomers.length === customers.length;
-  const someSelected = selectedCustomers.length > 0;
-
-  const getDisplayPath = (customer: Customer) => {
-    return customer.has_dedicated_display
-      ? `/display/customer/${customer.id}`
-      : '/display/shared';
-  };
+  const customerIds = customers.map(c => c.id);
+  const { data: orderCounts } = useOrderCounts(customerIds);
 
   return (
     <div className="rounded-md border">
@@ -121,12 +117,12 @@ const CustomersTable = ({
                 {customer.phone || '-'}
               </TableCell>
               <TableCell>
-                <Badge variant={customer.has_dedicated_display ? 'default' : 'secondary'}>
-                  {customer.has_dedicated_display ? 'Egen' : 'Felles'}
-                </Badge>
+                <DisplayStatusBadge customer={customer} />
               </TableCell>
               <TableCell>
-                <span className="text-sm text-muted-foreground">4 ordre</span>
+                <span className="text-sm text-muted-foreground">
+                  {orderCounts?.[customer.id] || 0} ordre
+                </span>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">

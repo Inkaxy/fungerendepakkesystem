@@ -3,19 +3,43 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Package, Clock, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Package, Clock, MapPin, RefreshCw } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useOrders } from '@/hooks/useOrders';
+import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
+import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
-  const { data: customers } = useCustomers();
-  const { data: orders } = useOrders();
+  const { data: customers, isLoading: customersLoading } = useCustomers();
+  const { data: orders, isLoading: ordersLoading } = useOrders();
+  
+  // Enable real-time updates
+  useRealTimeOrders();
+  const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
-  // Finn kunden basert på display_url
+  // Find customer by display_url
   const customer = customers?.find(c => c.display_url === displayUrl);
+  
+  if (customersLoading || ordersLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Laster...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-gray-600">
+              Henter kundeinformasjon...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   if (!customer) {
     return (
@@ -24,17 +48,25 @@ const CustomerDisplay = () => {
           <CardHeader>
             <CardTitle className="text-center">Kunde ikke funnet</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="text-center text-gray-600">
               Ingen kunde funnet for denne display-URL-en.
             </p>
+            <div className="text-center">
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/display/shared'}
+              >
+                Gå til felles display
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Filtrer ordrer for denne spesifikke kunden
+  // Filter orders for this specific customer
   const customerOrders = orders?.filter(order => order.customer_id === customer.id) || [];
   
   const todaysOrders = customerOrders.filter(order => 
@@ -46,30 +78,38 @@ const CustomerDisplay = () => {
     order.delivery_date !== format(new Date(), 'yyyy-MM-dd')
   ).slice(0, 5);
 
-  const recentOrders = customerOrders.filter(order => 
-    new Date(order.delivery_date) < new Date()
-  ).slice(0, 3);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            {customer.name}
-          </h1>
-          {customer.customer_number && (
-            <p className="text-xl text-gray-600">
-              Kundenummer: {customer.customer_number}
-            </p>
-          )}
-          {customer.contact_person && (
-            <p className="text-lg text-gray-500">
-              Kontaktperson: {customer.contact_person}
-            </p>
-          )}
+        {/* Header with refresh button */}
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              {customer.name}
+            </h1>
+            {customer.customer_number && (
+              <p className="text-xl text-gray-600">
+                Kundenummer: {customer.customer_number}
+              </p>
+            )}
+            {customer.contact_person && (
+              <p className="text-lg text-gray-500">
+                Kontaktperson: {customer.contact_person}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={triggerRefresh}
+            className="ml-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Oppdater
+          </Button>
         </div>
 
-        {/* Kunde Informasjon */}
+        {/* Customer Information */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-xl">Kundeinformasjon</CardTitle>
@@ -97,7 +137,7 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        {/* Statistikk */}
+        {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -145,7 +185,7 @@ const CustomerDisplay = () => {
           </Card>
         </div>
 
-        {/* Dagens Ordrer */}
+        {/* Today's Orders */}
         {todaysOrders.length > 0 && (
           <Card className="mb-8">
             <CardHeader>
@@ -200,7 +240,7 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Kommende Ordrer */}
+        {/* Upcoming Orders */}
         {upcomingOrders.length > 0 && (
           <Card className="mb-8">
             <CardHeader>
@@ -231,6 +271,7 @@ const CustomerDisplay = () => {
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500">
           <p>Sist oppdatert: {format(new Date(), 'HH:mm:ss', { locale: nb })}</p>
+          <p className="text-xs mt-1">Automatisk oppdatering hvert 30. sekund</p>
         </div>
       </div>
     </div>

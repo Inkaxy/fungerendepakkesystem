@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { Monitor, Users, Copy, ExternalLink, Zap, Globe, Lock } from 'lucide-react';
 import { Customer } from '@/types/database';
+import { getDisplayPath } from '@/utils/displayUtils';
 import { cn } from '@/lib/utils';
 
 interface DisplayModeSelectorProps {
@@ -139,13 +140,13 @@ const DisplayModeSelector = ({
               {hasDedicatedDisplay && customer.display_url && (
                 <div className="mt-2 space-y-1">
                   <code className="text-xs bg-white px-2 py-1 rounded border block truncate">
-                    /display/{customer.display_url}
+                    {getDisplayPath(customer)}
                   </code>
                   <div className="flex items-center space-x-1">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onCopyUrl(`/display/${customer.display_url}`)}
+                      onClick={() => onCopyUrl(getDisplayPath(customer))}
                       className="h-6 text-xs"
                     >
                       <Copy className="w-3 h-3 mr-1" />
@@ -154,7 +155,7 @@ const DisplayModeSelector = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onOpenUrl(`/display/${customer.display_url}`)}
+                      onClick={() => onOpenUrl(getDisplayPath(customer))}
                       className="h-6 text-xs"
                     >
                       <ExternalLink className="w-3 h-3 mr-1" />

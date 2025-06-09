@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useDeleteCustomer, useDeleteAllCustomers, useUpdateCustomer } from '@/hooks/useCustomers';
 import { useToast } from '@/hooks/use-toast';
 import { Customer } from '@/types/database';
+import { getDisplayPath, getDisplayUrl } from '@/utils/displayUtils';
 
 export const useCustomerActions = () => {
   const deleteCustomer = useDeleteCustomer();
@@ -52,11 +53,15 @@ export const useCustomerActions = () => {
         id: customer.id,
         has_dedicated_display: hasDedicatedDisplay,
       });
+      
+      const displayType = hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert";
+      const description = hasDedicatedDisplay 
+        ? `${customer.name} har nå sitt eget private display med automatisk generert URL`
+        : `${customer.name} vises nå på felles display`;
+        
       toast({
-        title: hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert",
-        description: hasDedicatedDisplay 
-          ? `${customer.name} har nå sitt eget private display`
-          : `${customer.name} vises nå på felles display`,
+        title: displayType,
+        description: description,
       });
     } catch (error) {
       toast({

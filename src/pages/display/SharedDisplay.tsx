@@ -2,20 +2,27 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Calendar, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, Calendar, Package, RefreshCw } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useOrders } from '@/hooks/useOrders';
+import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
+import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
   const { data: customers } = useCustomers();
   const { data: orders } = useOrders();
+  
+  // Enable real-time updates
+  useRealTimeOrders();
+  const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
-  // Filtrer kunder som IKKE har eget display
+  // Filter customers that DON'T have their own display
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  // Filtrer ordrer for kunder på felles display
+  // Filter orders for customers on shared display
   const sharedDisplayOrders = orders?.filter(order => 
     sharedDisplayCustomers.some(customer => customer.id === order.customer_id)
   ) || [];
@@ -27,16 +34,28 @@ const SharedDisplay = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Felles Display
-          </h1>
-          <p className="text-xl text-gray-600">
-            Oversikt over alle kunder og dagens ordrer
-          </p>
+        {/* Header with refresh button */}
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Felles Display
+            </h1>
+            <p className="text-xl text-gray-600">
+              Oversikt over alle kunder og dagens ordrer
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={triggerRefresh}
+            className="ml-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Oppdater
+          </Button>
         </div>
 
-        {/* Statistikk */}
+        {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -184,6 +203,7 @@ const SharedDisplay = () => {
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500">
           <p>Sist oppdatert: {format(new Date(), 'HH:mm:ss', { locale: nb })}</p>
+          <p className="text-xs mt-1">Automatisk oppdatering hvert 30. sekund</p>
         </div>
       </div>
     </div>
