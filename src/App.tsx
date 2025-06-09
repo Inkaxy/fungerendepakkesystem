@@ -109,6 +109,11 @@ function AppContent() {
               <Reports />
             </AuthLayout>
           } />
+          <Route path="/dashboard/display-settings" element={
+            <AuthLayout>
+              <DisplaySettings />
+            </AuthLayout>
+          } />
           <Route path="/dashboard/admin" element={
             <AuthLayout>
               <Admin />

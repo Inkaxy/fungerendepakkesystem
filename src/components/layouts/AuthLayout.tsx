@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     { name: 'Produkter', href: '/dashboard/products' },
     { name: 'Kunder', href: '/dashboard/customers' },
     { name: 'Rapporter', href: '/dashboard/reports' },
+    { name: 'Display Innstillinger', href: '/dashboard/display-settings' },
   ];
 
   // Add Admin for super_admin only
