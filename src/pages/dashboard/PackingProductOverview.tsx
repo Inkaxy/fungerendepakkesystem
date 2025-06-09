@@ -7,7 +7,6 @@ import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 import ProductsTable from '@/components/packing/ProductsTable';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
@@ -109,7 +108,7 @@ const PackingProductOverview = () => {
   return (
     <div className="h-screen flex flex-col">
       {/* Header - fixed at top */}
-      <div className="flex-shrink-0 p-6">
+      <div className="flex-shrink-0 p-6 border-b bg-background">
         <div className="flex items-center space-x-4">
           <Button 
             variant="outline" 
@@ -130,18 +129,16 @@ const PackingProductOverview = () => {
         </div>
       </div>
 
-      {/* Products table with scrollable content */}
-      <div className="flex-1 px-6 pb-6 min-h-0">
-        <ScrollArea className="h-full">
-          <ProductsTable
-            products={productList}
-            selectedProducts={selectedProducts}
-            onProductSelection={handleProductSelection}
-            onProductActivate={handleProductActivate}
-            onStartPacking={handleStartPacking}
-            isStartPackingLoading={createOrUpdateSession.isPending}
-          />
-        </ScrollArea>
+      {/* Products table with sticky header */}
+      <div className="flex-1 min-h-0">
+        <ProductsTable
+          products={productList}
+          selectedProducts={selectedProducts}
+          onProductSelection={handleProductSelection}
+          onProductActivate={handleProductActivate}
+          onStartPacking={handleStartPacking}
+          isStartPackingLoading={createOrUpdateSession.isPending}
+        />
       </div>
     </div>
   );

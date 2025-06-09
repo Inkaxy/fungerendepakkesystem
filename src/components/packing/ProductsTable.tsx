@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +40,7 @@ const ProductsTable = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
   const tableRef = useRef<HTMLTableElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -175,8 +175,8 @@ const ProductsTable = ({
 
   // Focus table when focused row changes
   useEffect(() => {
-    if (tableRef.current && focusedRowIndex >= 0) {
-      const row = tableRef.current.querySelector(`tbody tr:nth-child(${focusedRowIndex + 1})`) as HTMLElement;
+    if (scrollContainerRef.current && focusedRowIndex >= 0) {
+      const row = scrollContainerRef.current.querySelector(`tbody tr:nth-child(${focusedRowIndex + 1})`) as HTMLElement;
       if (row) {
         row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
@@ -184,163 +184,183 @@ const ProductsTable = ({
   }, [focusedRowIndex]);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Produkter å pakke</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {products.length} produkter
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-muted-foreground">
-              {selectedProducts.length} av maks 3 valgt
+    <div className="h-full flex flex-col">
+      {/* Sticky Header */}
+      <div className="flex-shrink-0 bg-background border-b">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Produkter å pakke</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                {products.length} produkter
+              </p>
             </div>
-            {onStartPacking && (
-              <Button 
-                onClick={onStartPacking}
-                disabled={selectedProducts.length === 0 || isStartPackingLoading}
-                className="flex items-center space-x-2"
-              >
-                <Package className="w-4 h-4" />
-                <span>Start pakking ({selectedProducts.length})</span>
-              </Button>
-            )}
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-muted-foreground">
+                {selectedProducts.length} av maks 3 valgt
+              </div>
+              {onStartPacking && (
+                <Button 
+                  onClick={onStartPacking}
+                  disabled={selectedProducts.length === 0 || isStartPackingLoading}
+                  className="flex items-center space-x-2"
+                >
+                  <Package className="w-4 h-4" />
+                  <span>Start pakking ({selectedProducts.length})</span>
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Bruk piltaster for navigering, Enter for å velge/avvelge, Tab for å bytte mellom valgte produkter, eller klikk/dobbeltklikk på en rad
-        </p>
-      </CardHeader>
-      <CardContent>
-        {products.length > 0 ? (
-          <div 
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
-            className="outline-none"
-          >
-            <Table ref={tableRef}>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">Velg</TableHead>
-                  <TableHead>
-                    <button
-                      className="flex items-center space-x-1 hover:text-blue-600"
-                      onClick={() => handleSort('name')}
-                    >
-                      <span>Produktnavn</span>
-                      {getSortIcon('name')}
-                    </button>
-                  </TableHead>
-                  <TableHead>Varenummer</TableHead>
-                  <TableHead>
-                    <button
-                      className="flex items-center space-x-1 hover:text-blue-600"
-                      onClick={() => handleSort('category')}
-                    >
-                      <span>Kategori</span>
-                      {getSortIcon('category')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      className="flex items-center space-x-1 hover:text-blue-600"
-                      onClick={() => handleSort('totalQuantity')}
-                    >
-                      <span>Totalt antall</span>
-                      {getSortIcon('totalQuantity')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      className="flex items-center space-x-1 hover:text-blue-600"
-                      onClick={() => handleSort('customers')}
-                    >
-                      <span>Antall kunder</span>
-                      {getSortIcon('customers')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      className="flex items-center space-x-1 hover:text-blue-600"
-                      onClick={() => handleSort('progress')}
-                    >
-                      <span>Fremgang</span>
-                      {getSortIcon('progress')}
-                    </button>
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedProducts.map((product, index) => {
-                  const isSelected = selectedProducts.includes(product.id);
-                  const canSelect = selectedProducts.length < 3 || isSelected;
-                  const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
-                  const isFocused = index === focusedRowIndex;
+          <p className="text-sm text-muted-foreground">
+            Bruk piltaster for navigering, Enter for å velge/avvelge, Tab for å bytte mellom valgte produkter, eller klikk/dobbeltklikk på en rad
+          </p>
+        </CardHeader>
 
-                  return (
-                    <TableRow 
-                      key={product.id} 
-                      className={`
-                        cursor-pointer
-                        ${isSelected ? 'bg-blue-50' : ''} 
-                        ${isFocused ? 'bg-gray-100 ring-2 ring-blue-500' : ''}
-                        ${isFocused && isSelected ? 'bg-blue-100' : ''}
-                        ${!canSelect ? 'opacity-50' : ''}
-                      `}
-                      onClick={() => handleRowClick(product, index)}
-                      onDoubleClick={() => handleRowDoubleClick(product)}
-                    >
-                      <TableCell>
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={(checked) => onProductSelection(product.id, checked as boolean)}
-                          disabled={!canSelect}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell className="font-medium">
-                        {product.productNumber || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {product.category || 'Ingen kategori'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{product.totalQuantity} stk</TableCell>
-                      <TableCell>{product.customers.size} kunder</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
-                              style={{ width: `${progressPercentage}%` }}
-                            />
-                          </div>
-                          <span className="text-xs">{Math.round(progressPercentage)}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={progressPercentage === 100 ? "default" : "outline"}>
-                          {progressPercentage === 100 ? "Ferdig" : "Venter"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Ingen produkter funnet for denne dagen</p>
+        {/* Sticky Table Header */}
+        {products.length > 0 && (
+          <div className="px-6 pb-2">
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-12">Velg</TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                        onClick={() => handleSort('name')}
+                      >
+                        <span>Produktnavn</span>
+                        {getSortIcon('name')}
+                      </button>
+                    </TableHead>
+                    <TableHead>Varenummer</TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                        onClick={() => handleSort('category')}
+                      >
+                        <span>Kategori</span>
+                        {getSortIcon('category')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                        onClick={() => handleSort('totalQuantity')}
+                      >
+                        <span>Totalt antall</span>
+                        {getSortIcon('totalQuantity')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                        onClick={() => handleSort('customers')}
+                      >
+                        <span>Antall kunder</span>
+                        {getSortIcon('customers')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                        onClick={() => handleSort('progress')}
+                      >
+                        <span>Fremgang</span>
+                        {getSortIcon('progress')}
+                      </button>
+                    </TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+              </Table>
+            </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 min-h-0">
+        {products.length > 0 ? (
+          <div className="px-6 pb-6 h-full">
+            <div 
+              ref={scrollContainerRef}
+              tabIndex={0}
+              onKeyDown={handleKeyDown}
+              className="h-full overflow-auto outline-none border rounded-lg"
+            >
+              <Table ref={tableRef}>
+                <TableBody>
+                  {sortedProducts.map((product, index) => {
+                    const isSelected = selectedProducts.includes(product.id);
+                    const canSelect = selectedProducts.length < 3 || isSelected;
+                    const progressPercentage = (product.packedQuantity / product.totalQuantity) * 100;
+                    const isFocused = index === focusedRowIndex;
+
+                    return (
+                      <TableRow 
+                        key={product.id} 
+                        className={`
+                          cursor-pointer
+                          ${isSelected ? 'bg-blue-50' : ''} 
+                          ${isFocused ? 'bg-gray-100 ring-2 ring-blue-500' : ''}
+                          ${isFocused && isSelected ? 'bg-blue-100' : ''}
+                          ${!canSelect ? 'opacity-50' : ''}
+                        `}
+                        onClick={() => handleRowClick(product, index)}
+                        onDoubleClick={() => handleRowDoubleClick(product)}
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => onProductSelection(product.id, checked as boolean)}
+                            disabled={!canSelect}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {product.productNumber || '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {product.category || 'Ingen kategori'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{product.totalQuantity} stk</TableCell>
+                        <TableCell>{product.customers.size} kunder</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all ${getProgressColor(product.packedQuantity, product.totalQuantity)}`}
+                                style={{ width: `${progressPercentage}%` }}
+                              />
+                            </div>
+                            <span className="text-xs">{Math.round(progressPercentage)}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={progressPercentage === 100 ? "default" : "outline"}>
+                            {progressPercentage === 100 ? "Ferdig" : "Venter"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Ingen produkter funnet for denne dagen</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
