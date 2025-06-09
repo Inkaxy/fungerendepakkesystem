@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
-import SelectedProductsCard from '@/components/packing/SelectedProductsCard';
 import ProductsTable from '@/components/packing/ProductsTable';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -69,13 +67,11 @@ const PackingProductOverview = () => {
   };
 
   const handleProductActivate = (productId: string) => {
-    // If product is already selected, navigate to it
     if (selectedProducts.includes(productId)) {
       navigate(`/dashboard/orders/packing/${date}/${productId}`, {
         state: { selectedProducts }
       });
     } else if (selectedProducts.length < 3) {
-      // If not selected and we have room, select it and navigate
       const newSelectedProducts = [...selectedProducts, productId];
       setSelectedProducts(newSelectedProducts);
       navigate(`/dashboard/orders/packing/${date}/${productId}`, {
@@ -98,7 +94,6 @@ const PackingProductOverview = () => {
         status: 'in_progress'
       });
 
-      // Navigate to first selected product
       navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {
         state: { selectedProducts }
       });
@@ -113,8 +108,8 @@ const PackingProductOverview = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Header and controls - fixed at top */}
-      <div className="flex-shrink-0 p-6 space-y-6">
+      {/* Header - fixed at top */}
+      <div className="flex-shrink-0 p-6">
         <div className="flex items-center space-x-4">
           <Button 
             variant="outline" 
@@ -133,18 +128,9 @@ const PackingProductOverview = () => {
             </p>
           </div>
         </div>
-
-        {selectedProducts.length > 0 && (
-          <SelectedProductsCard
-            selectedProducts={selectedProducts}
-            productStats={productStats}
-            onStartPacking={handleStartPacking}
-            isLoading={createOrUpdateSession.isPending}
-          />
-        )}
       </div>
 
-      {/* Products table - scrollable */}
+      {/* Products table with scrollable content */}
       <div className="flex-1 px-6 pb-6 min-h-0">
         <ScrollArea className="h-full">
           <ProductsTable
@@ -152,6 +138,8 @@ const PackingProductOverview = () => {
             selectedProducts={selectedProducts}
             onProductSelection={handleProductSelection}
             onProductActivate={handleProductActivate}
+            onStartPacking={handleStartPacking}
+            isStartPackingLoading={createOrUpdateSession.isPending}
           />
         </ScrollArea>
       </div>

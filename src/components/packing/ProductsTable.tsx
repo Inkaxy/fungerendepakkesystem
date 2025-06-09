@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
@@ -21,6 +22,8 @@ interface ProductsTableProps {
   selectedProducts: string[];
   onProductSelection: (productId: string, checked: boolean) => void;
   onProductActivate?: (productId: string) => void;
+  onStartPacking?: () => void;
+  isStartPackingLoading?: boolean;
 }
 
 type SortField = 'name' | 'category' | 'totalQuantity' | 'customers' | 'progress';
@@ -30,7 +33,9 @@ const ProductsTable = ({
   products, 
   selectedProducts, 
   onProductSelection,
-  onProductActivate 
+  onProductActivate,
+  onStartPacking,
+  isStartPackingLoading = false
 }: ProductsTableProps) => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -152,12 +157,10 @@ const ProductsTable = ({
   const handleRowDoubleClick = (product: Product) => {
     const isSelected = selectedProducts.includes(product.id);
     
-    // First ensure the product is selected
     if (!isSelected && selectedProducts.length < 3) {
       onProductSelection(product.id, true);
     }
     
-    // Then activate it
     if (onProductActivate) {
       onProductActivate(product.id);
     }
@@ -183,7 +186,29 @@ const ProductsTable = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Produkter</CardTitle>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Produkter å pakke</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              {products.length} produkter
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-muted-foreground">
+              {selectedProducts.length} av maks 3 valgt
+            </div>
+            {onStartPacking && (
+              <Button 
+                onClick={onStartPacking}
+                disabled={selectedProducts.length === 0 || isStartPackingLoading}
+                className="flex items-center space-x-2"
+              >
+                <Package className="w-4 h-4" />
+                <span>Start pakking ({selectedProducts.length})</span>
+              </Button>
+            )}
+          </div>
+        </div>
         <p className="text-sm text-muted-foreground">
           Bruk piltaster for navigering, Enter for å velge/avvelge, Tab for å bytte mellom valgte produkter, eller klikk/dobbeltklikk på en rad
         </p>
