@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders, useUpdateOrderStatus } from '@/hooks/useOrders';
 import { useToast } from '@/hooks/use-toast';
@@ -29,11 +29,58 @@ const PackingProductDetail = () => {
   const { data: orders } = useOrders(date);
   const updateOrderStatus = useUpdateOrderStatus();
 
-  // Prepare data for all selected products when in multi-product mode
-  const allProductsData = isMultiProductMode ? selectedProducts.map(prodId => {
-    const productData = orders?.reduce((acc, order) => {
+  // Prepare data for all selected products when in multi-product mode - using useMemo
+  const allProductsData = useMemo(() => {
+    if (!isMultiProductMode || !orders) return [];
+    
+    return selectedProducts.map(prodId => {
+      const productData = orders.reduce((acc, order) => {
+        order.order_products?.forEach(item => {
+          if (item.product_id === prodId) {
+            const key = `${order.id}-${item.id}`;
+            acc.items.push({
+              key,
+              orderId: order.id,
+              orderNumber: order.order_number,
+              customerName: order.customer?.name || 'Ukjent kunde',
+              customerNumber: order.customer?.customer_number || '',
+              customerId: order.customer_id,
+              quantity: item.quantity,
+              packingStatus: item.packing_status,
+              orderProductId: item.id
+            });
+            
+            if (!acc.productName && item.product?.name) {
+              acc.productName = item.product.name;
+            }
+            if (!acc.productNumber && item.product?.product_number) {
+              acc.productNumber = item.product.product_number;
+            }
+            if (!acc.productCategory && item.product?.category) {
+              acc.productCategory = item.product.category;
+            }
+          }
+        });
+        return acc;
+      }, { items: [] as any[], productName: '', productNumber: '', productCategory: '' });
+
+      return {
+        id: prodId,
+        name: productData?.productName || '',
+        productNumber: productData?.productNumber || '',
+        category: productData?.productCategory || 'Ingen kategori',
+        items: productData?.items || []
+      };
+    });
+  }, [isMultiProductMode, orders, selectedProducts]);
+
+  // Find current product data for single product mode - using useMemo
+  const currentProductData = useMemo(() => {
+    if (!orders || isMultiProductMode) return null;
+    
+    return orders.reduce((acc, order) => {
       order.order_products?.forEach(item => {
-        if (item.product_id === prodId) {
+        if (item.product_id === productId) {
           const key = `${order.id}-${item.id}`;
           acc.items.push({
             key,
@@ -60,50 +107,13 @@ const PackingProductDetail = () => {
       });
       return acc;
     }, { items: [] as any[], productName: '', productNumber: '', productCategory: '' });
+  }, [orders, productId, isMultiProductMode]);
 
-    return {
-      id: prodId,
-      name: productData?.productName || '',
-      productNumber: productData?.productNumber || '',
-      category: productData?.productCategory || 'Ingen kategori',
-      items: productData?.items || []
-    };
-  }) : [];
-
-  // Find current product data for single product mode
-  const currentProductData = orders?.reduce((acc, order) => {
-    order.order_products?.forEach(item => {
-      if (item.product_id === productId) {
-        const key = `${order.id}-${item.id}`;
-        acc.items.push({
-          key,
-          orderId: order.id,
-          orderNumber: order.order_number,
-          customerName: order.customer?.name || 'Ukjent kunde',
-          customerNumber: order.customer?.customer_number || '',
-          customerId: order.customer_id,
-          quantity: item.quantity,
-          packingStatus: item.packing_status,
-          orderProductId: item.id
-        });
-        
-        if (!acc.productName && item.product?.name) {
-          acc.productName = item.product.name;
-        }
-        if (!acc.productNumber && item.product?.product_number) {
-          acc.productNumber = item.product.product_number;
-        }
-        if (!acc.productCategory && item.product?.category) {
-          acc.productCategory = item.product.category;
-        }
-      }
-    });
-    return acc;
-  }, { items: [] as any[], productName: '', productNumber: '', productCategory: '' });
-
-  // Initialize packed items from database
+  // Initialize packed items from database - with proper dependencies
   useEffect(() => {
-    if (isMultiProductMode) {
+    if (!orders) return;
+    
+    if (isMultiProductMode && allProductsData.length > 0) {
       const alreadyPacked = new Set<string>();
       allProductsData.forEach(product => {
         product.items.forEach(item => {
@@ -113,7 +123,7 @@ const PackingProductDetail = () => {
         });
       });
       setPackedItems(alreadyPacked);
-    } else if (currentProductData?.items) {
+    } else if (!isMultiProductMode && currentProductData?.items) {
       const alreadyPacked = new Set(
         currentProductData.items
           .filter(item => item.packingStatus === 'packed' || item.packingStatus === 'completed')
@@ -121,7 +131,7 @@ const PackingProductDetail = () => {
       );
       setPackedItems(alreadyPacked);
     }
-  }, [currentProductData, allProductsData, isMultiProductMode]);
+  }, [orders, isMultiProductMode]); // Only depend on orders and isMultiProductMode
 
   const handleItemToggle = (itemKey: string, checked: boolean) => {
     const newPackedItems = new Set(packedItems);
