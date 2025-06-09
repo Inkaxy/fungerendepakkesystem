@@ -20,6 +20,7 @@ import Products from "./pages/dashboard/Products";
 import Customers from "./pages/dashboard/Customers";
 import Reports from "./pages/dashboard/Reports";
 import Admin from "./pages/dashboard/Admin";
+import DisplaySettings from "./pages/dashboard/DisplaySettings";
 import NotFound from "./pages/NotFound";
 
 // Display Pages

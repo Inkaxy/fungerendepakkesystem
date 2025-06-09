@@ -95,6 +95,128 @@ export type Database = {
           },
         ]
       }
+      display_settings: {
+        Row: {
+          auto_refresh_interval: number | null
+          background_color: string | null
+          background_gradient_end: string | null
+          background_gradient_start: string | null
+          background_image_url: string | null
+          background_type: string | null
+          bakery_id: string
+          body_font_size: number | null
+          border_radius: number | null
+          card_background_color: string | null
+          card_border_color: string | null
+          card_shadow_intensity: number | null
+          created_at: string
+          header_font_size: number | null
+          header_text_color: string | null
+          id: string
+          product_accent_color: string | null
+          product_card_color: string | null
+          product_card_size: number | null
+          product_text_color: string | null
+          progress_background_color: string | null
+          progress_bar_color: string | null
+          progress_height: number | null
+          show_customer_info: boolean | null
+          show_delivery_dates: boolean | null
+          show_order_numbers: boolean | null
+          show_product_images: boolean | null
+          show_progress_percentage: boolean | null
+          spacing: number | null
+          status_completed_color: string | null
+          status_delivered_color: string | null
+          status_in_progress_color: string | null
+          status_pending_color: string | null
+          text_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_refresh_interval?: number | null
+          background_color?: string | null
+          background_gradient_end?: string | null
+          background_gradient_start?: string | null
+          background_image_url?: string | null
+          background_type?: string | null
+          bakery_id: string
+          body_font_size?: number | null
+          border_radius?: number | null
+          card_background_color?: string | null
+          card_border_color?: string | null
+          card_shadow_intensity?: number | null
+          created_at?: string
+          header_font_size?: number | null
+          header_text_color?: string | null
+          id?: string
+          product_accent_color?: string | null
+          product_card_color?: string | null
+          product_card_size?: number | null
+          product_text_color?: string | null
+          progress_background_color?: string | null
+          progress_bar_color?: string | null
+          progress_height?: number | null
+          show_customer_info?: boolean | null
+          show_delivery_dates?: boolean | null
+          show_order_numbers?: boolean | null
+          show_product_images?: boolean | null
+          show_progress_percentage?: boolean | null
+          spacing?: number | null
+          status_completed_color?: string | null
+          status_delivered_color?: string | null
+          status_in_progress_color?: string | null
+          status_pending_color?: string | null
+          text_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_refresh_interval?: number | null
+          background_color?: string | null
+          background_gradient_end?: string | null
+          background_gradient_start?: string | null
+          background_image_url?: string | null
+          background_type?: string | null
+          bakery_id?: string
+          body_font_size?: number | null
+          border_radius?: number | null
+          card_background_color?: string | null
+          card_border_color?: string | null
+          card_shadow_intensity?: number | null
+          created_at?: string
+          header_font_size?: number | null
+          header_text_color?: string | null
+          id?: string
+          product_accent_color?: string | null
+          product_card_color?: string | null
+          product_card_size?: number | null
+          product_text_color?: string | null
+          progress_background_color?: string | null
+          progress_bar_color?: string | null
+          progress_height?: number | null
+          show_customer_info?: boolean | null
+          show_delivery_dates?: boolean | null
+          show_order_numbers?: boolean | null
+          show_product_images?: boolean | null
+          show_progress_percentage?: boolean | null
+          spacing?: number | null
+          status_completed_color?: string | null
+          status_delivered_color?: string | null
+          status_in_progress_color?: string | null
+          status_pending_color?: string | null
+          text_color?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_settings_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_products: {
         Row: {
           created_at: string | null
