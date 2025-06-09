@@ -7,6 +7,7 @@ import PackingProductHeader from '@/components/packing/PackingProductHeader';
 import PackingProgressCard from '@/components/packing/PackingProgressCard';
 import CustomerPackingTable from '@/components/packing/CustomerPackingTable';
 import ProductCategoryBadge from '@/components/packing/ProductCategoryBadge';
+import PackingTabsInterface from '@/components/packing/PackingTabsInterface';
 
 const PackingProductDetail = () => {
   const { date, productId } = useParams<{ date: string; productId: string }>();
@@ -16,13 +17,56 @@ const PackingProductDetail = () => {
   
   const selectedProducts = location.state?.selectedProducts || [productId];
   const currentIndex = selectedProducts.indexOf(productId);
+  const isMultiProductMode = selectedProducts.length > 1;
   
   const [packedItems, setPackedItems] = useState<Set<string>>(new Set());
+  const [deviationItems, setDeviationItems] = useState<Set<string>>(new Set());
   
   const { data: orders } = useOrders(date);
   const updateOrderStatus = useUpdateOrderStatus();
 
-  // Find current product data with category
+  // Prepare data for all selected products when in multi-product mode
+  const allProductsData = isMultiProductMode ? selectedProducts.map(prodId => {
+    const productData = orders?.reduce((acc, order) => {
+      order.order_products?.forEach(item => {
+        if (item.product_id === prodId) {
+          const key = `${order.id}-${item.id}`;
+          acc.items.push({
+            key,
+            orderId: order.id,
+            orderNumber: order.order_number,
+            customerName: order.customer?.name || 'Ukjent kunde',
+            customerNumber: order.customer?.customer_number || '',
+            customerId: order.customer_id,
+            quantity: item.quantity,
+            packingStatus: item.packing_status,
+            orderProductId: item.id
+          });
+          
+          if (!acc.productName && item.product?.name) {
+            acc.productName = item.product.name;
+          }
+          if (!acc.productNumber && item.product?.product_number) {
+            acc.productNumber = item.product.product_number;
+          }
+          if (!acc.productCategory && item.product?.category) {
+            acc.productCategory = item.product.category;
+          }
+        }
+      });
+      return acc;
+    }, { items: [] as any[], productName: '', productNumber: '', productCategory: '' });
+
+    return {
+      id: prodId,
+      name: productData?.productName || '',
+      productNumber: productData?.productNumber || '',
+      category: productData?.productCategory || 'Ingen kategori',
+      items: productData?.items || []
+    };
+  }) : [];
+
+  // Find current product data for single product mode
   const currentProductData = orders?.reduce((acc, order) => {
     order.order_products?.forEach(item => {
       if (item.product_id === productId) {
@@ -55,7 +99,17 @@ const PackingProductDetail = () => {
 
   // Initialize packed items from database
   useEffect(() => {
-    if (currentProductData?.items) {
+    if (isMultiProductMode) {
+      const alreadyPacked = new Set<string>();
+      allProductsData.forEach(product => {
+        product.items.forEach(item => {
+          if (item.packingStatus === 'packed' || item.packingStatus === 'completed') {
+            alreadyPacked.add(item.key);
+          }
+        });
+      });
+      setPackedItems(alreadyPacked);
+    } else if (currentProductData?.items) {
       const alreadyPacked = new Set(
         currentProductData.items
           .filter(item => item.packingStatus === 'packed' || item.packingStatus === 'completed')
@@ -63,22 +117,64 @@ const PackingProductDetail = () => {
       );
       setPackedItems(alreadyPacked);
     }
-  }, [currentProductData]);
+  }, [currentProductData, allProductsData, isMultiProductMode]);
 
   const handleItemToggle = (itemKey: string, checked: boolean) => {
     const newPackedItems = new Set(packedItems);
     if (checked) {
       newPackedItems.add(itemKey);
+      // Remove from deviation if it was marked as such
+      const newDeviationItems = new Set(deviationItems);
+      newDeviationItems.delete(itemKey);
+      setDeviationItems(newDeviationItems);
     } else {
       newPackedItems.delete(itemKey);
     }
     setPackedItems(newPackedItems);
   };
 
+  const handleItemDeviation = (itemKey: string, hasDeviation: boolean) => {
+    const newDeviationItems = new Set(deviationItems);
+    if (hasDeviation) {
+      newDeviationItems.add(itemKey);
+      // Remove from packed if it was marked as such
+      const newPackedItems = new Set(packedItems);
+      newPackedItems.delete(itemKey);
+      setPackedItems(newPackedItems);
+    } else {
+      newDeviationItems.delete(itemKey);
+    }
+    setDeviationItems(newDeviationItems);
+  };
+
+  const handleMarkAllPacked = (productIdToMark: string) => {
+    const product = allProductsData.find(p => p.id === productIdToMark);
+    if (!product) return;
+
+    const newPackedItems = new Set(packedItems);
+    const newDeviationItems = new Set(deviationItems);
+    
+    product.items.forEach(item => {
+      newPackedItems.add(item.key);
+      newDeviationItems.delete(item.key); // Remove any deviations
+    });
+    
+    setPackedItems(newPackedItems);
+    setDeviationItems(newDeviationItems);
+    
+    toast({
+      title: "Alle elementer markert som pakket",
+      description: `${product.items.length} elementer for ${product.name} er markert som pakket`,
+    });
+  };
+
   const handleSaveProgress = async () => {
+    const totalPacked = packedItems.size;
+    const totalDeviations = deviationItems.size;
+    
     toast({
       title: "Fremgang lagret",
-      description: `${packedItems.size} elementer markert som pakket`,
+      description: `${totalPacked} elementer pakket, ${totalDeviations} avvik registrert`,
     });
   };
 
@@ -106,13 +202,51 @@ const PackingProductDetail = () => {
     navigate(`/dashboard/orders/packing/${date}`);
   };
 
-  const totalItems = currentProductData?.items.length || 0;
+  const totalItems = isMultiProductMode 
+    ? allProductsData.reduce((sum, product) => sum + product.items.length, 0)
+    : currentProductData?.items.length || 0;
   const packedCount = packedItems.size;
 
   if (!date || !productId) {
     return <div>Ugyldig dato eller produkt</div>;
   }
 
+  // Render multi-product tabbed interface
+  if (isMultiProductMode) {
+    return (
+      <div className="space-y-6">
+        <PackingProductHeader
+          productName={`${selectedProducts.length} produkter`}
+          productNumber=""
+          date={date}
+          currentIndex={0}
+          totalProducts={selectedProducts.length}
+          onBack={handleBack}
+          onPrevious={() => {}}
+          onNext={() => {}}
+          canGoBack={false}
+          isLastProduct={true}
+        />
+
+        <PackingProgressCard
+          packedCount={packedCount}
+          totalItems={totalItems}
+          onSaveProgress={handleSaveProgress}
+        />
+
+        <PackingTabsInterface
+          products={allProductsData}
+          packedItems={packedItems}
+          deviationItems={deviationItems}
+          onItemToggle={handleItemToggle}
+          onItemDeviation={handleItemDeviation}
+          onMarkAllPacked={handleMarkAllPacked}
+        />
+      </div>
+    );
+  }
+
+  // Render single product interface (existing functionality)
   return (
     <div className="space-y-6">
       <PackingProductHeader
