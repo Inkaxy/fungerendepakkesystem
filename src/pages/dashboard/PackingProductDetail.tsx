@@ -1,13 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders, useUpdateOrderStatus } from '@/hooks/useOrders';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
 import PackingProductHeader from '@/components/packing/PackingProductHeader';
 import PackingProgressCard from '@/components/packing/PackingProgressCard';
 import CustomerPackingTable from '@/components/packing/CustomerPackingTable';
 import ProductCategoryBadge from '@/components/packing/ProductCategoryBadge';
 import PackingTabsInterface from '@/components/packing/PackingTabsInterface';
+import PackingReportDialog from '@/components/packing/PackingReportDialog';
 
 const PackingProductDetail = () => {
   const { date, productId } = useParams<{ date: string; productId: string }>();
@@ -21,6 +23,8 @@ const PackingProductDetail = () => {
   
   const [packedItems, setPackedItems] = useState<Set<string>>(new Set());
   const [deviationItems, setDeviationItems] = useState<Set<string>>(new Set());
+  const [deviationQuantities, setDeviationQuantities] = useState<Map<string, number>>(new Map());
+  const [showReport, setShowReport] = useState(false);
   
   const { data: orders } = useOrders(date);
   const updateOrderStatus = useUpdateOrderStatus();
@@ -127,24 +131,36 @@ const PackingProductDetail = () => {
       const newDeviationItems = new Set(deviationItems);
       newDeviationItems.delete(itemKey);
       setDeviationItems(newDeviationItems);
+      
+      // Remove deviation quantity
+      const newDeviationQuantities = new Map(deviationQuantities);
+      newDeviationQuantities.delete(itemKey);
+      setDeviationQuantities(newDeviationQuantities);
     } else {
       newPackedItems.delete(itemKey);
     }
     setPackedItems(newPackedItems);
   };
 
-  const handleItemDeviation = (itemKey: string, hasDeviation: boolean) => {
+  const handleItemDeviation = (itemKey: string, hasDeviation: boolean, actualQuantity?: number) => {
     const newDeviationItems = new Set(deviationItems);
-    if (hasDeviation) {
+    const newDeviationQuantities = new Map(deviationQuantities);
+    
+    if (hasDeviation && actualQuantity !== undefined) {
       newDeviationItems.add(itemKey);
+      newDeviationQuantities.set(itemKey, actualQuantity);
+      
       // Remove from packed if it was marked as such
       const newPackedItems = new Set(packedItems);
       newPackedItems.delete(itemKey);
       setPackedItems(newPackedItems);
     } else {
       newDeviationItems.delete(itemKey);
+      newDeviationQuantities.delete(itemKey);
     }
+    
     setDeviationItems(newDeviationItems);
+    setDeviationQuantities(newDeviationQuantities);
   };
 
   const handleMarkAllPacked = (productIdToMark: string) => {
@@ -153,19 +169,64 @@ const PackingProductDetail = () => {
 
     const newPackedItems = new Set(packedItems);
     const newDeviationItems = new Set(deviationItems);
+    const newDeviationQuantities = new Map(deviationQuantities);
     
     product.items.forEach(item => {
       newPackedItems.add(item.key);
       newDeviationItems.delete(item.key); // Remove any deviations
+      newDeviationQuantities.delete(item.key); // Remove deviation quantities
     });
     
     setPackedItems(newPackedItems);
     setDeviationItems(newDeviationItems);
+    setDeviationQuantities(newDeviationQuantities);
     
     toast({
       title: "Alle elementer markert som pakket",
       description: `${product.items.length} elementer for ${product.name} er markert som pakket`,
     });
+  };
+
+  const generateReportData = () => {
+    const reportItems: any[] = [];
+    
+    if (isMultiProductMode) {
+      allProductsData.forEach(product => {
+        product.items.forEach(item => {
+          const isPacked = packedItems.has(item.key);
+          const hasDeviation = deviationItems.has(item.key);
+          const actualQuantity = deviationQuantities.get(item.key) || item.quantity;
+          
+          reportItems.push({
+            customerName: item.customerName,
+            customerNumber: item.customerNumber,
+            productName: product.name,
+            productNumber: product.productNumber,
+            orderedQuantity: item.quantity,
+            packedQuantity: isPacked ? item.quantity : (hasDeviation ? actualQuantity : 0),
+            deviation: isPacked ? 0 : (hasDeviation ? actualQuantity - item.quantity : 0)
+          });
+        });
+      });
+    } else if (currentProductData?.items) {
+      currentProductData.items.forEach(item => {
+        const isPacked = packedItems.has(item.key);
+        const hasDeviation = deviationItems.has(item.key);
+        const actualQuantity = deviationQuantities.get(item.key) || item.quantity;
+        
+        reportItems.push({
+          customerName: item.customerName,
+          customerNumber: item.customerNumber,
+          productName: currentProductData.productName,
+          productNumber: currentProductData.productNumber,
+          orderedQuantity: item.quantity,
+          packedQuantity: isPacked ? item.quantity : (hasDeviation ? actualQuantity : 0),
+          deviation: isPacked ? 0 : (hasDeviation ? actualQuantity - item.quantity : 0)
+        });
+      });
+    }
+    
+    return reportItems;
   };
 
   const handleSaveProgress = async () => {
@@ -228,11 +289,22 @@ const PackingProductDetail = () => {
           isLastProduct={true}
         />
 
-        <PackingProgressCard
-          packedCount={packedCount}
-          totalItems={totalItems}
-          onSaveProgress={handleSaveProgress}
-        />
+        <div className="flex justify-between items-center">
+          <PackingProgressCard
+            packedCount={packedCount}
+            totalItems={totalItems}
+            onSaveProgress={handleSaveProgress}
+          />
+          
+          <Button 
+            onClick={() => setShowReport(true)}
+            className="flex items-center space-x-2"
+            variant="outline"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Generer rapport</span>
+          </Button>
+        </div>
 
         <PackingTabsInterface
           products={allProductsData}
@@ -241,6 +313,13 @@ const PackingProductDetail = () => {
           onItemToggle={handleItemToggle}
           onItemDeviation={handleItemDeviation}
           onMarkAllPacked={handleMarkAllPacked}
+        />
+
+        <PackingReportDialog
+          isOpen={showReport}
+          onClose={() => setShowReport(false)}
+          reportData={generateReportData()}
+          sessionDate={date}
         />
       </div>
     );
@@ -271,16 +350,34 @@ const PackingProductDetail = () => {
         </div>
       )}
 
-      <PackingProgressCard
-        packedCount={packedCount}
-        totalItems={totalItems}
-        onSaveProgress={handleSaveProgress}
-      />
+      <div className="flex justify-between items-center">
+        <PackingProgressCard
+          packedCount={packedCount}
+          totalItems={totalItems}
+          onSaveProgress={handleSaveProgress}
+        />
+        
+        <Button 
+          onClick={() => setShowReport(true)}
+          className="flex items-center space-x-2"
+          variant="outline"
+        >
+          <FileText className="w-4 h-4" />
+          <span>Generer rapport</span>
+        </Button>
+      </div>
 
       <CustomerPackingTable
         items={currentProductData?.items || []}
         packedItems={packedItems}
         onItemToggle={handleItemToggle}
+      />
+
+      <PackingReportDialog
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        reportData={generateReportData()}
+        sessionDate={date}
       />
     </div>
   );

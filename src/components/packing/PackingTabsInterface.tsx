@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, Users, Check, AlertTriangle } from 'lucide-react';
+import DeviationDialog from './DeviationDialog';
 
 interface CustomerItem {
   key: string;
@@ -33,7 +34,7 @@ interface PackingTabsInterfaceProps {
   packedItems: Set<string>;
   deviationItems: Set<string>;
   onItemToggle: (itemKey: string, checked: boolean) => void;
-  onItemDeviation: (itemKey: string, hasDeviation: boolean) => void;
+  onItemDeviation: (itemKey: string, hasDeviation: boolean, actualQuantity?: number) => void;
   onMarkAllPacked: (productId: string) => void;
 }
 
@@ -46,6 +47,11 @@ const PackingTabsInterface = ({
   onMarkAllPacked
 }: PackingTabsInterfaceProps) => {
   const [activeTab, setActiveTab] = useState(products[0]?.id || '');
+  const [deviationDialog, setDeviationDialog] = useState<{
+    isOpen: boolean;
+    item?: CustomerItem;
+    productName?: string;
+  }>({ isOpen: false });
 
   const getProductProgress = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -56,6 +62,22 @@ const PackingTabsInterface = ({
     const percentage = total > 0 ? Math.round((packed / total) * 100) : 0;
     
     return { packed, total, percentage };
+  };
+
+  const handleDeviationClick = (item: CustomerItem, productName: string) => {
+    setDeviationDialog({
+      isOpen: true,
+      item,
+      productName
+    });
+  };
+
+  const handleDeviationConfirm = (actualQuantity: number) => {
+    if (deviationDialog.item) {
+      const hasDeviation = actualQuantity !== deviationDialog.item.quantity;
+      onItemDeviation(deviationDialog.item.key, hasDeviation, actualQuantity);
+    }
+    setDeviationDialog({ isOpen: false });
   };
 
   return (
@@ -175,7 +197,7 @@ const PackingTabsInterface = ({
                                 <Button
                                   size="sm"
                                   variant={hasDeviation ? "destructive" : "outline"}
-                                  onClick={() => onItemDeviation(item.key, !hasDeviation)}
+                                  onClick={() => handleDeviationClick(item, product.name)}
                                   className="flex items-center space-x-1"
                                 >
                                   <AlertTriangle className="w-3 h-3" />
@@ -194,6 +216,15 @@ const PackingTabsInterface = ({
           </TabsContent>
         ))}
       </Tabs>
+
+      <DeviationDialog
+        isOpen={deviationDialog.isOpen}
+        onClose={() => setDeviationDialog({ isOpen: false })}
+        onConfirm={handleDeviationConfirm}
+        customerName={deviationDialog.item?.customerName || ''}
+        productName={deviationDialog.productName || ''}
+        orderedQuantity={deviationDialog.item?.quantity || 0}
+      />
     </div>
   );
 };
