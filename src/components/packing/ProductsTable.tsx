@@ -122,15 +122,11 @@ const ProductsTable = ({
           if (canSelect) {
             onProductSelection(product.id, !isSelected);
           }
-          
-          if (onProductActivate && !isSelected && selectedProducts.length < 3) {
-            onProductActivate(product.id);
-          }
         }
         break;
       case 'Tab':
+        event.preventDefault();
         if (selectedProducts.length > 0) {
-          event.preventDefault();
           const currentIndex = selectedProducts.findIndex(id => id === sortedProducts[focusedRowIndex]?.id);
           const nextIndex = (currentIndex + 1) % selectedProducts.length;
           const nextProductId = selectedProducts[nextIndex];
@@ -143,14 +139,25 @@ const ProductsTable = ({
     }
   };
 
-  const handleRowDoubleClick = (product: Product) => {
+  const handleRowClick = (product: Product, index: number) => {
+    setFocusedRowIndex(index);
     const isSelected = selectedProducts.includes(product.id);
     const canSelect = selectedProducts.length < 3 || isSelected;
     
-    if (canSelect && !isSelected) {
+    if (canSelect) {
+      onProductSelection(product.id, !isSelected);
+    }
+  };
+
+  const handleRowDoubleClick = (product: Product) => {
+    const isSelected = selectedProducts.includes(product.id);
+    
+    // First ensure the product is selected
+    if (!isSelected && selectedProducts.length < 3) {
       onProductSelection(product.id, true);
     }
     
+    // Then activate it
     if (onProductActivate) {
       onProductActivate(product.id);
     }
@@ -178,7 +185,7 @@ const ProductsTable = ({
       <CardHeader>
         <CardTitle>Produkter</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Bruk piltaster for navigering, Enter for å velge, Tab for å bytte mellom valgte produkter, eller dobbeltklikk på en rad
+          Bruk piltaster for navigering, Enter for å velge/avvelge, Tab for å bytte mellom valgte produkter, eller klikk/dobbeltklikk på en rad
         </p>
       </CardHeader>
       <CardContent>
@@ -256,9 +263,10 @@ const ProductsTable = ({
                         ${isSelected ? 'bg-blue-50' : ''} 
                         ${isFocused ? 'bg-gray-100 ring-2 ring-blue-500' : ''}
                         ${isFocused && isSelected ? 'bg-blue-100' : ''}
+                        ${!canSelect ? 'opacity-50' : ''}
                       `}
+                      onClick={() => handleRowClick(product, index)}
                       onDoubleClick={() => handleRowDoubleClick(product)}
-                      onClick={() => setFocusedRowIndex(index)}
                     >
                       <TableCell>
                         <Checkbox
