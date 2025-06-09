@@ -187,48 +187,6 @@ const PackingProductDetail = () => {
     });
   };
 
-  const generateReportData = () => {
-    const reportItems: any[] = [];
-    
-    if (isMultiProductMode) {
-      allProductsData.forEach(product => {
-        product.items.forEach(item => {
-          const isPacked = packedItems.has(item.key);
-          const hasDeviation = deviationItems.has(item.key);
-          const actualQuantity = deviationQuantities.get(item.key) || item.quantity;
-          
-          reportItems.push({
-            customerName: item.customerName,
-            customerNumber: item.customerNumber,
-            productName: product.name,
-            productNumber: product.productNumber,
-            orderedQuantity: item.quantity,
-            packedQuantity: isPacked ? item.quantity : (hasDeviation ? actualQuantity : 0),
-            deviation: isPacked ? 0 : (hasDeviation ? actualQuantity - item.quantity : 0)
-          });
-        });
-      });
-    } else if (currentProductData?.items) {
-      currentProductData.items.forEach(item => {
-        const isPacked = packedItems.has(item.key);
-        const hasDeviation = deviationItems.has(item.key);
-        const actualQuantity = deviationQuantities.get(item.key) || item.quantity;
-        
-        reportItems.push({
-          customerName: item.customerName,
-          customerNumber: item.customerNumber,
-          productName: currentProductData.productName,
-          productNumber: currentProductData.productNumber,
-          orderedQuantity: item.quantity,
-          packedQuantity: isPacked ? item.quantity : (hasDeviation ? actualQuantity : 0),
-          deviation: isPacked ? 0 : (hasDeviation ? actualQuantity - item.quantity : 0)
-        });
-      });
-    }
-    
-    return reportItems;
-  };
-
   const handleSaveProgress = async () => {
     const totalPacked = packedItems.size;
     const totalDeviations = deviationItems.size;
@@ -289,22 +247,11 @@ const PackingProductDetail = () => {
           isLastProduct={true}
         />
 
-        <div className="flex justify-between items-center">
-          <PackingProgressCard
-            packedCount={packedCount}
-            totalItems={totalItems}
-            onSaveProgress={handleSaveProgress}
-          />
-          
-          <Button 
-            onClick={() => setShowReport(true)}
-            className="flex items-center space-x-2"
-            variant="outline"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Generer rapport</span>
-          </Button>
-        </div>
+        <PackingProgressCard
+          packedCount={packedCount}
+          totalItems={totalItems}
+          onSaveProgress={handleSaveProgress}
+        />
 
         <PackingTabsInterface
           products={allProductsData}
@@ -313,13 +260,6 @@ const PackingProductDetail = () => {
           onItemToggle={handleItemToggle}
           onItemDeviation={handleItemDeviation}
           onMarkAllPacked={handleMarkAllPacked}
-        />
-
-        <PackingReportDialog
-          isOpen={showReport}
-          onClose={() => setShowReport(false)}
-          reportData={generateReportData()}
-          sessionDate={date}
         />
       </div>
     );
@@ -350,34 +290,16 @@ const PackingProductDetail = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center">
-        <PackingProgressCard
-          packedCount={packedCount}
-          totalItems={totalItems}
-          onSaveProgress={handleSaveProgress}
-        />
-        
-        <Button 
-          onClick={() => setShowReport(true)}
-          className="flex items-center space-x-2"
-          variant="outline"
-        >
-          <FileText className="w-4 h-4" />
-          <span>Generer rapport</span>
-        </Button>
-      </div>
+      <PackingProgressCard
+        packedCount={packedCount}
+        totalItems={totalItems}
+        onSaveProgress={handleSaveProgress}
+      />
 
       <CustomerPackingTable
         items={currentProductData?.items || []}
         packedItems={packedItems}
         onItemToggle={handleItemToggle}
-      />
-
-      <PackingReportDialog
-        isOpen={showReport}
-        onClose={() => setShowReport(false)}
-        reportData={generateReportData()}
-        sessionDate={date}
       />
     </div>
   );

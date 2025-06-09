@@ -1,17 +1,20 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 import ProductsTable from '@/components/packing/ProductsTable';
+import PackingReportDialog from '@/components/packing/PackingReportDialog';
 
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [showReport, setShowReport] = useState(false);
   
   const { data: orders } = useOrders(date);
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
@@ -56,6 +59,29 @@ const PackingProductOverview = () => {
   const productList = Object.values(productStats).sort((a: any, b: any) => 
     a.name.localeCompare(b.name)
   );
+
+  // Generate report data for all orders on this date
+  const generateReportData = () => {
+    const reportItems: any[] = [];
+    
+    orders?.forEach(order => {
+      order.order_products?.forEach(item => {
+        const isPacked = item.packing_status === 'packed' || item.packing_status === 'completed';
+        
+        reportItems.push({
+          customerName: order.customer?.name || 'Ukjent kunde',
+          customerNumber: order.customer?.customer_number || '',
+          productName: item.product?.name || 'Ukjent produkt',
+          productNumber: item.product?.product_number || '',
+          orderedQuantity: item.quantity,
+          packedQuantity: isPacked ? item.quantity : 0,
+          deviation: 0 // Default to 0 - actual deviations would be tracked separately
+        });
+      });
+    });
+    
+    return reportItems;
+  };
 
   const handleProductSelection = (productId: string, checked: boolean) => {
     if (checked && selectedProducts.length < 3) {
@@ -109,23 +135,34 @@ const PackingProductOverview = () => {
     <div className="h-screen flex flex-col">
       {/* Header - fixed at top */}
       <div className="flex-shrink-0 p-6 border-b bg-background">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/dashboard/orders')}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Tilbake til ordrer</span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
-            </h1>
-            <p className="text-muted-foreground">
-              Velg opptil 3 produkter for pakking
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/dashboard/orders')}
+              className="flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Tilbake til ordrer</span>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
+              </h1>
+              <p className="text-muted-foreground">
+                Velg opptil 3 produkter for pakking
+              </p>
+            </div>
           </div>
+          
+          <Button 
+            onClick={() => setShowReport(true)}
+            className="flex items-center space-x-2"
+            variant="outline"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Generer rapport</span>
+          </Button>
         </div>
       </div>
 
@@ -140,6 +177,13 @@ const PackingProductOverview = () => {
           isStartPackingLoading={createOrUpdateSession.isPending}
         />
       </div>
+
+      <PackingReportDialog
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        reportData={generateReportData()}
+        sessionDate={date}
+      />
     </div>
   );
 };
