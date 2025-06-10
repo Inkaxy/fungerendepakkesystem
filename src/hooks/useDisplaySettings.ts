@@ -71,9 +71,9 @@ export interface DisplaySettings {
   always_show_customer_name: boolean;
 }
 
-const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id'> => ({
+const getDefaultSettings = (bakery_id: string) => ({
   bakery_id,
-  background_type: 'gradient',
+  background_type: 'gradient' as const,
   background_color: '#ffffff',
   background_gradient_start: '#f3f4f6',
   background_gradient_end: '#e5e7eb',
@@ -100,8 +100,6 @@ const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id'> => (
   product_1_accent_color: '#3b82f6',
   product_2_accent_color: '#10b981',
   product_3_accent_color: '#f59e0b',
-  packing_status_ongoing_color: '#3b82f6',
-  packing_status_completed_color: '#10b981',
   progress_bar_color: '#3b82f6',
   progress_background_color: '#e5e7eb',
   progress_height: 8,
@@ -122,7 +120,7 @@ const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id'> => (
   show_delivery_dates: true,
   show_product_images: false,
   enable_animations: true,
-  animation_speed: 'normal',
+  animation_speed: 'normal' as const,
   fade_transitions: true,
   progress_animation: true,
   always_show_customer_name: true,
@@ -135,25 +133,37 @@ export const useDisplaySettings = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
 
-      // First try to get existing settings
+      console.log('Fetching display settings for user:', user.user.id);
+
+      // Try to get existing settings
       const { data, error } = await supabase
         .from('display_settings')
         .select('*')
         .eq('bakery_id', user.user.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching display settings:', error);
+        throw error;
+      }
       
       // If no settings exist, create default ones
       if (!data) {
+        console.log('No existing settings found, creating defaults');
         const defaultSettings = getDefaultSettings(user.user.id);
+        
         const { data: newSettings, error: createError } = await supabase
           .from('display_settings')
           .insert(defaultSettings)
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error('Error creating default settings:', createError);
+          throw createError;
+        }
+        
+        console.log('Created new settings:', newSettings);
         
         // Map the new settings to interface properties
         const mappedData = {
@@ -165,16 +175,17 @@ export const useDisplaySettings = () => {
         return mappedData as DisplaySettings;
       }
       
-      // Map database fields to interface properties, using legacy names as fallbacks
+      console.log('Found existing settings:', data);
+      
+      // Map database fields to interface properties
       const mappedData = {
         ...data,
         packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
         packing_status_completed_color: data.status_completed_color || '#10b981',
-        // Set defaults for status indicator settings
+        // Set defaults for missing properties
         show_status_indicator: data.show_status_indicator ?? true,
         status_indicator_font_size: data.status_indicator_font_size ?? 32,
         status_indicator_padding: data.status_indicator_padding ?? 24,
-        // Set defaults for new individual product colors
         product_1_bg_color: data.product_1_bg_color || '#ffffff',
         product_2_bg_color: data.product_2_bg_color || '#f9fafb',
         product_3_bg_color: data.product_3_bg_color || '#f3f4f6',
@@ -184,22 +195,18 @@ export const useDisplaySettings = () => {
         product_1_accent_color: data.product_1_accent_color || '#3b82f6',
         product_2_accent_color: data.product_2_accent_color || '#10b981',
         product_3_accent_color: data.product_3_accent_color || '#f59e0b',
-        // Set defaults for progress bar and truck icon
         show_progress_bar: data.show_progress_bar ?? true,
         show_truck_icon: data.show_truck_icon ?? false,
         truck_icon_size: data.truck_icon_size ?? 24,
-        // Set defaults for missing properties
         show_customer_info: data.show_customer_info ?? true,
         show_order_numbers: data.show_order_numbers ?? true,
         show_delivery_dates: data.show_delivery_dates ?? true,
         show_product_images: data.show_product_images ?? false,
         status_pending_color: data.status_pending_color || '#f59e0b',
-        // Set defaults for animation settings
         enable_animations: data.enable_animations ?? true,
         animation_speed: data.animation_speed || 'normal',
         fade_transitions: data.fade_transitions ?? true,
         progress_animation: data.progress_animation ?? true,
-        // Set default for always show customer name
         always_show_customer_name: data.always_show_customer_name ?? true,
       };
       
@@ -217,6 +224,8 @@ export const useUpdateDisplaySettings = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
 
+      console.log('Updating display settings:', settings);
+
       // Map interface properties back to database column names
       const dbSettings = { ...settings };
       
@@ -231,43 +240,36 @@ export const useUpdateDisplaySettings = () => {
         delete dbSettings.packing_status_completed_color;
       }
 
-      // Remove any properties that don't exist in the database schema
-      const allowedProperties = [
-        'background_type', 'background_color', 'background_gradient_start', 'background_gradient_end',
-        'background_image_url', 'header_font_size', 'body_font_size', 'text_color', 'header_text_color',
-        'card_background_color', 'card_border_color', 'card_shadow_intensity', 'border_radius',
-        'spacing', 'product_card_color', 'product_text_color', 'product_accent_color', 'product_card_size',
-        'product_1_bg_color', 'product_2_bg_color', 'product_3_bg_color',
-        'product_1_text_color', 'product_2_text_color', 'product_3_text_color',
-        'product_1_accent_color', 'product_2_accent_color', 'product_3_accent_color',
-        'progress_bar_color', 'progress_background_color', 'progress_height', 'show_progress_percentage',
-        'show_progress_bar', 'show_truck_icon', 'truck_icon_size',
-        'auto_refresh_interval', 'show_status_indicator', 'status_indicator_font_size', 'status_indicator_padding',
-        'status_in_progress_color', 'status_completed_color', 'status_pending_color', 'status_delivered_color',
-        'show_customer_info', 'show_order_numbers', 'show_delivery_dates', 'show_product_images',
-        'enable_animations', 'animation_speed', 'fade_transitions', 'progress_animation', 'always_show_customer_name'
-      ];
+      // Remove id and any undefined values
+      delete dbSettings.id;
+      
+      // Clean up any undefined values
+      Object.keys(dbSettings).forEach(key => {
+        if (dbSettings[key] === undefined) {
+          delete dbSettings[key];
+        }
+      });
 
-      // Filter to only include allowed database properties
-      const filteredSettings = Object.keys(dbSettings)
-        .filter(key => allowedProperties.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = dbSettings[key];
-          return obj;
-        }, {} as any);
+      console.log('Cleaned settings for database:', dbSettings);
 
       // Try to update existing settings first
       const { data: updateData, error: updateError } = await supabase
         .from('display_settings')
-        .update(filteredSettings)
+        .update(dbSettings)
         .eq('bakery_id', user.user.id)
         .select()
         .maybeSingle();
 
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
+
       // If no rows were affected (no existing settings), create new ones
-      if (!updateData && !updateError) {
+      if (!updateData) {
+        console.log('No existing settings to update, creating new ones');
         const defaultSettings = getDefaultSettings(user.user.id);
-        const newSettings = { ...defaultSettings, ...filteredSettings };
+        const newSettings = { ...defaultSettings, ...dbSettings };
         
         const { data: insertData, error: insertError } = await supabase
           .from('display_settings')
@@ -275,11 +277,16 @@ export const useUpdateDisplaySettings = () => {
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+        
+        console.log('Created new settings:', insertData);
         return insertData;
       }
 
-      if (updateError) throw updateError;
+      console.log('Updated settings:', updateData);
       return updateData;
     },
     onSuccess: () => {
