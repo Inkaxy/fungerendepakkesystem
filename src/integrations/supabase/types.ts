@@ -113,6 +113,9 @@ export type Database = {
           header_font_size: number | null
           header_text_color: string | null
           id: string
+          product_1_bg_color: string | null
+          product_2_bg_color: string | null
+          product_3_bg_color: string | null
           product_accent_color: string | null
           product_card_color: string | null
           product_card_size: number | null
@@ -124,8 +127,10 @@ export type Database = {
           show_delivery_dates: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
+          show_progress_bar: boolean | null
           show_progress_percentage: boolean | null
           show_status_indicator: boolean | null
+          show_truck_icon: boolean | null
           spacing: number | null
           status_completed_color: string | null
           status_delivered_color: string | null
@@ -134,6 +139,7 @@ export type Database = {
           status_indicator_padding: number | null
           status_pending_color: string | null
           text_color: string | null
+          truck_icon_size: number | null
           updated_at: string
         }
         Insert: {
@@ -153,6 +159,9 @@ export type Database = {
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          product_1_bg_color?: string | null
+          product_2_bg_color?: string | null
+          product_3_bg_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
@@ -164,8 +173,10 @@ export type Database = {
           show_delivery_dates?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
+          show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
           show_status_indicator?: boolean | null
+          show_truck_icon?: boolean | null
           spacing?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
@@ -174,6 +185,7 @@ export type Database = {
           status_indicator_padding?: number | null
           status_pending_color?: string | null
           text_color?: string | null
+          truck_icon_size?: number | null
           updated_at?: string
         }
         Update: {
@@ -193,6 +205,9 @@ export type Database = {
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          product_1_bg_color?: string | null
+          product_2_bg_color?: string | null
+          product_3_bg_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
@@ -204,8 +219,10 @@ export type Database = {
           show_delivery_dates?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
+          show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
           show_status_indicator?: boolean | null
+          show_truck_icon?: boolean | null
           spacing?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
@@ -214,6 +231,7 @@ export type Database = {
           status_indicator_padding?: number | null
           status_pending_color?: string | null
           text_color?: string | null
+          truck_icon_size?: number | null
           updated_at?: string
         }
         Relationships: [

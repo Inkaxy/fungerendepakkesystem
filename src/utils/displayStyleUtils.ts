@@ -33,12 +33,16 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--product-card-color': settings.product_card_color,
     '--product-text-color': settings.product_text_color,
     '--product-accent-color': settings.product_accent_color,
+    '--product-1-bg-color': settings.product_1_bg_color,
+    '--product-2-bg-color': settings.product_2_bg_color,
+    '--product-3-bg-color': settings.product_3_bg_color,
     '--packing-status-ongoing': settings.packing_status_ongoing_color,
     '--packing-status-completed': settings.packing_status_completed_color,
     '--progress-bar-color': settings.progress_bar_color,
     '--progress-bg-color': settings.progress_background_color,
     '--progress-height': `${settings.progress_height}px`,
     '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
+    '--truck-icon-size': `${settings.truck_icon_size}px`,
     ...backgroundStyle,
   } as React.CSSProperties & { [key: string]: string };
 };
@@ -54,3 +58,16 @@ export const statusColorMap = (settings: DisplaySettings) => ({
   completed: settings.packing_status_completed_color,
   delivered: settings.status_delivered_color || '#059669',
 });
+
+export const getProductBackgroundColor = (settings: DisplaySettings, productIndex: number) => {
+  switch (productIndex) {
+    case 0:
+      return settings.product_1_bg_color;
+    case 1:
+      return settings.product_2_bg_color;
+    case 2:
+      return settings.product_3_bg_color;
+    default:
+      return settings.product_card_color;
+  }
+};

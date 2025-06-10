@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Truck } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { generateDisplayStyles } from '@/utils/displayStyleUtils';
 
@@ -13,6 +13,12 @@ interface DisplayPreviewProps {
 const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   const styles = generateDisplayStyles(settings);
   const mockProgress = 57; // Mock progress percentage for preview
+
+  const products = [
+    { name: 'Produkt 1', bgColor: settings.product_1_bg_color, quantity: 3 },
+    { name: 'Produkt 2', bgColor: settings.product_2_bg_color, quantity: 5 },
+    { name: 'Produkt 3', bgColor: settings.product_3_bg_color, quantity: 2 }
+  ];
 
   return (
     <div className="h-full">
@@ -66,12 +72,12 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
               }}
             >
               <div className="space-y-2">
-                {['Rundstykker', 'Grovbrød', 'Wienerbrød'].map((product, idx) => (
+                {products.map((product, idx) => (
                   <div
                     key={idx}
                     className="flex justify-between items-center p-2 rounded"
                     style={{
-                      backgroundColor: settings.product_card_color,
+                      backgroundColor: product.bgColor,
                       borderRadius: `${settings.border_radius}px`,
                     }}
                   >
@@ -79,13 +85,13 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                       className="text-sm font-medium"
                       style={{ color: settings.product_text_color }}
                     >
-                      {product}
+                      {product.name}
                     </span>
                     <span 
                       className="text-sm font-bold"
                       style={{ color: settings.product_accent_color }}
                     >
-                      {idx + 2}
+                      {product.quantity}
                     </span>
                   </div>
                 ))}
@@ -109,13 +115,13 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                   className="text-xs"
                   style={{ color: settings.text_color }}
                 >
-                  Bestilt 7 varelinjer
+                  Bestilt 3 varelinjer
                 </p>
                 <p 
                   className="text-xs font-semibold"
                   style={{ color: settings.text_color }}
                 >
-                  Pakket 4 av 7 varelinjer
+                  Pakket 2 av 3 varelinjer
                 </p>
               </div>
             </div>
@@ -139,47 +145,61 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
               </div>
             )}
 
-            {/* Progress Bar */}
-            <div
-              className="p-3 rounded mb-3"
-              style={{
-                backgroundColor: settings.card_background_color,
-                borderColor: settings.card_border_color,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderRadius: `${settings.border_radius}px`,
-                boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
-              }}
-            >
-              <div className="space-y-2">
-                <div 
-                  className="w-full rounded-full"
-                  style={{ 
-                    backgroundColor: settings.progress_background_color,
-                    height: `${Math.max(settings.progress_height, 4)}px`
-                  }}
-                >
+            {/* Progress Bar - Only show if enabled */}
+            {settings.show_progress_bar && (
+              <div
+                className="p-3 rounded mb-3"
+                style={{
+                  backgroundColor: settings.card_background_color,
+                  borderColor: settings.card_border_color,
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderRadius: `${settings.border_radius}px`,
+                  boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
+                }}
+              >
+                <div className="space-y-2">
                   <div 
-                    className="rounded-full transition-all duration-300"
+                    className="w-full rounded-full relative"
                     style={{ 
-                      backgroundColor: settings.progress_bar_color,
-                      height: `${Math.max(settings.progress_height, 4)}px`,
-                      width: `${mockProgress}%`
+                      backgroundColor: settings.progress_background_color,
+                      height: `${Math.max(settings.progress_height, 4)}px`
                     }}
-                  />
-                </div>
-                {settings.show_progress_percentage && (
-                  <div className="text-center">
-                    <span 
-                      className="text-sm font-bold"
-                      style={{ color: settings.text_color }}
-                    >
-                      {mockProgress}%
-                    </span>
+                  >
+                    <div 
+                      className="rounded-full transition-all duration-300"
+                      style={{ 
+                        backgroundColor: settings.progress_bar_color,
+                        height: `${Math.max(settings.progress_height, 4)}px`,
+                        width: `${mockProgress}%`
+                      }}
+                    />
+                    {/* Truck Icon */}
+                    {settings.show_truck_icon && (
+                      <Truck 
+                        className="absolute top-1/2 transform -translate-y-1/2 text-gray-700" 
+                        style={{ 
+                          left: `${mockProgress}%`, 
+                          marginLeft: `-${settings.truck_icon_size / 2}px`,
+                          width: `${Math.max(settings.truck_icon_size / 2, 12)}px`,
+                          height: `${Math.max(settings.truck_icon_size / 2, 12)}px`
+                        }}
+                      />
+                    )}
                   </div>
-                )}
+                  {settings.show_progress_percentage && (
+                    <div className="text-center">
+                      <span 
+                        className="text-sm font-bold"
+                        style={{ color: settings.text_color }}
+                      >
+                        {mockProgress}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Footer */}
             <div className="text-center mt-4">

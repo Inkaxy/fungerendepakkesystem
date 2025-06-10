@@ -24,6 +24,10 @@ export interface DisplaySettings {
   product_text_color: string;
   product_accent_color: string;
   product_card_size: number;
+  // Individual product background colors
+  product_1_bg_color: string;
+  product_2_bg_color: string;
+  product_3_bg_color: string;
   // Packing-specific settings
   packing_status_ongoing_color: string;
   packing_status_completed_color: string;
@@ -31,7 +35,11 @@ export interface DisplaySettings {
   progress_background_color: string;
   progress_height: number;
   show_progress_percentage: boolean;
+  show_progress_bar: boolean;
   auto_refresh_interval: number;
+  // Truck icon settings
+  show_truck_icon: boolean;
+  truck_icon_size: number;
   // Status indicator settings
   show_status_indicator: boolean;
   status_indicator_font_size: number;
@@ -68,6 +76,14 @@ export const useDisplaySettings = () => {
         show_status_indicator: data.show_status_indicator ?? true,
         status_indicator_font_size: data.status_indicator_font_size ?? 32,
         status_indicator_padding: data.status_indicator_padding ?? 24,
+        // Set defaults for new individual product colors
+        product_1_bg_color: data.product_1_bg_color || '#ffffff',
+        product_2_bg_color: data.product_2_bg_color || '#f9fafb',
+        product_3_bg_color: data.product_3_bg_color || '#f3f4f6',
+        // Set defaults for progress bar and truck icon
+        show_progress_bar: data.show_progress_bar ?? true,
+        show_truck_icon: data.show_truck_icon ?? false,
+        truck_icon_size: data.truck_icon_size ?? 24,
         // Set defaults for missing properties
         show_customer_info: data.show_customer_info ?? true,
         show_order_numbers: data.show_order_numbers ?? true,
@@ -107,7 +123,9 @@ export const useUpdateDisplaySettings = () => {
         'background_image_url', 'header_font_size', 'body_font_size', 'text_color', 'header_text_color',
         'card_background_color', 'card_border_color', 'card_shadow_intensity', 'border_radius',
         'spacing', 'product_card_color', 'product_text_color', 'product_accent_color', 'product_card_size',
+        'product_1_bg_color', 'product_2_bg_color', 'product_3_bg_color',
         'progress_bar_color', 'progress_background_color', 'progress_height', 'show_progress_percentage',
+        'show_progress_bar', 'show_truck_icon', 'truck_icon_size',
         'auto_refresh_interval', 'show_status_indicator', 'status_indicator_font_size', 'status_indicator_padding',
         'status_in_progress_color', 'status_completed_color', 'status_pending_color', 'status_delivered_color',
         'show_customer_info', 'show_order_numbers', 'show_delivery_dates', 'show_product_images'
