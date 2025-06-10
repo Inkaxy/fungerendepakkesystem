@@ -94,9 +94,7 @@ const Login = () => {
               <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-22w-auto" />
             </div>
             
-            <CardDescription>
-              Administrer ditt bakeri med vårt moderne system
-            </CardDescription>
+            <CardDescription>Administrer ditt bakeri med vårt moderne pakkesystem</CardDescription>
           </CardHeader>
 
           <CardContent>
