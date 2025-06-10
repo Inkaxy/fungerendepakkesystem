@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Palette, Sun, Snowflake, Leaf, Heart, Crown, Gift } from 'lucide-react';
+import { Palette, Sun, Snowflake, Leaf, Heart, Crown, Gift, Cat } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 
 interface ThemePresetsTabProps {
@@ -76,6 +76,28 @@ const themes = {
       progress_bar_color: '#ea580c',
       header_text_color: '#7c2d12',
       text_color: '#9a3412',
+    }
+  },
+  cats: {
+    name: 'Katter',
+    icon: Cat,
+    description: 'Søt og koselig kattetema',
+    settings: {
+      background_type: 'gradient' as const,
+      background_gradient_start: '#fef7ed',
+      background_gradient_end: '#fed7aa',
+      product_1_bg_color: '#fed7aa',
+      product_2_bg_color: '#fef7ed',
+      product_3_bg_color: '#f3f4f6',
+      product_1_text_color: '#7c2d12',
+      product_2_text_color: '#92400e',
+      product_3_text_color: '#6b7280',
+      product_1_accent_color: '#ea580c',
+      product_2_accent_color: '#a3a3a3',
+      product_3_accent_color: '#16a34a',
+      progress_bar_color: '#ea580c',
+      header_text_color: '#7c2d12',
+      text_color: '#92400e',
     }
   },
   pride: {
