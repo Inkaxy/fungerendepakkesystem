@@ -20,6 +20,7 @@ export const useRealTimeOrders = () => {
           // Invalidate and refetch orders data
           queryClient.invalidateQueries({ queryKey: ['orders'] });
           queryClient.invalidateQueries({ queryKey: ['order-counts'] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
         }
       )
       .on(
@@ -31,6 +32,20 @@ export const useRealTimeOrders = () => {
         },
         () => {
           // Invalidate orders when products change
+          queryClient.invalidateQueries({ queryKey: ['orders'] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'packing_sessions'
+        },
+        () => {
+          // Invalidate packing data when sessions change
+          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
           queryClient.invalidateQueries({ queryKey: ['orders'] });
         }
       )

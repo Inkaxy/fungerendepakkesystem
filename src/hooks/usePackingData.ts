@@ -29,6 +29,8 @@ export const usePackingData = (customerId?: string, date?: string) => {
     queryFn: async () => {
       const targetDate = date || format(new Date(), 'yyyy-MM-dd');
       
+      console.log('Fetching packing data for date:', targetDate, 'customer:', customerId);
+      
       let query = supabase
         .from('orders')
         .select(`
@@ -52,7 +54,12 @@ export const usePackingData = (customerId?: string, date?: string) => {
 
       const { data: orders, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching packing data:', error);
+        throw error;
+      }
+
+      console.log('Raw orders data:', orders);
 
       // Group by customer and aggregate products
       const customerMap = new Map<string, PackingCustomer>();
@@ -140,7 +147,11 @@ export const usePackingData = (customerId?: string, date?: string) => {
           .slice(0, 3);
       });
 
-      return Array.from(customerMap.values());
+      const result = Array.from(customerMap.values());
+      console.log('Processed packing data:', result);
+      
+      return result;
     },
+    refetchInterval: 10000, // Refetch every 10 seconds to ensure fresh data
   });
 };
