@@ -43,8 +43,10 @@ const SharedDisplay = () => {
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? statusColorMap(settings) : {
+    pending: '#f59e0b',
+    in_progress: '#3b82f6',
     completed: '#10b981',
-    ongoing: '#3b82f6'
+    delivered: '#059669'
   };
 
   // Calculate statistics based on active packing data
@@ -163,7 +165,7 @@ const SharedDisplay = () => {
                       <Badge 
                         variant="secondary"
                         style={{
-                          backgroundColor: customerData.overall_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                          backgroundColor: customerData.overall_status === 'completed' ? statusColors.completed : statusColors.in_progress,
                           color: 'white'
                         }}
                       >
@@ -250,7 +252,7 @@ const SharedDisplay = () => {
                                   variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
                                   className="text-xs"
                                   style={{
-                                    backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                                    backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
                                     color: 'white'
                                   }}
                                 >
