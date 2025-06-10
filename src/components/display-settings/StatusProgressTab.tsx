@@ -147,8 +147,8 @@ const StatusProgressTab = ({ settings, onUpdate }: StatusProgressTabProps) => {
                       label="Varebil størrelse"
                       value={settings.truck_icon_size}
                       min={16}
-                      max={48}
-                      step={2}
+                      max={100}
+                      step={4}
                       onChange={(value) => onUpdate({ truck_icon_size: value })}
                       unit="px"
                       description="Størrelsen på varebil-ikonet"
@@ -171,13 +171,16 @@ const StatusProgressTab = ({ settings, onUpdate }: StatusProgressTabProps) => {
                           }}
                         />
                         {settings.show_truck_icon && (
-                          <Truck 
-                            className="absolute top-1/2 transform -translate-y-1/2 text-gray-700" 
+                          <img 
+                            src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
+                            alt="Varebil"
+                            className="absolute top-1/2 transform -translate-y-1/2" 
                             style={{ 
                               left: '65%', 
                               marginLeft: `-${settings.truck_icon_size / 2}px`,
                               width: `${settings.truck_icon_size}px`,
-                              height: `${settings.truck_icon_size}px`
+                              height: `${settings.truck_icon_size}px`,
+                              objectFit: 'contain'
                             }}
                           />
                         )}
