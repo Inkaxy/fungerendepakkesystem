@@ -87,9 +87,43 @@ export const useUpdateDisplaySettings = () => {
 
   return useMutation({
     mutationFn: async (settings: Partial<DisplaySettings>) => {
+      // Map interface properties back to database column names
+      const dbSettings = { ...settings };
+      
+      // Map packing status colors back to legacy database column names
+      if (settings.packing_status_ongoing_color) {
+        dbSettings.status_in_progress_color = settings.packing_status_ongoing_color;
+        delete dbSettings.packing_status_ongoing_color;
+      }
+      
+      if (settings.packing_status_completed_color) {
+        dbSettings.status_completed_color = settings.packing_status_completed_color;
+        delete dbSettings.packing_status_completed_color;
+      }
+
+      // Remove any properties that don't exist in the database schema
+      const allowedProperties = [
+        'background_type', 'background_color', 'background_gradient_start', 'background_gradient_end',
+        'background_image_url', 'header_font_size', 'body_font_size', 'text_color', 'header_text_color',
+        'card_background_color', 'card_border_color', 'card_shadow_intensity', 'border_radius',
+        'spacing', 'product_card_color', 'product_text_color', 'product_accent_color', 'product_card_size',
+        'progress_bar_color', 'progress_background_color', 'progress_height', 'show_progress_percentage',
+        'auto_refresh_interval', 'show_status_indicator', 'status_indicator_font_size', 'status_indicator_padding',
+        'status_in_progress_color', 'status_completed_color', 'status_pending_color', 'status_delivered_color',
+        'show_customer_info', 'show_order_numbers', 'show_delivery_dates', 'show_product_images'
+      ];
+
+      // Filter to only include allowed database properties
+      const filteredSettings = Object.keys(dbSettings)
+        .filter(key => allowedProperties.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = dbSettings[key];
+          return obj;
+        }, {} as any);
+
       const { data, error } = await supabase
         .from('display_settings')
-        .update(settings)
+        .update(filteredSettings)
         .eq('bakery_id', (await supabase.auth.getUser()).data.user?.id)
         .select()
         .single();
@@ -105,6 +139,7 @@ export const useUpdateDisplaySettings = () => {
       });
     },
     onError: (error) => {
+      console.error('Display settings update error:', error);
       toast({
         title: "Feil",
         description: "Kunne ikke lagre innstillinger",
