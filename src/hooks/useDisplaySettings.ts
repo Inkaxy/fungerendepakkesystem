@@ -71,16 +71,99 @@ export interface DisplaySettings {
   always_show_customer_name: boolean;
 }
 
+const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id'> => ({
+  bakery_id,
+  background_type: 'gradient',
+  background_color: '#ffffff',
+  background_gradient_start: '#f3f4f6',
+  background_gradient_end: '#e5e7eb',
+  background_image_url: null,
+  header_font_size: 32,
+  body_font_size: 16,
+  text_color: '#111827',
+  header_text_color: '#111827',
+  card_background_color: '#ffffff',
+  card_border_color: '#e5e7eb',
+  card_shadow_intensity: 3,
+  border_radius: 8,
+  spacing: 16,
+  product_card_color: '#ffffff',
+  product_text_color: '#374151',
+  product_accent_color: '#3b82f6',
+  product_card_size: 100,
+  product_1_bg_color: '#ffffff',
+  product_2_bg_color: '#f9fafb',
+  product_3_bg_color: '#f3f4f6',
+  product_1_text_color: '#1f2937',
+  product_2_text_color: '#1f2937',
+  product_3_text_color: '#1f2937',
+  product_1_accent_color: '#3b82f6',
+  product_2_accent_color: '#10b981',
+  product_3_accent_color: '#f59e0b',
+  packing_status_ongoing_color: '#3b82f6',
+  packing_status_completed_color: '#10b981',
+  progress_bar_color: '#3b82f6',
+  progress_background_color: '#e5e7eb',
+  progress_height: 8,
+  show_progress_percentage: true,
+  show_progress_bar: true,
+  auto_refresh_interval: 30,
+  show_truck_icon: false,
+  truck_icon_size: 24,
+  show_status_indicator: true,
+  status_indicator_font_size: 32,
+  status_indicator_padding: 24,
+  status_in_progress_color: '#3b82f6',
+  status_completed_color: '#10b981',
+  status_pending_color: '#f59e0b',
+  status_delivered_color: '#059669',
+  show_customer_info: true,
+  show_order_numbers: true,
+  show_delivery_dates: true,
+  show_product_images: false,
+  enable_animations: true,
+  animation_speed: 'normal',
+  fade_transitions: true,
+  progress_animation: true,
+  always_show_customer_name: true,
+});
+
 export const useDisplaySettings = () => {
   return useQuery({
     queryKey: ['display-settings'],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.id) throw new Error('User not authenticated');
+
+      // First try to get existing settings
       const { data, error } = await supabase
         .from('display_settings')
         .select('*')
-        .single();
+        .eq('bakery_id', user.user.id)
+        .maybeSingle();
 
       if (error) throw error;
+      
+      // If no settings exist, create default ones
+      if (!data) {
+        const defaultSettings = getDefaultSettings(user.user.id);
+        const { data: newSettings, error: createError } = await supabase
+          .from('display_settings')
+          .insert(defaultSettings)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        
+        // Map the new settings to interface properties
+        const mappedData = {
+          ...newSettings,
+          packing_status_ongoing_color: newSettings.status_in_progress_color || '#3b82f6',
+          packing_status_completed_color: newSettings.status_completed_color || '#10b981',
+        };
+        
+        return mappedData as DisplaySettings;
+      }
       
       // Map database fields to interface properties, using legacy names as fallbacks
       const mappedData = {
@@ -131,6 +214,9 @@ export const useUpdateDisplaySettings = () => {
 
   return useMutation({
     mutationFn: async (settings: Partial<DisplaySettings>) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.id) throw new Error('User not authenticated');
+
       // Map interface properties back to database column names
       const dbSettings = { ...settings };
       
@@ -170,15 +256,31 @@ export const useUpdateDisplaySettings = () => {
           return obj;
         }, {} as any);
 
-      const { data, error } = await supabase
+      // Try to update existing settings first
+      const { data: updateData, error: updateError } = await supabase
         .from('display_settings')
         .update(filteredSettings)
-        .eq('bakery_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('bakery_id', user.user.id)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      // If no rows were affected (no existing settings), create new ones
+      if (!updateData && !updateError) {
+        const defaultSettings = getDefaultSettings(user.user.id);
+        const newSettings = { ...defaultSettings, ...filteredSettings };
+        
+        const { data: insertData, error: insertError } = await supabase
+          .from('display_settings')
+          .insert(newSettings)
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        return insertData;
+      }
+
+      if (updateError) throw updateError;
+      return updateData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['display-settings'] });
