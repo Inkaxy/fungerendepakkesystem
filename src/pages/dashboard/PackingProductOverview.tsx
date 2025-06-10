@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
+import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
 import ProductsTable from '@/components/packing/ProductsTable';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
 
@@ -18,6 +18,7 @@ const PackingProductOverview = () => {
   
   const { data: orders } = useOrders(date);
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
+  const setActivePackingProducts = useSetActivePackingProducts();
 
   // Calculate product statistics with category from products table
   const productStats = orders?.reduce((acc, order) => {
@@ -109,6 +110,7 @@ const PackingProductOverview = () => {
     if (selectedProducts.length === 0) return;
     
     try {
+      // Create packing session
       await createOrUpdateSession.mutateAsync({
         bakery_id: orders?.[0]?.bakery_id || '',
         session_date: date || '',
@@ -117,6 +119,21 @@ const PackingProductOverview = () => {
         product_types: productList.length,
         files_uploaded: 0,
         status: 'in_progress'
+      });
+
+      // Save selected products as active packing products
+      const activeProducts = selectedProducts.map(productId => {
+        const product = productStats[productId];
+        return {
+          id: productId,
+          name: product.name,
+          totalQuantity: product.totalQuantity
+        };
+      });
+
+      await setActivePackingProducts.mutateAsync({
+        sessionDate: date || '',
+        products: activeProducts
       });
 
       navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {

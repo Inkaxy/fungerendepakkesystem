@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { useActivePackingProducts } from './useActivePackingProducts';
 
 export interface PackingProduct {
   id: string;
@@ -23,13 +24,14 @@ export interface PackingCustomer {
   packed_line_items: number;
 }
 
-export const usePackingData = (customerId?: string, date?: string) => {
+export const usePackingData = (customerId?: string, date?: string, activeOnly: boolean = false) => {
+  const targetDate = date || format(new Date(), 'yyyy-MM-dd');
+  const { data: activeProducts } = useActivePackingProducts(activeOnly ? targetDate : undefined);
+
   return useQuery({
-    queryKey: ['packing-data', customerId, date],
+    queryKey: ['packing-data', customerId, targetDate, activeOnly],
     queryFn: async () => {
-      const targetDate = date || format(new Date(), 'yyyy-MM-dd');
-      
-      console.log('Fetching packing data for date:', targetDate, 'customer:', customerId);
+      console.log('Fetching packing data for date:', targetDate, 'customer:', customerId, 'activeOnly:', activeOnly);
       
       let query = supabase
         .from('orders')
@@ -61,6 +63,11 @@ export const usePackingData = (customerId?: string, date?: string) => {
 
       console.log('Raw orders data:', orders);
 
+      // If activeOnly is true, filter by active products
+      const activeProductIds = activeOnly && activeProducts 
+        ? new Set(activeProducts.map(p => p.product_id))
+        : null;
+
       // Group by customer and aggregate products
       const customerMap = new Map<string, PackingCustomer>();
 
@@ -86,6 +93,11 @@ export const usePackingData = (customerId?: string, date?: string) => {
         // Count line items (order_products) not products themselves
         order.order_products?.forEach(op => {
           if (!op.product) return;
+
+          // Skip if we're in activeOnly mode and this product is not active
+          if (activeOnly && activeProductIds && !activeProductIds.has(op.product_id)) {
+            return;
+          }
 
           const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
           
@@ -137,14 +149,17 @@ export const usePackingData = (customerId?: string, date?: string) => {
           }
         });
 
-        // Limit to 3 products for display, prioritize unpacked items
-        customer.products = customer.products
-          .sort((a, b) => {
-            if (a.packing_status === 'completed' && b.packing_status !== 'completed') return 1;
-            if (b.packing_status === 'completed' && a.packing_status !== 'completed') return -1;
-            return 0;
-          })
-          .slice(0, 3);
+        // When activeOnly is true, show all active products (up to 3)
+        // When activeOnly is false, limit to 3 products prioritizing unpacked items
+        if (!activeOnly) {
+          customer.products = customer.products
+            .sort((a, b) => {
+              if (a.packing_status === 'completed' && b.packing_status !== 'completed') return 1;
+              if (b.packing_status === 'completed' && a.packing_status !== 'completed') return -1;
+              return 0;
+            })
+            .slice(0, 3);
+        }
       });
 
       const result = Array.from(customerMap.values());

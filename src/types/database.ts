@@ -67,3 +67,14 @@ export interface PackingSession {
   created_at: string;
   updated_at: string;
 }
+
+export interface ActivePackingProduct {
+  id: string;
+  bakery_id: string;
+  session_date: string;
+  product_id: string;
+  product_name: string;
+  total_quantity: number;
+  created_at: string;
+  updated_at: string;
+}

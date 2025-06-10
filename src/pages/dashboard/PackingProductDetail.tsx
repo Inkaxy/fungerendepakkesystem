@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
 import { useUpdateOrderProductPackingStatus, useUpdateMultipleOrderProductsPackingStatus } from '@/hooks/useOrderProducts';
+import { useClearActivePackingProducts } from '@/hooks/useActivePackingProducts';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
@@ -29,6 +30,7 @@ const PackingProductDetail = () => {
   const { data: orders } = useOrders(date);
   const updateOrderProductStatus = useUpdateOrderProductPackingStatus();
   const updateMultipleOrderProductsStatus = useUpdateMultipleOrderProductsPackingStatus();
+  const clearActivePackingProducts = useClearActivePackingProducts();
 
   // Prepare data for all selected products when in multi-product mode - using useMemo
   const allProductsData = useMemo(() => {
@@ -267,7 +269,7 @@ const PackingProductDetail = () => {
         state: { selectedProducts }
       });
     } else {
-      navigate(`/dashboard/orders/packing/${date}`);
+      handleFinishPacking();
     }
   };
 
@@ -281,7 +283,19 @@ const PackingProductDetail = () => {
   };
 
   const handleBack = () => {
-    navigate(`/dashboard/orders/packing/${date}`);
+    handleFinishPacking();
+  };
+
+  const handleFinishPacking = async () => {
+    try {
+      if (date) {
+        await clearActivePackingProducts.mutateAsync(date);
+      }
+      navigate(`/dashboard/orders/packing/${date}`);
+    } catch (error) {
+      console.error('Error finishing packing:', error);
+      navigate(`/dashboard/orders/packing/${date}`);
+    }
   };
 
   if (!date || !productId) {
