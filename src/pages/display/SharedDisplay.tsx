@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +8,7 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
 import { generateDisplayStyles, statusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
@@ -26,8 +26,10 @@ const SharedDisplay = () => {
     true // activeOnly = true to show only selected products
   );
   
-  // Enable real-time updates
+  // Enable real-time updates for orders and display settings
   useRealTimeOrders();
+  useRealTimeDisplaySettings(); // New real-time listener for display settings
+  
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
     interval: (settings?.auto_refresh_interval || 30) * 1000 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
 import { generateDisplayStyles, packingStatusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
@@ -20,8 +20,10 @@ const CustomerDisplay = () => {
   const { data: customers, isLoading: customersLoading } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
-  // Enable real-time updates
+  // Enable real-time updates for both orders and display settings
   useRealTimeOrders();
+  useRealTimeDisplaySettings(); // New real-time listener for display settings
+  
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
   // Find customer by display_url

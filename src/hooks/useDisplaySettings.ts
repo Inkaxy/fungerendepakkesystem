@@ -70,6 +70,8 @@ export const useDisplaySettings = () => {
       console.log('Found existing settings:', data);
       return mapDatabaseToDisplaySettings(data);
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes - longer stale time since we have real-time updates
+    refetchOnWindowFocus: false, // Disable since we have real-time
   });
 };
 
@@ -145,10 +147,17 @@ export const useUpdateDisplaySettings = () => {
       return updateData;
     },
     onSuccess: () => {
+      // Immediately invalidate all relevant queries to trigger updates
       queryClient.invalidateQueries({ queryKey: ['display-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      
+      console.log('Display settings updated - cache invalidated');
+      
       toast({
         title: "Innstillinger lagret",
-        description: "Display-innstillingene er oppdatert",
+        description: "Alle displayer oppdateres automatisk med nye innstillinger",
       });
     },
     onError: (error) => {
