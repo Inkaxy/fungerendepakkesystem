@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -206,6 +205,33 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
+        {/* STATUS Indicator - Pågående */}
+        {settings?.show_status_indicator && !isAllPacked && (
+          <Card
+            className="text-center"
+            style={{
+              backgroundColor: statusColors.ongoing,
+              borderColor: statusColors.ongoing,
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent 
+              style={{ 
+                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding}px` : '32px' 
+              }}
+            >
+              <h2 
+                className="font-bold text-white"
+                style={{ 
+                  fontSize: settings?.status_indicator_font_size ? `${settings.status_indicator_font_size}px` : '32px' 
+                }}
+              >
+                STATUS: Pågående
+              </h2>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Progress Bar */}
         <Card
           style={{
@@ -247,7 +273,7 @@ const CustomerDisplay = () => {
         </Card>
 
         {/* Completion Status */}
-        {isAllPacked && (
+        {isAllPacked && settings?.show_status_indicator && (
           <Card
             className="text-center"
             style={{
@@ -256,8 +282,17 @@ const CustomerDisplay = () => {
               borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
             }}
           >
-            <CardContent className="p-8">
-              <h2 className="text-4xl font-bold text-white">
+            <CardContent 
+              style={{ 
+                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding}px` : '32px' 
+              }}
+            >
+              <h2 
+                className="font-bold text-white"
+                style={{ 
+                  fontSize: settings?.status_indicator_font_size ? `${settings.status_indicator_font_size}px` : '32px' 
+                }}
+              >
                 STATUS: Ferdig Pakket
               </h2>
             </CardContent>

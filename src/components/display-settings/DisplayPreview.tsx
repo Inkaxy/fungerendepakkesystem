@@ -12,6 +12,7 @@ interface DisplayPreviewProps {
 
 const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   const styles = generateDisplayStyles(settings);
+  const mockProgress = 57; // Mock progress percentage for preview
 
   return (
     <div className="h-full">
@@ -119,6 +120,25 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
               </div>
             </div>
 
+            {/* STATUS Indicator */}
+            {settings.show_status_indicator && (
+              <div
+                className="text-center mb-3"
+                style={{
+                  backgroundColor: mockProgress >= 100 ? settings.packing_status_completed_color : settings.packing_status_ongoing_color,
+                  borderRadius: `${settings.border_radius}px`,
+                  padding: `${Math.max(settings.status_indicator_padding / 4, 8)}px`,
+                }}
+              >
+                <h2 
+                  className="font-bold text-white"
+                  style={{ fontSize: `${Math.max(settings.status_indicator_font_size / 2, 14)}px` }}
+                >
+                  STATUS: {mockProgress >= 100 ? 'Ferdig Pakket' : 'Pågående'}
+                </h2>
+              </div>
+            )}
+
             {/* Progress Bar */}
             <div
               className="p-3 rounded mb-3"
@@ -144,7 +164,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                     style={{ 
                       backgroundColor: settings.progress_bar_color,
                       height: `${Math.max(settings.progress_height, 4)}px`,
-                      width: '57%'
+                      width: `${mockProgress}%`
                     }}
                   />
                 </div>
@@ -154,7 +174,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                       className="text-sm font-bold"
                       style={{ color: settings.text_color }}
                     >
-                      57%
+                      {mockProgress}%
                     </span>
                   </div>
                 )}

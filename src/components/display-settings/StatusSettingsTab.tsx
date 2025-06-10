@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -15,6 +14,42 @@ interface StatusSettingsTabProps {
 const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>STATUS-indikator</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-status"
+              checked={settings.show_status_indicator}
+              onCheckedChange={(checked) => onUpdate({ show_status_indicator: checked })}
+            />
+            <Label htmlFor="show-status">Vis STATUS-indikator</Label>
+          </div>
+
+          <SliderControl
+            label="STATUS tekststørrelse"
+            value={settings.status_indicator_font_size}
+            min={16}
+            max={64}
+            step={2}
+            unit="px"
+            onChange={(value) => onUpdate({ status_indicator_font_size: value })}
+          />
+
+          <SliderControl
+            label="STATUS padding"
+            value={settings.status_indicator_padding}
+            min={8}
+            max={48}
+            step={4}
+            unit="px"
+            onChange={(value) => onUpdate({ status_indicator_padding: value })}
+          />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Status farger</CardTitle>
