@@ -1,17 +1,18 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Package2 } from 'lucide-react';
+import { Package2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
+import CustomerHeader from '@/components/display/CustomerHeader';
 import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
@@ -74,29 +75,29 @@ const CustomerDisplay = () => {
 
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8"
-           style={displayStyles}>
-        <Card className="max-w-2xl w-full">
-          <CardContent className="text-center p-12">
-            <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
-            <h1 
-              className="text-4xl font-bold mb-4"
-              style={{ color: settings?.header_text_color || '#111827' }}
-            >
-              {customer.name}
-            </h1>
-            <p 
-              className="text-xl mb-6"
-              style={{ color: settings?.text_color || '#6b7280' }}
-            >
-              Ingen pakking planlagt for i dag
-            </p>
-            <Button variant="outline" onClick={triggerRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Oppdater
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen p-8" style={displayStyles}>
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Always show customer header */}
+          <CustomerHeader 
+            customerName={customer.name}
+            showRefresh={true}
+            onRefresh={triggerRefresh}
+            settings={settings}
+          />
+
+          {/* No packing message */}
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center p-12">
+              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
+              <p 
+                className="text-xl mb-6"
+                style={{ color: settings?.text_color || '#6b7280' }}
+              >
+                Ingen pakking planlagt for i dag
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -106,38 +107,13 @@ const CustomerDisplay = () => {
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header with customer name and refresh */}
-        <div className="flex justify-between items-center">
-          <div className="text-center flex-1">
-            <h1 
-              className="font-bold mb-2"
-              style={{ 
-                fontSize: settings?.header_font_size ? `${settings.header_font_size}px` : '3rem',
-                color: settings?.header_text_color || '#111827'
-              }}
-            >
-              {customer.name}
-            </h1>
-            <p 
-              className="text-xl"
-              style={{ 
-                color: settings?.text_color || '#6b7280',
-                fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
-              }}
-            >
-              {format(new Date(), 'dd. MMMM yyyy', { locale: nb })}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={triggerRefresh}
-            className="ml-4"
-          >
-            <RefreshCw className="h-5 w-5 mr-2" />
-            Oppdater
-          </Button>
-        </div>
+        {/* Customer header - always displayed */}
+        <CustomerHeader 
+          customerName={customer.name}
+          showRefresh={true}
+          onRefresh={triggerRefresh}
+          settings={settings}
+        />
 
         {/* Products List */}
         <Card
@@ -233,44 +209,46 @@ const CustomerDisplay = () => {
         )}
 
         {/* Progress Bar */}
-        <Card
-          style={{
-            backgroundColor: settings?.card_background_color || '#ffffff',
-            borderColor: settings?.card_border_color || '#e5e7eb',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          }}
-        >
-          <CardContent className="p-8">
-            <div className="space-y-4">
-              <div 
-                className="w-full rounded-full"
-                style={{ 
-                  backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                  height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
-                }}
-              >
+        {settings?.show_progress_bar && (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-8">
+              <div className="space-y-4">
                 <div 
-                  className="rounded-full transition-all duration-300"
+                  className="w-full rounded-full"
                   style={{ 
-                    backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                    height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
-                    width: `${customerPackingData.progress_percentage}%`
+                    backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                    height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
                   }}
-                />
-              </div>
-              {settings?.show_progress_percentage && (
-                <div className="text-center">
-                  <span 
-                    className="text-3xl font-bold"
-                    style={{ color: settings?.text_color || '#374151' }}
-                  >
-                    {customerPackingData.progress_percentage}%
-                  </span>
+                >
+                  <div 
+                    className="rounded-full transition-all duration-300"
+                    style={{ 
+                      backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                      height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
+                      width: `${customerPackingData.progress_percentage}%`
+                    }}
+                  />
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                {settings?.show_progress_percentage && (
+                  <div className="text-center">
+                    <span 
+                      className="text-3xl font-bold"
+                      style={{ color: settings?.text_color || '#374151' }}
+                    >
+                      {customerPackingData.progress_percentage}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Completion Status */}
         {isAllPacked && settings?.show_status_indicator && (
@@ -302,7 +280,7 @@ const CustomerDisplay = () => {
         {/* Footer */}
         <div className="text-center">
           <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
-            Sist oppdatert: {format(new Date(), 'HH:mm:ss', { locale: nb })}
+            Sist oppdatert: {format(new Date(), 'HH:mm:ss')}
           </p>
           <p 
             className="text-sm mt-1"

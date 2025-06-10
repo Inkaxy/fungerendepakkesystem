@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +9,7 @@ import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
+import CustomerHeader from '@/components/display/CustomerHeader';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -125,7 +125,7 @@ const SharedDisplay = () => {
           ))}
         </div>
 
-        {/* Kunde Liste */}
+        {/* Kunde Liste with more prominent names */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {sharedDisplayCustomers.map((customer) => {
             const customerOrders = sharedDisplayOrders.filter(order => order.customer_id === customer.id);
@@ -143,13 +143,7 @@ const SharedDisplay = () => {
                 }}
               >
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle 
-                      className="text-lg"
-                      style={{ color: settings?.text_color || '#111827' }}
-                    >
-                      {customer.name}
-                    </CardTitle>
+                  <div className="flex items-center justify-between mb-2">
                     <Badge 
                       variant="secondary"
                       style={{
@@ -160,9 +154,19 @@ const SharedDisplay = () => {
                       {customer.customer_number || 'Ingen nr.'}
                     </Badge>
                   </div>
+                  {/* Make customer name much more prominent */}
+                  <CardTitle 
+                    className="text-2xl text-center mb-3"
+                    style={{ 
+                      color: settings?.header_text_color || '#111827',
+                      fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.7, 28)}px` : '1.5rem'
+                    }}
+                  >
+                    {customer.name}
+                  </CardTitle>
                   {customer.contact_person && (
                     <p 
-                      className="text-sm"
+                      className="text-sm text-center"
                       style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}
                     >
                       {customer.contact_person}
@@ -213,7 +217,7 @@ const SharedDisplay = () => {
           })}
         </div>
 
-        {/* Dagens Ordrer Detaljer */}
+        {/* Dagens Ordrer Detaljer - with more prominent customer names */}
         {todaysOrders.length > 0 && (
           <Card
             style={{
@@ -247,9 +251,13 @@ const SharedDisplay = () => {
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
+                          {/* Make customer name more prominent in order details */}
                           <h3 
-                            className="font-semibold"
-                            style={{ color: settings?.text_color || '#111827' }}
+                            className="font-bold text-lg mb-1"
+                            style={{ 
+                              color: settings?.header_text_color || '#111827',
+                              fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.3}px` : '1.125rem'
+                            }}
                           >
                             {customer?.name}
                           </h3>

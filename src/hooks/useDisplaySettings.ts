@@ -67,6 +67,8 @@ export interface DisplaySettings {
   animation_speed: 'slow' | 'normal' | 'fast';
   fade_transitions: boolean;
   progress_animation: boolean;
+  // Customer name display setting
+  always_show_customer_name: boolean;
 }
 
 export const useDisplaySettings = () => {
@@ -114,6 +116,8 @@ export const useDisplaySettings = () => {
         animation_speed: data.animation_speed || 'normal',
         fade_transitions: data.fade_transitions ?? true,
         progress_animation: data.progress_animation ?? true,
+        // Set default for always show customer name
+        always_show_customer_name: data.always_show_customer_name ?? true,
       };
       
       return mappedData as DisplaySettings;
@@ -155,7 +159,7 @@ export const useUpdateDisplaySettings = () => {
         'auto_refresh_interval', 'show_status_indicator', 'status_indicator_font_size', 'status_indicator_padding',
         'status_in_progress_color', 'status_completed_color', 'status_pending_color', 'status_delivered_color',
         'show_customer_info', 'show_order_numbers', 'show_delivery_dates', 'show_product_images',
-        'enable_animations', 'animation_speed', 'fade_transitions', 'progress_animation'
+        'enable_animations', 'animation_speed', 'fade_transitions', 'progress_animation', 'always_show_customer_name'
       ];
 
       // Filter to only include allowed database properties
