@@ -135,11 +135,29 @@ export const useDisplaySettings = () => {
 
       console.log('Fetching display settings for user:', user.user.id);
 
-      // Try to get existing settings
+      // First get user's profile to get bakery_id
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('bakery_id')
+        .eq('id', user.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        throw profileError;
+      }
+
+      if (!profile?.bakery_id) {
+        throw new Error('No bakery found for user');
+      }
+
+      console.log('Using bakery_id:', profile.bakery_id);
+
+      // Try to get existing settings using bakery_id
       const { data, error } = await supabase
         .from('display_settings')
         .select('*')
-        .eq('bakery_id', user.user.id)
+        .eq('bakery_id', profile.bakery_id)
         .maybeSingle();
 
       if (error) {
@@ -150,7 +168,7 @@ export const useDisplaySettings = () => {
       // If no settings exist, create default ones
       if (!data) {
         console.log('No existing settings found, creating defaults');
-        const defaultSettings = getDefaultSettings(user.user.id);
+        const defaultSettings = getDefaultSettings(profile.bakery_id);
         
         const { data: newSettings, error: createError } = await supabase
           .from('display_settings')
@@ -226,6 +244,24 @@ export const useUpdateDisplaySettings = () => {
 
       console.log('Updating display settings:', settings);
 
+      // First get user's profile to get bakery_id
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('bakery_id')
+        .eq('id', user.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        throw profileError;
+      }
+
+      if (!profile?.bakery_id) {
+        throw new Error('No bakery found for user');
+      }
+
+      console.log('Using bakery_id for update:', profile.bakery_id);
+
       // Map interface properties back to database column names
       const dbSettings = { ...settings };
       
@@ -256,7 +292,7 @@ export const useUpdateDisplaySettings = () => {
       const { data: updateData, error: updateError } = await supabase
         .from('display_settings')
         .update(dbSettings)
-        .eq('bakery_id', user.user.id)
+        .eq('bakery_id', profile.bakery_id)
         .select()
         .maybeSingle();
 
@@ -268,7 +304,7 @@ export const useUpdateDisplaySettings = () => {
       // If no rows were affected (no existing settings), create new ones
       if (!updateData) {
         console.log('No existing settings to update, creating new ones');
-        const defaultSettings = getDefaultSettings(user.user.id);
+        const defaultSettings = getDefaultSettings(profile.bakery_id);
         const newSettings = { ...defaultSettings, ...dbSettings };
         
         const { data: insertData, error: insertError } = await supabase
