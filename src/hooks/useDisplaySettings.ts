@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -200,6 +199,12 @@ export const useDisplaySettings = () => {
           ...newSettings,
           packing_status_ongoing_color: newSettings.status_in_progress_color || '#3b82f6',
           packing_status_completed_color: newSettings.status_completed_color || '#10b981',
+          // Add cat animation defaults for new settings
+          enable_cat_animations: newSettings.enable_cat_animations ?? false,
+          cat_animation_speed: newSettings.cat_animation_speed || 'normal',
+          show_bouncing_cats: newSettings.show_bouncing_cats ?? true,
+          show_falling_cats: newSettings.show_falling_cats ?? true,
+          show_running_cats: newSettings.show_running_cats ?? true,
         };
         
         return mappedData as DisplaySettings;
@@ -238,6 +243,12 @@ export const useDisplaySettings = () => {
         fade_transitions: data.fade_transitions ?? true,
         progress_animation: data.progress_animation ?? true,
         always_show_customer_name: data.always_show_customer_name ?? true,
+        // Add cat animation defaults for existing settings
+        enable_cat_animations: data.enable_cat_animations ?? false,
+        cat_animation_speed: data.cat_animation_speed || 'normal',
+        show_bouncing_cats: data.show_bouncing_cats ?? true,
+        show_falling_cats: data.show_falling_cats ?? true,
+        show_running_cats: data.show_running_cats ?? true,
       };
       
       return mappedData as DisplaySettings;
