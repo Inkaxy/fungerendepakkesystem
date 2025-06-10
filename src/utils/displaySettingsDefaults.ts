@@ -37,7 +37,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   show_progress_bar: true,
   auto_refresh_interval: 30,
   show_truck_icon: false,
-  truck_icon_size: 24,
+  truck_icon_size: 48,
   show_status_indicator: true,
   status_indicator_font_size: 32,
   status_indicator_padding: 24,
