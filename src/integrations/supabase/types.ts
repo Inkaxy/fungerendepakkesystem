@@ -97,6 +97,7 @@ export type Database = {
       }
       display_settings: {
         Row: {
+          always_show_customer_name: boolean | null
           animation_speed: string | null
           auto_refresh_interval: number | null
           background_color: string | null
@@ -153,6 +154,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          always_show_customer_name?: boolean | null
           animation_speed?: string | null
           auto_refresh_interval?: number | null
           background_color?: string | null
@@ -209,6 +211,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          always_show_customer_name?: boolean | null
           animation_speed?: string | null
           auto_refresh_interval?: number | null
           background_color?: string | null
