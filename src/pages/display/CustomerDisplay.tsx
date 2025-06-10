@@ -156,7 +156,7 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        {/* Products List with quantities and units */}
+        {/* Products List with customer-specific quantities */}
         <Card
           style={{
             backgroundColor: settings?.card_background_color || '#ffffff',
@@ -188,77 +188,36 @@ const CustomerDisplay = () => {
                     >
                       {product.product_name}
                     </h3>
-                    <div className="flex items-center space-x-3">
-                      <p 
-                        className="text-sm"
-                        style={{ 
-                          color: getProductTextColor(settings || {} as any, index), 
-                          opacity: 0.8 
-                        }}
-                      >
-                        Kategori: {product.product_category}
-                      </p>
-                      <div 
-                        className="font-semibold text-lg"
-                        style={{ color: getProductAccentColor(settings || {} as any, index) }}
-                      >
-                        {product.total_quantity} {product.product_unit}
-                      </div>
-                    </div>
                   </div>
-                  <div className="text-right">
-                    <span 
-                      className="text-2xl font-bold block"
+                  <div className="text-right space-y-2">
+                    {/* Customer-specific quantity prominently displayed */}
+                    <div 
+                      className="text-3xl font-bold"
                       style={{ color: getProductAccentColor(settings || {} as any, index) }}
                     >
-                      {product.packed_line_items}/{product.total_line_items}
-                    </span>
-                    <Badge 
-                      variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                      style={{
-                        backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
-                        color: 'white'
-                      }}
-                    >
-                      {product.packing_status === 'completed' ? 'Ferdig' : 
-                       product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
-                    </Badge>
+                      {product.total_quantity} {product.product_unit}
+                    </div>
+                    <div className="text-right">
+                      <span 
+                        className="text-lg font-semibold block mb-1"
+                        style={{ color: getProductTextColor(settings || {} as any, index) }}
+                      >
+                        {product.packed_line_items}/{product.total_line_items}
+                      </span>
+                      <Badge 
+                        variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                        style={{
+                          backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                          color: 'white'
+                        }}
+                      >
+                        {product.packing_status === 'completed' ? 'Ferdig' : 
+                         product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Status Section - based on ALL line items */}
-        <Card
-          style={{
-            backgroundColor: settings?.card_background_color || '#ffffff',
-            borderColor: settings?.card_border_color || '#e5e7eb',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
-          }}
-        >
-          <CardContent className="p-8 text-center space-y-4">
-            <div className="space-y-2">
-              <p 
-                className="text-2xl"
-                style={{ color: settings?.text_color || '#6b7280' }}
-              >
-                Totale varelinjer: {customerPackingData.total_line_items_all}
-              </p>
-              <p 
-                className="text-2xl font-semibold"
-                style={{ color: settings?.text_color || '#111827' }}
-              >
-                Pakket {customerPackingData.packed_line_items_all} av {customerPackingData.total_line_items_all} varelinjer
-              </p>
-              <p 
-                className="text-lg"
-                style={{ color: settings?.product_accent_color || '#3b82f6' }}
-              >
-                Aktive produkter: {customerPackingData.products.reduce((sum, p) => sum + p.total_quantity, 0)} enheter
-              </p>
             </div>
           </CardContent>
         </Card>

@@ -10,7 +10,7 @@ export interface PackingProduct {
   product_name: string;
   product_category: string;
   product_unit: string;
-  total_quantity: number; // Total quantity from active_packing_products
+  total_quantity: number; // Customer-specific quantity sum, not from active_packing_products
   total_line_items: number;
   packed_line_items: number;
   packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
@@ -67,14 +67,11 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
 
       console.log('Raw orders data:', orders);
 
-      // Create a map of active products with their quantities
-      const activeProductMap = new Map<string, { quantity: number; name: string }>();
+      // Create a set of active product IDs for filtering
+      const activeProductIds = new Set<string>();
       if (activeProducts) {
         activeProducts.forEach(ap => {
-          activeProductMap.set(ap.product_id, {
-            quantity: ap.total_quantity,
-            name: ap.product_name
-          });
+          activeProductIds.add(ap.product_id);
         });
       }
 
@@ -113,7 +110,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
           }
 
           // Only process active products for display
-          const isActiveProduct = activeProductMap.has(op.product_id);
+          const isActiveProduct = activeProductIds.has(op.product_id);
           if (activeOnly && !isActiveProduct) {
             return;
           }
@@ -121,15 +118,13 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
           const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
           
           if (existingProduct) {
+            // Sum up the customer's actual quantity for this product
+            existingProduct.total_quantity += op.quantity;
             existingProduct.total_line_items += 1;
             if (op.packing_status === 'packed' || op.packing_status === 'completed') {
               existingProduct.packed_line_items += 1;
             }
           } else {
-            // Get total quantity from active products or default to line item count
-            const activeProductInfo = activeProductMap.get(op.product_id);
-            const totalQuantity = activeProductInfo?.quantity || 1;
-
             const validPackingStatus = (['pending', 'in_progress', 'packed', 'completed'].includes(op.packing_status || '')) 
               ? op.packing_status as 'pending' | 'in_progress' | 'packed' | 'completed'
               : 'pending';
@@ -140,7 +135,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               product_name: op.product.name,
               product_category: op.product.category || 'Ingen kategori',
               product_unit: op.product.unit || 'stk',
-              total_quantity: totalQuantity,
+              total_quantity: op.quantity, // Start with this order's quantity
               total_line_items: 1,
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
               packing_status: validPackingStatus,
