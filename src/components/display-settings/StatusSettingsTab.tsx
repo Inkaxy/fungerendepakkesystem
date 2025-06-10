@@ -22,15 +22,15 @@ const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Pågående farge</Label>
               <ColorPicker
+                label="Pågående farge"
                 value={settings.packing_status_ongoing_color}
                 onChange={(color) => onUpdate({ packing_status_ongoing_color: color })}
               />
             </div>
             <div>
-              <Label>Ferdig farge</Label>
               <ColorPicker
+                label="Ferdig farge"
                 value={settings.packing_status_completed_color}
                 onChange={(color) => onUpdate({ packing_status_completed_color: color })}
               />
@@ -54,16 +54,16 @@ const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
           />
           
           <div>
-            <Label>Status tekst farge</Label>
             <ColorPicker
+              label="Status tekst farge"
               value={settings.text_color}
               onChange={(color) => onUpdate({ text_color: color })}
             />
           </div>
 
           <div>
-            <Label>Status kort bakgrunn</Label>
             <ColorPicker
+              label="Status kort bakgrunn"
               value={settings.card_background_color}
               onChange={(color) => onUpdate({ card_background_color: color })}
             />
@@ -77,24 +77,24 @@ const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Produktnavn farge</Label>
             <ColorPicker
+              label="Produktnavn farge"
               value={settings.product_text_color}
               onChange={(color) => onUpdate({ product_text_color: color })}
             />
           </div>
 
           <div>
-            <Label>Antall farge</Label>
             <ColorPicker
+              label="Antall farge"
               value={settings.product_accent_color}
               onChange={(color) => onUpdate({ product_accent_color: color })}
             />
           </div>
 
           <div>
-            <Label>Produktrad bakgrunn</Label>
             <ColorPicker
+              label="Produktrad bakgrunn"
               value={settings.product_card_color}
               onChange={(color) => onUpdate({ product_card_color: color })}
             />

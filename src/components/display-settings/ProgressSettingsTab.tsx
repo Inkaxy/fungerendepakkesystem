@@ -21,16 +21,16 @@ const ProgressSettingsTab = ({ settings, onUpdate }: ProgressSettingsTabProps) =
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Progressbar farge</Label>
             <ColorPicker
+              label="Progressbar farge"
               value={settings.progress_bar_color}
               onChange={(color) => onUpdate({ progress_bar_color: color })}
             />
           </div>
 
           <div>
-            <Label>Progressbar bakgrunn</Label>
             <ColorPicker
+              label="Progressbar bakgrunn"
               value={settings.progress_background_color}
               onChange={(color) => onUpdate({ progress_background_color: color })}
             />
@@ -62,8 +62,8 @@ const ProgressSettingsTab = ({ settings, onUpdate }: ProgressSettingsTabProps) =
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>"Ferdig Pakket" farge</Label>
             <ColorPicker
+              label="&quot;Ferdig Pakket&quot; farge"
               value={settings.packing_status_completed_color}
               onChange={(color) => onUpdate({ packing_status_completed_color: color })}
             />
