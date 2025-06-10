@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Truck } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { generateDisplayStyles, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 
@@ -178,15 +178,18 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                                            settings.animation_speed === 'fast' ? '0.5s' : '1s'
                       }}
                     />
-                    {/* Truck Icon */}
+                    {/* Bread Van Icon */}
                     {settings.show_truck_icon && (
-                      <Truck 
-                        className="absolute top-1/2 transform -translate-y-1/2 text-gray-700" 
+                      <img 
+                        src="/lovable-uploads/6f302e96-c693-4887-b0a5-ecf82015ae4a.png"
+                        alt="Varebil"
+                        className="absolute top-1/2 transform -translate-y-1/2" 
                         style={{ 
                           left: `${mockProgress}%`, 
-                          marginLeft: `-${settings.truck_icon_size / 2}px`,
+                          marginLeft: `-${Math.max(settings.truck_icon_size / 4, 6)}px`,
                           width: `${Math.max(settings.truck_icon_size / 2, 12)}px`,
-                          height: `${Math.max(settings.truck_icon_size / 2, 12)}px`
+                          height: `${Math.max(settings.truck_icon_size / 2, 12)}px`,
+                          objectFit: 'contain'
                         }}
                       />
                     )}

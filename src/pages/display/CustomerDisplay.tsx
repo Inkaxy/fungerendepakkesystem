@@ -262,7 +262,7 @@ const CustomerDisplay = () => {
             <CardContent className="p-8">
               <div className="space-y-4">
                 <div 
-                  className="w-full rounded-full"
+                  className="w-full rounded-full relative"
                   style={{ 
                     backgroundColor: settings?.progress_background_color || '#e5e7eb',
                     height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
@@ -276,6 +276,21 @@ const CustomerDisplay = () => {
                       width: `${customerPackingData.progress_percentage}%`
                     }}
                   />
+                  {/* Bread Van Icon */}
+                  {settings?.show_truck_icon && (
+                    <img 
+                      src="/lovable-uploads/6f302e96-c693-4887-b0a5-ecf82015ae4a.png"
+                      alt="Varebil"
+                      className="absolute top-1/2 transform -translate-y-1/2" 
+                      style={{ 
+                        left: `${customerPackingData.progress_percentage}%`, 
+                        marginLeft: `-${(settings?.truck_icon_size || 24) / 2}px`,
+                        width: `${settings?.truck_icon_size || 24}px`,
+                        height: `${settings?.truck_icon_size || 24}px`,
+                        objectFit: 'contain'
+                      }}
+                    />
+                  )}
                 </div>
                 {settings?.show_progress_percentage && (
                   <div className="text-center">
