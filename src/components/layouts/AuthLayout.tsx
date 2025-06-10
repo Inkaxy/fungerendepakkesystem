@@ -85,9 +85,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                 alt="Loaf & Load"
                 className="h-10 w-auto"
               />
-              <span className="ml-3 text-xl font-semibold text-bakery-brown">
-                Loaf & Load
-              </span>
             </div>
 
             {/* Desktop Navigation */}
