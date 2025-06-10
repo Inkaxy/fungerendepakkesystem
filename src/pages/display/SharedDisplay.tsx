@@ -42,7 +42,10 @@ const SharedDisplay = () => {
   ) || [];
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
-  const statusColors = settings ? statusColorMap(settings) : {};
+  const statusColors = settings ? statusColorMap(settings) : {
+    completed: '#10b981',
+    ongoing: '#3b82f6'
+  };
 
   // Calculate statistics based on active packing data
   const totalActiveProducts = sharedDisplayPackingData.reduce((sum, customer) => 
