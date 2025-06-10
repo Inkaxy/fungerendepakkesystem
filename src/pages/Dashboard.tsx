@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/stores/authStore';
-import { Users, Package, Truck, BarChart3 } from 'lucide-react';
+import { Users, Package, BarChart3 } from 'lucide-react';
 
 const Dashboard = () => {
   const { profile } = useAuthStore();
@@ -33,13 +33,6 @@ const Dashboard = () => {
       description: "3 klar for pakking",
       icon: Package,
       color: "text-blue-600"
-    },
-    {
-      title: "Leveranser",
-      value: "8",
-      description: "i dag",
-      icon: Truck,
-      color: "text-green-600"
     },
     {
       title: "Kunder",
@@ -84,7 +77,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {mockStats.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -116,10 +109,6 @@ const Dashboard = () => {
             <div className="p-3 bg-gray-50 rounded-lg">
               <h4 className="font-medium">Pakking</h4>
               <p className="text-sm text-gray-600">Start pakking av nye ordrer</p>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-medium">Leveringer</h4>
-              <p className="text-sm text-gray-600">Se dagens leveringsplan</p>
             </div>
             <div className="p-3 bg-gray-50 rounded-lg">
               <h4 className="font-medium">Rapporter</h4>
@@ -154,7 +143,7 @@ const Dashboard = () => {
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="text-sm">Levering startet</p>
+                  <p className="text-sm">Ordre oppdatert</p>
                   <p className="text-xs text-gray-500">30 minutter siden</p>
                 </div>
               </div>

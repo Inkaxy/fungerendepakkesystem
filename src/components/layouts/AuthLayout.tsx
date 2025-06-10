@@ -56,9 +56,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     name: 'Ordrer & Pakking',
     href: '/dashboard/orders'
   }, {
-    name: 'Leveranser',
-    href: '/dashboard/deliveries'
-  }, {
     name: 'Produkter',
     href: '/dashboard/products'
   }, {
