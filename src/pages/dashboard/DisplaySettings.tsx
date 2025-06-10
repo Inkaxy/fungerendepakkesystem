@@ -3,12 +3,11 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, Settings2, Palette, Activity } from 'lucide-react';
+import { Save, Eye, Palette, Layout, Activity } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
-import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab';
-import ProductsSettingsTab from '@/components/display-settings/ProductsSettingsTab';
-import StatusSettingsTab from '@/components/display-settings/StatusSettingsTab';
-import ProgressSettingsTab from '@/components/display-settings/ProgressSettingsTab';
+import LayoutBackgroundTab from '@/components/display-settings/LayoutBackgroundTab';
+import ProductColorsTab from '@/components/display-settings/ProductColorsTab';
+import StatusProgressTab from '@/components/display-settings/StatusProgressTab';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 
@@ -58,7 +57,7 @@ const DisplaySettings = () => {
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Pakkeskjerm Innstillinger</h1>
+          <h1 className="text-3xl font-bold">Pakkeskjerm Tilpassinger</h1>
           <p className="text-gray-600 mt-2">
             Tilpass utseendet og oppførselen til pakkeskjermene dine
           </p>
@@ -84,54 +83,46 @@ const DisplaySettings = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Settings2 className="h-5 w-5 mr-2" />
+                <Palette className="h-5 w-5 mr-2" />
                 Pakkeskjerm Tilpassinger
               </CardTitle>
+              <p className="text-sm text-gray-600">
+                Organisert i logiske kategorier for enkel tilpasning
+              </p>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="general" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="general" className="flex items-center space-x-2">
-                    <Settings2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Generelt</span>
+              <Tabs defaultValue="layout" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="layout" className="flex items-center space-x-2">
+                    <Layout className="h-4 w-4" />
+                    <span className="hidden sm:inline">Layout & Bakgrunn</span>
                   </TabsTrigger>
                   <TabsTrigger value="products" className="flex items-center space-x-2">
                     <Palette className="h-4 w-4" />
-                    <span className="hidden sm:inline">Produkter</span>
+                    <span className="hidden sm:inline">Produkter & Farger</span>
                   </TabsTrigger>
                   <TabsTrigger value="status" className="flex items-center space-x-2">
                     <Activity className="h-4 w-4" />
-                    <span className="hidden sm:inline">Status</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="progress" className="flex items-center space-x-2">
-                    <Activity className="h-4 w-4" />
-                    <span className="hidden sm:inline">Fremgang</span>
+                    <span className="hidden sm:inline">Status & Fremgang</span>
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="general">
-                  <GeneralSettingsTab 
+                <TabsContent value="layout">
+                  <LayoutBackgroundTab 
                     settings={localSettings} 
                     onUpdate={handleUpdate} 
                   />
                 </TabsContent>
 
                 <TabsContent value="products">
-                  <ProductsSettingsTab 
+                  <ProductColorsTab 
                     settings={localSettings} 
                     onUpdate={handleUpdate} 
                   />
                 </TabsContent>
 
                 <TabsContent value="status">
-                  <StatusSettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="progress">
-                  <ProgressSettingsTab 
+                  <StatusProgressTab 
                     settings={localSettings} 
                     onUpdate={handleUpdate} 
                   />
