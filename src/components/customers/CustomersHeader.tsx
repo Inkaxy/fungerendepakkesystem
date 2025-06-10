@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, UserPlus, QrCode, MoreHorizontal } from 'lucide-react';
+import { Search, UserPlus, QrCode, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +17,7 @@ interface CustomersHeaderProps {
   onCreateCustomer: () => void;
   onGenerateQrCodes: () => void;
   onBulkActions: () => void;
+  onDeleteAllCustomers: () => void;
   selectedCount: number;
 }
 
@@ -27,6 +28,7 @@ const CustomersHeader = ({
   onCreateCustomer,
   onGenerateQrCodes,
   onBulkActions,
+  onDeleteAllCustomers,
   selectedCount
 }: CustomersHeaderProps) => {
   return (
@@ -64,6 +66,13 @@ const CustomersHeader = ({
             <QrCode className="w-4 h-4 mr-2" />
             Generer alle QR-koder
           </Button>
+
+          {customersCount > 0 && (
+            <Button variant="destructive" onClick={onDeleteAllCustomers}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Slett alle kunder
+            </Button>
+          )}
 
           <span className="text-sm text-muted-foreground">
             Viser {customersCount} av {customersCount} resultater

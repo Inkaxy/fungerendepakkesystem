@@ -15,6 +15,7 @@ import CustomersHeader from '@/components/customers/CustomersHeader';
 import CustomersTable from '@/components/customers/CustomersTable';
 import EmptyCustomersState from '@/components/customers/EmptyCustomersState';
 import QrCodeModal from '@/components/customers/QrCodeModal';
+import DeleteAllCustomersDialog from '@/components/customers/DeleteAllCustomersDialog';
 import { Customer } from '@/types/database';
 
 const Customers = () => {
@@ -22,6 +23,7 @@ const Customers = () => {
   const {
     deletingCustomerId,
     handleDeleteCustomer,
+    handleDeleteAllCustomers,
     handleToggleDisplay,
     copyDisplayUrl,
     openDisplayUrl,
@@ -33,6 +35,7 @@ const Customers = () => {
   const [qrCodeCustomer, setQrCodeCustomer] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
   // Filter customers based on search term
   const filteredCustomers = useMemo(() => {
@@ -68,6 +71,11 @@ const Customers = () => {
   const handleBulkActions = () => {
     // TODO: Implement bulk actions
     console.log('Bulk actions for selected customers:', selectedCustomers);
+  };
+
+  const handleDeleteAllCustomersConfirm = async () => {
+    await handleDeleteAllCustomers();
+    setShowDeleteAllDialog(false);
   };
 
   if (isLoading) {
@@ -120,6 +128,7 @@ const Customers = () => {
         onCreateCustomer={() => setIsCreateDialogOpen(true)}
         onGenerateQrCodes={handleGenerateQrCodes}
         onBulkActions={handleBulkActions}
+        onDeleteAllCustomers={() => setShowDeleteAllDialog(true)}
         selectedCount={selectedCustomers.length}
       />
 
@@ -174,6 +183,14 @@ const Customers = () => {
         onToggleDisplay={handleToggleDisplay}
         onCopyUrl={copyDisplayUrl}
         onOpenUrl={openDisplayUrl}
+      />
+
+      <DeleteAllCustomersDialog
+        open={showDeleteAllDialog}
+        onOpenChange={setShowDeleteAllDialog}
+        customersCount={customersData.length}
+        onConfirm={handleDeleteAllCustomersConfirm}
+        isLoading={false}
       />
     </div>
   );
