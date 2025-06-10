@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Package2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
+import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
@@ -20,9 +22,10 @@ const CustomerDisplay = () => {
   const { data: customers, isLoading: customersLoading } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
-  // Enable real-time updates for both orders and display settings
+  // Enable real-time updates for orders, display settings, and active products
   useRealTimeOrders();
-  useRealTimeDisplaySettings(); // New real-time listener for display settings
+  useRealTimeDisplaySettings();
+  useRealTimeActivePackingProducts(); // New real-time listener for active products
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
@@ -116,6 +119,7 @@ const CustomerDisplay = () => {
     );
   }
 
+  // Check if customer is completed based on ALL line items
   const isAllPacked = customerPackingData.progress_percentage >= 100;
 
   return (
@@ -152,7 +156,7 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        {/* Products List */}
+        {/* Products List with quantities and units */}
         <Card
           style={{
             backgroundColor: settings?.card_background_color || '#ffffff',
@@ -184,15 +188,23 @@ const CustomerDisplay = () => {
                     >
                       {product.product_name}
                     </h3>
-                    <p 
-                      className="text-sm"
-                      style={{ 
-                        color: getProductTextColor(settings || {} as any, index), 
-                        opacity: 0.8 
-                      }}
-                    >
-                      Kategori: {product.product_category}
-                    </p>
+                    <div className="flex items-center space-x-3">
+                      <p 
+                        className="text-sm"
+                        style={{ 
+                          color: getProductTextColor(settings || {} as any, index), 
+                          opacity: 0.8 
+                        }}
+                      >
+                        Kategori: {product.product_category}
+                      </p>
+                      <div 
+                        className="font-semibold text-lg"
+                        style={{ color: getProductAccentColor(settings || {} as any, index) }}
+                      >
+                        {product.total_quantity} {product.product_unit}
+                      </div>
+                    </div>
                   </div>
                   <div className="text-right">
                     <span 
@@ -218,7 +230,7 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        {/* Status Section */}
+        {/* Status Section - based on ALL line items */}
         <Card
           style={{
             backgroundColor: settings?.card_background_color || '#ffffff',
@@ -233,13 +245,19 @@ const CustomerDisplay = () => {
                 className="text-2xl"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Aktive varelinjer: {customerPackingData.total_line_items}
+                Totale varelinjer: {customerPackingData.total_line_items_all}
               </p>
               <p 
                 className="text-2xl font-semibold"
                 style={{ color: settings?.text_color || '#111827' }}
               >
-                Pakket {customerPackingData.packed_line_items} av {customerPackingData.total_line_items} varelinjer
+                Pakket {customerPackingData.packed_line_items_all} av {customerPackingData.total_line_items_all} varelinjer
+              </p>
+              <p 
+                className="text-lg"
+                style={{ color: settings?.product_accent_color || '#3b82f6' }}
+              >
+                Aktive produkter: {customerPackingData.products.reduce((sum, p) => sum + p.total_quantity, 0)} enheter
               </p>
             </div>
           </CardContent>
@@ -272,7 +290,7 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Progress Bar */}
+        {/* Progress Bar - based on ALL line items */}
         {settings?.show_progress_bar && (
           <Card
             style={{

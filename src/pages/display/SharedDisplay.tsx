@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +7,7 @@ import { Users, Calendar, Package, RefreshCw } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
+import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
@@ -26,9 +28,10 @@ const SharedDisplay = () => {
     true // activeOnly = true to show only selected products
   );
   
-  // Enable real-time updates for orders and display settings
+  // Enable real-time updates for orders, display settings, and active products
   useRealTimeOrders();
-  useRealTimeDisplaySettings(); // New real-time listener for display settings
+  useRealTimeDisplaySettings();
+  useRealTimeActivePackingProducts(); // New real-time listener for active products
   
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
@@ -53,7 +56,7 @@ const SharedDisplay = () => {
 
   // Calculate statistics based on active packing data
   const totalActiveProducts = sharedDisplayPackingData.reduce((sum, customer) => 
-    sum + customer.products.reduce((productSum, product) => productSum + product.total_line_items, 0), 0
+    sum + customer.products.reduce((productSum, product) => productSum + product.total_quantity, 0), 0
   );
 
   return (
@@ -103,7 +106,7 @@ const SharedDisplay = () => {
           {[
             { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length, desc: 'Har produkter valgt for pakking' },
             { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0), desc: 'Forskjellige produkter' },
-            { icon: Calendar, label: 'Totale Varelinjer', value: totalActiveProducts, desc: 'Skal pakkes i dag' }
+            { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts, desc: 'Antall produkter som skal pakkes' }
           ].map((stat, idx) => (
             <Card 
               key={idx}
@@ -195,10 +198,10 @@ const SharedDisplay = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {/* Progress */}
+                      {/* Progress - based on ALL line items */}
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span style={{ color: settings?.text_color || '#374151' }}>Fremgang:</span>
+                          <span style={{ color: settings?.text_color || '#374151' }}>Fremgang (alle varer):</span>
                           <span 
                             className="font-semibold"
                             style={{ color: settings?.product_accent_color || '#3b82f6' }}
@@ -218,9 +221,14 @@ const SharedDisplay = () => {
                             }}
                           />
                         </div>
+                        <div className="text-xs text-center">
+                          <span style={{ color: settings?.text_color || '#6b7280' }}>
+                            {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Active Products */}
+                      {/* Active Products with quantities and units */}
                       <div>
                         <h4 
                           className="text-sm font-medium mb-2"
@@ -238,14 +246,23 @@ const SharedDisplay = () => {
                                 borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
                               }}
                             >
-                              <span 
-                                className="font-medium"
-                                style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
-                              >
-                                {product.product_name}
-                              </span>
+                              <div className="flex flex-col flex-1">
+                                <span 
+                                  className="font-medium"
+                                  style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
+                                >
+                                  {product.product_name}
+                                </span>
+                                <span 
+                                  className="text-xs font-semibold"
+                                  style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
+                                >
+                                  {product.total_quantity} {product.product_unit}
+                                </span>
+                              </div>
                               <div className="flex items-center space-x-2">
                                 <span 
+                                  className="text-xs"
                                   style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
                                 >
                                   {product.packed_line_items}/{product.total_line_items}

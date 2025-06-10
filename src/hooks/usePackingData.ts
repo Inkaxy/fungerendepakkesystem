@@ -9,6 +9,8 @@ export interface PackingProduct {
   product_id: string;
   product_name: string;
   product_category: string;
+  product_unit: string;
+  total_quantity: number; // Total quantity from active_packing_products
   total_line_items: number;
   packed_line_items: number;
   packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
@@ -22,6 +24,8 @@ export interface PackingCustomer {
   progress_percentage: number;
   total_line_items: number;
   packed_line_items: number;
+  total_line_items_all: number; // Total including non-active products
+  packed_line_items_all: number; // Packed including non-active products
 }
 
 export const usePackingData = (customerId?: string, date?: string, activeOnly: boolean = false) => {
@@ -44,7 +48,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             product_id,
             quantity,
             packing_status,
-            product:products(id, name, category)
+            product:products(id, name, category, unit)
           )
         `)
         .eq('delivery_date', targetDate)
@@ -63,10 +67,16 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
 
       console.log('Raw orders data:', orders);
 
-      // If activeOnly is true, filter by active products
-      const activeProductIds = activeOnly && activeProducts 
-        ? new Set(activeProducts.map(p => p.product_id))
-        : null;
+      // Create a map of active products with their quantities
+      const activeProductMap = new Map<string, { quantity: number; name: string }>();
+      if (activeProducts) {
+        activeProducts.forEach(ap => {
+          activeProductMap.set(ap.product_id, {
+            quantity: ap.total_quantity,
+            name: ap.product_name
+          });
+        });
+      }
 
       // Group by customer and aggregate products
       const customerMap = new Map<string, PackingCustomer>();
@@ -86,16 +96,25 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             progress_percentage: 0,
             total_line_items: 0,
             packed_line_items: 0,
+            total_line_items_all: 0,
+            packed_line_items_all: 0,
           };
           customerMap.set(customerId, customer);
         }
 
-        // Count line items (order_products) not products themselves
+        // Process all order products for total calculations
         order.order_products?.forEach(op => {
           if (!op.product) return;
 
-          // Skip if we're in activeOnly mode and this product is not active
-          if (activeOnly && activeProductIds && !activeProductIds.has(op.product_id)) {
+          // Count ALL line items for correct percentage calculation
+          customer!.total_line_items_all += 1;
+          if (op.packing_status === 'packed' || op.packing_status === 'completed') {
+            customer!.packed_line_items_all += 1;
+          }
+
+          // Only process active products for display
+          const isActiveProduct = activeProductMap.has(op.product_id);
+          if (activeOnly && !isActiveProduct) {
             return;
           }
 
@@ -107,7 +126,10 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               existingProduct.packed_line_items += 1;
             }
           } else {
-            // Ensure packing_status is a valid enum value
+            // Get total quantity from active products or default to line item count
+            const activeProductInfo = activeProductMap.get(op.product_id);
+            const totalQuantity = activeProductInfo?.quantity || 1;
+
             const validPackingStatus = (['pending', 'in_progress', 'packed', 'completed'].includes(op.packing_status || '')) 
               ? op.packing_status as 'pending' | 'in_progress' | 'packed' | 'completed'
               : 'pending';
@@ -117,25 +139,32 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               product_id: op.product_id,
               product_name: op.product.name,
               product_category: op.product.category || 'Ingen kategori',
+              product_unit: op.product.unit || 'stk',
+              total_quantity: totalQuantity,
               total_line_items: 1,
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
               packing_status: validPackingStatus,
             });
           }
 
-          // Update customer totals
-          customer!.total_line_items += 1;
-          if (op.packing_status === 'packed' || op.packing_status === 'completed') {
-            customer!.packed_line_items += 1;
+          // Update customer totals for active products only
+          if (isActiveProduct) {
+            customer!.total_line_items += 1;
+            if (op.packing_status === 'packed' || op.packing_status === 'completed') {
+              customer!.packed_line_items += 1;
+            }
           }
         });
       });
 
       // Calculate progress for each customer
       customerMap.forEach(customer => {
-        customer.progress_percentage = customer.total_line_items > 0 
-          ? Math.round((customer.packed_line_items / customer.total_line_items) * 100) 
+        // Use ALL line items for percentage calculation (not just active)
+        customer.progress_percentage = customer.total_line_items_all > 0 
+          ? Math.round((customer.packed_line_items_all / customer.total_line_items_all) * 100) 
           : 0;
+        
+        // Customer is completed only when ALL line items are packed
         customer.overall_status = customer.progress_percentage >= 100 ? 'completed' : 'ongoing';
         
         // Update product packing status based on line items
@@ -149,7 +178,6 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
           }
         });
 
-        // When activeOnly is true, show all active products (up to 3)
         // When activeOnly is false, limit to 3 products prioritizing unpacked items
         if (!activeOnly) {
           customer.products = customer.products

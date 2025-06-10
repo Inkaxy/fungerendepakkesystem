@@ -22,6 +22,7 @@ export const useDisplayRefresh = ({
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['packing-data'] });
       queryClient.invalidateQueries({ queryKey: ['display-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
     };
 
     intervalRef.current = setInterval(refreshData, interval);
@@ -38,6 +39,7 @@ export const useDisplayRefresh = ({
     queryClient.invalidateQueries({ queryKey: ['customers'] });
     queryClient.invalidateQueries({ queryKey: ['packing-data'] });
     queryClient.invalidateQueries({ queryKey: ['display-settings'] });
+    queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
   };
 
   return { triggerRefresh };
