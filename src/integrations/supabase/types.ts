@@ -144,8 +144,10 @@ export type Database = {
           card_background_color: string | null
           card_border_color: string | null
           card_shadow_intensity: number | null
+          cat_animation_speed: string | null
           created_at: string
           enable_animations: boolean | null
+          enable_cat_animations: boolean | null
           fade_transitions: boolean | null
           header_font_size: number | null
           header_text_color: string | null
@@ -167,12 +169,15 @@ export type Database = {
           progress_background_color: string | null
           progress_bar_color: string | null
           progress_height: number | null
+          show_bouncing_cats: boolean | null
           show_customer_info: boolean | null
           show_delivery_dates: boolean | null
+          show_falling_cats: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
           show_progress_bar: boolean | null
           show_progress_percentage: boolean | null
+          show_running_cats: boolean | null
           show_status_indicator: boolean | null
           show_truck_icon: boolean | null
           spacing: number | null
@@ -201,8 +206,10 @@ export type Database = {
           card_background_color?: string | null
           card_border_color?: string | null
           card_shadow_intensity?: number | null
+          cat_animation_speed?: string | null
           created_at?: string
           enable_animations?: boolean | null
+          enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
@@ -224,12 +231,15 @@ export type Database = {
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
+          show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_delivery_dates?: boolean | null
+          show_falling_cats?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
+          show_running_cats?: boolean | null
           show_status_indicator?: boolean | null
           show_truck_icon?: boolean | null
           spacing?: number | null
@@ -258,8 +268,10 @@ export type Database = {
           card_background_color?: string | null
           card_border_color?: string | null
           card_shadow_intensity?: number | null
+          cat_animation_speed?: string | null
           created_at?: string
           enable_animations?: boolean | null
+          enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
@@ -281,12 +293,15 @@ export type Database = {
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
+          show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_delivery_dates?: boolean | null
+          show_falling_cats?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
+          show_running_cats?: boolean | null
           show_status_indicator?: boolean | null
           show_truck_icon?: boolean | null
           spacing?: number | null

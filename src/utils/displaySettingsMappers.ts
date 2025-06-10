@@ -32,12 +32,12 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     fade_transitions: data.fade_transitions ?? true,
     progress_animation: data.progress_animation ?? true,
     always_show_customer_name: data.always_show_customer_name ?? true,
-    // Add cat animation defaults for existing settings - these don't exist in DB yet
-    enable_cat_animations: false,
-    cat_animation_speed: 'normal' as const,
-    show_bouncing_cats: true,
-    show_falling_cats: true,
-    show_running_cats: true,
+    // Cat animation settings with proper defaults from database
+    enable_cat_animations: data.enable_cat_animations ?? false,
+    cat_animation_speed: data.cat_animation_speed || 'normal',
+    show_bouncing_cats: data.show_bouncing_cats ?? true,
+    show_falling_cats: data.show_falling_cats ?? true,
+    show_running_cats: data.show_running_cats ?? true,
   } as DisplaySettings;
 };
 

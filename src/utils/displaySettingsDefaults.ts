@@ -56,7 +56,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   always_show_customer_name: true,
   packing_status_ongoing_color: '#3b82f6',
   packing_status_completed_color: '#10b981',
-  // Cat animation defaults
+  // Cat animation defaults matching database defaults
   enable_cat_animations: false,
   cat_animation_speed: 'normal' as const,
   show_bouncing_cats: true,

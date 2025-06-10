@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -63,26 +64,10 @@ export const useDisplaySettings = () => {
         }
         
         console.log('Created new settings:', newSettings);
-        
-        // Map the new settings to interface properties
-        const mappedData = {
-          ...newSettings,
-          packing_status_ongoing_color: newSettings.status_in_progress_color || '#3b82f6',
-          packing_status_completed_color: newSettings.status_completed_color || '#10b981',
-          // Add cat animation defaults for new settings - these don't exist in DB yet
-          enable_cat_animations: false,
-          cat_animation_speed: 'normal' as const,
-          show_bouncing_cats: true,
-          show_falling_cats: true,
-          show_running_cats: true,
-        };
-        
-        return mappedData as DisplaySettings;
+        return mapDatabaseToDisplaySettings(newSettings);
       }
       
       console.log('Found existing settings:', data);
-      
-      // Map database fields to interface properties
       return mapDatabaseToDisplaySettings(data);
     },
   });
