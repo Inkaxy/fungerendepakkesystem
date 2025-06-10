@@ -27,9 +27,11 @@ const CustomerDisplay = () => {
   // Find customer by display_url
   const customer = customers?.find(c => c.display_url === displayUrl);
   
+  // Use packing data with activeOnly to show selected products
   const { data: packingData, isLoading: packingLoading } = usePackingData(
     customer?.id, 
-    format(new Date(), 'yyyy-MM-dd')
+    format(new Date(), 'yyyy-MM-dd'),
+    true // activeOnly = true to show only selected products
   );
 
   if (customersLoading || packingLoading) {
@@ -89,7 +91,7 @@ const CustomerDisplay = () => {
             settings={settings}
           />
 
-          {/* No packing message */}
+          {/* No active products message */}
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
               <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
@@ -97,7 +99,13 @@ const CustomerDisplay = () => {
                 className="text-xl mb-6"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Ingen pakking planlagt for i dag
+                Ingen aktive produkter valgt for pakking i dag
+              </p>
+              <p 
+                className="text-sm"
+                style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+              >
+                Gå til Pakking-siden for å velge produkter som skal pakkes
               </p>
             </CardContent>
           </Card>
@@ -122,6 +130,26 @@ const CustomerDisplay = () => {
           settings={settings}
         />
 
+        {/* Active Products indicator */}
+        <Card
+          style={{
+            backgroundColor: settings?.product_accent_color || '#3b82f6',
+            borderColor: settings?.product_accent_color || '#3b82f6',
+            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+          }}
+        >
+          <CardContent className="p-4 text-center">
+            <h2 
+              className="font-bold text-white"
+              style={{ 
+                fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.2}px` : '1.2rem' 
+              }}
+            >
+              Aktive Produkter for Pakking
+            </h2>
+          </CardContent>
+        </Card>
+
         {/* Products List */}
         <Card
           style={{
@@ -144,21 +172,44 @@ const CustomerDisplay = () => {
                     transformOrigin: 'left center'
                   }}
                 >
-                  <h3 
-                    className="font-bold"
-                    style={{ 
-                      color: getProductTextColor(settings || {} as any, index),
-                      fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
-                    }}
-                  >
-                    {product.product_name}
-                  </h3>
-                  <span 
-                    className="text-2xl font-bold"
-                    style={{ color: getProductAccentColor(settings || {} as any, index) }}
-                  >
-                    {product.total_line_items}
-                  </span>
+                  <div className="flex-1">
+                    <h3 
+                      className="font-bold mb-1"
+                      style={{ 
+                        color: getProductTextColor(settings || {} as any, index),
+                        fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
+                      }}
+                    >
+                      {product.product_name}
+                    </h3>
+                    <p 
+                      className="text-sm"
+                      style={{ 
+                        color: getProductTextColor(settings || {} as any, index), 
+                        opacity: 0.8 
+                      }}
+                    >
+                      Kategori: {product.product_category}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span 
+                      className="text-2xl font-bold block"
+                      style={{ color: getProductAccentColor(settings || {} as any, index) }}
+                    >
+                      {product.packed_line_items}/{product.total_line_items}
+                    </span>
+                    <Badge 
+                      variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                      style={{
+                        backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                        color: 'white'
+                      }}
+                    >
+                      {product.packing_status === 'completed' ? 'Ferdig' : 
+                       product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>
@@ -180,7 +231,7 @@ const CustomerDisplay = () => {
                 className="text-2xl"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Bestilt {customerPackingData.total_line_items} varelinjer
+                Aktive varelinjer: {customerPackingData.total_line_items}
               </p>
               <p 
                 className="text-2xl font-semibold"
@@ -298,7 +349,7 @@ const CustomerDisplay = () => {
             className="text-sm mt-1"
             style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}
           >
-            Automatisk oppdatering hvert 30. sekund
+            Automatisk oppdatering hvert 30. sekund • Viser kun aktive produkter
           </p>
         </div>
       </div>

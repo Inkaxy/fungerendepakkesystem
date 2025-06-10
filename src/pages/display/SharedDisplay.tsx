@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Calendar, Package, RefreshCw } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
-import { useOrders } from '@/hooks/useOrders';
+import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
@@ -17,8 +17,14 @@ import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
   const { data: customers } = useCustomers();
-  const { data: orders } = useOrders();
   const { data: settings } = useDisplaySettings();
+  
+  // Use packing data with activeOnly to show selected products
+  const { data: packingData } = usePackingData(
+    undefined, 
+    format(new Date(), 'yyyy-MM-dd'), 
+    true // activeOnly = true to show only selected products
+  );
   
   // Enable real-time updates
   useRealTimeOrders();
@@ -30,17 +36,18 @@ const SharedDisplay = () => {
   // Filter customers that DON'T have their own display
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  // Filter orders for customers on shared display
-  const sharedDisplayOrders = orders?.filter(order => 
-    sharedDisplayCustomers.some(customer => customer.id === order.customer_id)
+  // Get packing data for shared display customers
+  const sharedDisplayPackingData = packingData?.filter(data => 
+    sharedDisplayCustomers.some(customer => customer.id === data.id)
   ) || [];
-
-  const todaysOrders = sharedDisplayOrders.filter(order => 
-    order.delivery_date === format(new Date(), 'yyyy-MM-dd')
-  );
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? statusColorMap(settings) : {};
+
+  // Calculate statistics based on active packing data
+  const totalActiveProducts = sharedDisplayPackingData.reduce((sum, customer) => 
+    sum + customer.products.reduce((productSum, product) => productSum + product.total_line_items, 0), 0
+  );
 
   return (
     <div 
@@ -61,7 +68,7 @@ const SharedDisplay = () => {
                 color: settings?.header_text_color || '#111827'
               }}
             >
-              Felles Display
+              Felles Display - Aktive Produkter
             </h1>
             <p 
               className="text-xl"
@@ -70,7 +77,7 @@ const SharedDisplay = () => {
                 fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
               }}
             >
-              Oversikt over alle kunder og dagens ordrer
+              Produkter valgt for pakking i dag
             </p>
           </div>
           <Button
@@ -87,9 +94,9 @@ const SharedDisplay = () => {
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {[
-            { icon: Users, label: 'Aktive Kunder', value: sharedDisplayCustomers.length, desc: 'Vises på felles display' },
-            { icon: Calendar, label: 'Dagens Ordrer', value: todaysOrders.length, desc: 'Leveres i dag' },
-            { icon: Package, label: 'Totale Produkter', value: todaysOrders.reduce((sum, order) => sum + (order.order_products?.reduce((orderSum, product) => orderSum + product.quantity, 0) || 0), 0), desc: 'I dagens ordrer' }
+            { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length, desc: 'Har produkter valgt for pakking' },
+            { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0), desc: 'Forskjellige produkter' },
+            { icon: Calendar, label: 'Totale Varelinjer', value: totalActiveProducts, desc: 'Skal pakkes i dag' }
           ].map((stat, idx) => (
             <Card 
               key={idx}
@@ -130,100 +137,135 @@ const SharedDisplay = () => {
           ))}
         </div>
 
-        {/* Kunde Liste with more prominent names */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {sharedDisplayCustomers.map((customer) => {
-            const customerOrders = sharedDisplayOrders.filter(order => order.customer_id === customer.id);
-            const customerTodaysOrders = todaysOrders.filter(order => order.customer_id === customer.id);
-            
-            return (
-              <Card 
-                key={customer.id} 
-                className="shadow-lg hover:shadow-xl transition-shadow"
-                style={{
-                  backgroundColor: settings?.card_background_color || '#ffffff',
-                  borderColor: settings?.card_border_color || '#e5e7eb',
-                  borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-                  boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
-                }}
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge 
-                      variant="secondary"
-                      style={{
-                        backgroundColor: settings?.product_accent_color || '#f3f4f6',
-                        color: settings?.card_background_color || '#ffffff'
+        {/* Active Packing Products by Customer */}
+        {sharedDisplayPackingData.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {sharedDisplayPackingData.map((customerData) => {
+              const customer = sharedDisplayCustomers.find(c => c.id === customerData.id);
+              if (!customer) return null;
+
+              return (
+                <Card 
+                  key={customer.id} 
+                  className="shadow-lg hover:shadow-xl transition-shadow"
+                  style={{
+                    backgroundColor: settings?.card_background_color || '#ffffff',
+                    borderColor: settings?.card_border_color || '#e5e7eb',
+                    borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+                    boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+                  }}
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge 
+                        variant="secondary"
+                        style={{
+                          backgroundColor: customerData.overall_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                          color: 'white'
+                        }}
+                      >
+                        {customerData.overall_status === 'completed' ? 'Ferdig' : 'Pågående'}
+                      </Badge>
+                      <Badge 
+                        variant="outline"
+                        style={{
+                          backgroundColor: settings?.product_accent_color || '#f3f4f6',
+                          color: settings?.card_background_color || '#ffffff'
+                        }}
+                      >
+                        {customer.customer_number || 'Ingen nr.'}
+                      </Badge>
+                    </div>
+                    <CardTitle 
+                      className="text-xl text-center mb-3"
+                      style={{ 
+                        color: settings?.header_text_color || '#111827',
+                        fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.6, 24)}px` : '1.25rem'
                       }}
                     >
-                      {customer.customer_number || 'Ingen nr.'}
-                    </Badge>
-                  </div>
-                  {/* Make customer name much more prominent */}
-                  <CardTitle 
-                    className="text-2xl text-center mb-3"
-                    style={{ 
-                      color: settings?.header_text_color || '#111827',
-                      fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.7, 28)}px` : '1.5rem'
-                    }}
-                  >
-                    {customer.name}
-                  </CardTitle>
-                  {customer.contact_person && (
-                    <p 
-                      className="text-sm text-center"
-                      style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}
-                    >
-                      {customer.contact_person}
-                    </p>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span style={{ color: settings?.text_color || '#374151' }}>Totale ordrer:</span>
-                      <span 
-                        className="font-semibold"
-                        style={{ color: settings?.text_color || '#374151' }}
-                      >
-                        {customerOrders.length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span style={{ color: settings?.text_color || '#374151' }}>Dagens ordrer:</span>
-                      <span 
-                        className="font-semibold"
-                        style={{ color: settings?.product_accent_color || '#3b82f6' }}
-                      >
-                        {customerTodaysOrders.length}
-                      </span>
-                    </div>
-                    {settings?.show_customer_info && customer.phone && (
-                      <div className="flex justify-between text-sm">
-                        <span style={{ color: settings?.text_color || '#374151' }}>Telefon:</span>
-                        <span style={{ color: settings?.text_color || '#374151' }}>{customer.phone}</span>
+                      {customer.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {/* Progress */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span style={{ color: settings?.text_color || '#374151' }}>Fremgang:</span>
+                          <span 
+                            className="font-semibold"
+                            style={{ color: settings?.product_accent_color || '#3b82f6' }}
+                          >
+                            {customerData.progress_percentage}%
+                          </span>
+                        </div>
+                        <div 
+                          className="w-full rounded-full h-2"
+                          style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
+                        >
+                          <div 
+                            className="h-2 rounded-full transition-all duration-300"
+                            style={{ 
+                              backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                              width: `${customerData.progress_percentage}%`
+                            }}
+                          />
+                        </div>
                       </div>
-                    )}
-                    {settings?.show_customer_info && customer.email && (
-                      <div className="flex justify-between text-sm">
-                        <span style={{ color: settings?.text_color || '#374151' }}>E-post:</span>
-                        <span 
-                          className="truncate max-w-32"
+
+                      {/* Active Products */}
+                      <div>
+                        <h4 
+                          className="text-sm font-medium mb-2"
                           style={{ color: settings?.text_color || '#374151' }}
                         >
-                          {customer.email}
-                        </span>
+                          Aktive Produkter:
+                        </h4>
+                        <div className="space-y-1">
+                          {customerData.products.map((product, idx) => (
+                            <div 
+                              key={product.id} 
+                              className="text-sm p-2 rounded flex justify-between items-center"
+                              style={{
+                                backgroundColor: getProductBackgroundColor(settings || {} as any, idx % 3),
+                                borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
+                              }}
+                            >
+                              <span 
+                                className="font-medium"
+                                style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
+                              >
+                                {product.product_name}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <span 
+                                  style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
+                                >
+                                  {product.packed_line_items}/{product.total_line_items}
+                                </span>
+                                <Badge 
+                                  variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                                  className="text-xs"
+                                  style={{
+                                    backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                                    color: 'white'
+                                  }}
+                                >
+                                  {product.packing_status === 'completed' ? 'Ferdig' : 
+                                   product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Dagens Ordrer Detaljer - with more prominent customer names */}
-        {todaysOrders.length > 0 && (
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
           <Card
             style={{
               backgroundColor: settings?.card_background_color || '#ffffff',
@@ -232,100 +274,20 @@ const SharedDisplay = () => {
               boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
             }}
           >
-            <CardHeader>
-              <CardTitle 
-                className="text-xl"
-                style={{ color: settings?.text_color || '#111827' }}
+            <CardContent className="text-center p-12">
+              <Package className="h-16 w-16 mx-auto mb-6 text-gray-400" />
+              <p 
+                className="text-xl mb-6"
+                style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Dagens Ordrer - {format(new Date(), 'dd. MMMM yyyy', { locale: nb })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {todaysOrders.map((order) => {
-                  const customer = sharedDisplayCustomers.find(c => c.id === order.customer_id);
-                  return (
-                    <div 
-                      key={order.id} 
-                      className="border rounded-lg p-4"
-                      style={{
-                        backgroundColor: settings?.product_card_color || '#f9fafb',
-                        borderColor: settings?.card_border_color || '#e5e7eb',
-                        borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          {/* Make customer name more prominent in order details */}
-                          <h3 
-                            className="font-bold text-lg mb-1"
-                            style={{ 
-                              color: settings?.header_text_color || '#111827',
-                              fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.3}px` : '1.125rem'
-                            }}
-                          >
-                            {customer?.name}
-                          </h3>
-                          {settings?.show_order_numbers && (
-                            <p 
-                              className="text-sm"
-                              style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}
-                            >
-                              Ordre: {order.order_number}
-                            </p>
-                          )}
-                        </div>
-                        <Badge 
-                          variant={order.status === 'delivered' ? 'default' : 'secondary'}
-                          style={{
-                            backgroundColor: statusColors[order.status as keyof typeof statusColors] || settings?.status_pending_color || '#f59e0b',
-                            color: 'white'
-                          }}
-                        >
-                          {order.status}
-                        </Badge>
-                      </div>
-                      {order.order_products && order.order_products.length > 0 && (
-                        <div className="mt-2">
-                          <h4 
-                            className="text-sm font-medium mb-1"
-                            style={{ color: settings?.text_color || '#374151' }}
-                          >
-                            Produkter:
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {order.order_products.map((orderProduct, idx) => (
-                              <div 
-                                key={orderProduct.id} 
-                                className="text-sm p-2 rounded"
-                                style={{
-                                  backgroundColor: getProductBackgroundColor(settings || {} as any, idx % 3),
-                                  borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
-                                  transform: `scale(${(settings?.product_card_size || 100) / 100})`,
-                                  transformOrigin: 'left center'
-                                }}
-                              >
-                                <span 
-                                  className="font-medium"
-                                  style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
-                                >
-                                  {orderProduct.product?.name}
-                                </span>
-                                <span 
-                                  className="ml-2"
-                                  style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
-                                >
-                                  x{orderProduct.quantity}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                Ingen aktive produkter valgt for pakking i dag
+              </p>
+              <p 
+                className="text-sm"
+                style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+              >
+                Gå til Pakking-siden for å velge produkter som skal pakkes
+              </p>
             </CardContent>
           </Card>
         )}
