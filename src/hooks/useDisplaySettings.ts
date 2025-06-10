@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -6,7 +5,7 @@ import { DisplaySettings } from '@/types/displaySettings';
 import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
 import { mapDatabaseToDisplaySettings, mapDisplaySettingsToDatabase } from '@/utils/displaySettingsMappers';
 
-export { DisplaySettings } from '@/types/displaySettings';
+export type { DisplaySettings } from '@/types/displaySettings';
 
 export const useDisplaySettings = () => {
   return useQuery({
