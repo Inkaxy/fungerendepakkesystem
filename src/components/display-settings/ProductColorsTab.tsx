@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import ColorPicker from './ColorPicker';
 import SliderControl from './SliderControl';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
@@ -16,84 +17,106 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
       {/* Individual Product Settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Individuell Produktstyling</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <p className="text-sm text-gray-600 mb-4">
-            Tilpass utseendet for hver produktlinje individuelt
+          <CardTitle className="text-lg">🎨 Individuell Produktstyling</CardTitle>
+          <p className="text-sm text-gray-600">
+            Tilpass utseendet for hver produktlinje individuelt. Hver linje kan ha sin egen fargekombinasjon.
           </p>
+        </CardHeader>
+        <CardContent className="space-y-8">
           
           {/* Product 1 */}
           <div className="space-y-4">
-            <h3 className="text-base font-medium border-b pb-2">Produktlinje 1</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div 
+                className="w-4 h-4 rounded-full border-2"
+                style={{ backgroundColor: settings.product_1_bg_color, borderColor: settings.product_1_accent_color }}
+              />
+              <h3 className="text-base font-semibold">Produktlinje 1</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ColorPicker
-                label="Bakgrunnsfarge"
+                label="🎭 Bakgrunnsfarge"
                 value={settings.product_1_bg_color}
                 onChange={(color) => onUpdate({ product_1_bg_color: color })}
-                description="Bakgrunn for produktlinje 1"
+                description="Bakgrunnsfargen som vises bak produktnavnet"
               />
               <ColorPicker
-                label="Tekstfarge"
+                label="📝 Tekstfarge"
                 value={settings.product_1_text_color}
                 onChange={(color) => onUpdate({ product_1_text_color: color })}
-                description="Tekst for produktlinje 1"
+                description="Fargen på produktnavnet og beskrivelsen"
               />
               <ColorPicker
-                label="Aksent farge"
+                label="✨ Aksent farge"
                 value={settings.product_1_accent_color}
                 onChange={(color) => onUpdate({ product_1_accent_color: color })}
-                description="Aksentfarge for produktlinje 1"
+                description="Fargen på antall og viktige elementer"
               />
             </div>
           </div>
+
+          <Separator />
 
           {/* Product 2 */}
           <div className="space-y-4">
-            <h3 className="text-base font-medium border-b pb-2">Produktlinje 2</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div 
+                className="w-4 h-4 rounded-full border-2"
+                style={{ backgroundColor: settings.product_2_bg_color, borderColor: settings.product_2_accent_color }}
+              />
+              <h3 className="text-base font-semibold">Produktlinje 2</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ColorPicker
-                label="Bakgrunnsfarge"
+                label="🎭 Bakgrunnsfarge"
                 value={settings.product_2_bg_color}
                 onChange={(color) => onUpdate({ product_2_bg_color: color })}
-                description="Bakgrunn for produktlinje 2"
+                description="Bakgrunnsfargen som vises bak produktnavnet"
               />
               <ColorPicker
-                label="Tekstfarge"
+                label="📝 Tekstfarge"
                 value={settings.product_2_text_color}
                 onChange={(color) => onUpdate({ product_2_text_color: color })}
-                description="Tekst for produktlinje 2"
+                description="Fargen på produktnavnet og beskrivelsen"
               />
               <ColorPicker
-                label="Aksent farge"
+                label="✨ Aksent farge"
                 value={settings.product_2_accent_color}
                 onChange={(color) => onUpdate({ product_2_accent_color: color })}
-                description="Aksentfarge for produktlinje 2"
+                description="Fargen på antall og viktige elementer"
               />
             </div>
           </div>
 
+          <Separator />
+
           {/* Product 3 */}
           <div className="space-y-4">
-            <h3 className="text-base font-medium border-b pb-2">Produktlinje 3</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div 
+                className="w-4 h-4 rounded-full border-2"
+                style={{ backgroundColor: settings.product_3_bg_color, borderColor: settings.product_3_accent_color }}
+              />
+              <h3 className="text-base font-semibold">Produktlinje 3</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ColorPicker
-                label="Bakgrunnsfarge"
+                label="🎭 Bakgrunnsfarge"
                 value={settings.product_3_bg_color}
                 onChange={(color) => onUpdate({ product_3_bg_color: color })}
-                description="Bakgrunn for produktlinje 3"
+                description="Bakgrunnsfargen som vises bak produktnavnet"
               />
               <ColorPicker
-                label="Tekstfarge"
+                label="📝 Tekstfarge"
                 value={settings.product_3_text_color}
                 onChange={(color) => onUpdate({ product_3_text_color: color })}
-                description="Tekst for produktlinje 3"
+                description="Fargen på produktnavnet og beskrivelsen"
               />
               <ColorPicker
-                label="Aksent farge"
+                label="✨ Aksent farge"
                 value={settings.product_3_accent_color}
                 onChange={(color) => onUpdate({ product_3_accent_color: color })}
-                description="Aksentfarge for produktlinje 3"
+                description="Fargen på antall og viktige elementer"
               />
             </div>
           </div>
@@ -103,20 +126,20 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
       {/* Global Product Settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Globale Produktinnstillinger</CardTitle>
+          <CardTitle className="text-lg">🔧 Globale Produktinnstillinger</CardTitle>
+          <p className="text-sm text-gray-600">
+            Disse innstillingene påvirker alle produktlinjer samlet
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">
-            Disse innstillingene gjelder for alle produkter
-          </p>
           <SliderControl
-            label="Produktkort størrelse"
+            label="📏 Produktkort størrelse"
             value={settings.product_card_size}
             onChange={(value) => onUpdate({ product_card_size: value })}
             min={50}
             max={150}
             unit="%"
-            description="Justerer størrelsen på produktkortene"
+            description="Justerer størrelsen på alle produktkortene samtidig"
           />
         </CardContent>
       </Card>
@@ -124,7 +147,10 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
       {/* Product Preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Forhåndsvisning av Produkter</CardTitle>
+          <CardTitle className="text-lg">👀 Forhåndsvisning av Produkter</CardTitle>
+          <p className="text-sm text-gray-600">
+            Slik vil produktene se ut med dine valgte farger og innstillinger
+          </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -154,16 +180,11 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
                 style={{ 
                   backgroundColor: product.bgColor,
                   borderRadius: `${settings.border_radius}px`,
-                  transform: settings.enable_animations ? 'scale(1)' : 'none'
+                  transform: `scale(${settings.product_card_size / 100})`,
+                  transformOrigin: 'top left'
                 }}
               >
-                <div 
-                  className="space-y-2"
-                  style={{ 
-                    transform: `scale(${settings.product_card_size / 100})`,
-                    transformOrigin: 'top left'
-                  }}
-                >
+                <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-2">
                       <div 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, Truck } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
-import { generateDisplayStyles } from '@/utils/displayStyleUtils';
+import { generateDisplayStyles, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 
 interface DisplayPreviewProps {
   settings: DisplaySettings;
@@ -12,12 +12,12 @@ interface DisplayPreviewProps {
 
 const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   const styles = generateDisplayStyles(settings);
-  const mockProgress = 57; // Mock progress percentage for preview
+  const mockProgress = 67; // Mock progress percentage for preview
 
   const products = [
-    { name: 'Produkt 1', bgColor: settings.product_1_bg_color, quantity: 3 },
-    { name: 'Produkt 2', bgColor: settings.product_2_bg_color, quantity: 5 },
-    { name: 'Produkt 3', bgColor: settings.product_3_bg_color, quantity: 2 }
+    { name: 'Produkt 1', quantity: 3 },
+    { name: 'Produkt 2', quantity: 5 },
+    { name: 'Produkt 3', quantity: 2 }
   ];
 
   return (
@@ -69,6 +69,8 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                 borderStyle: 'solid',
                 borderRadius: `${settings.border_radius}px`,
                 boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
+                transform: `scale(${settings.product_card_size / 100})`,
+                transformOrigin: 'top left'
               }}
             >
               <div className="space-y-2">
@@ -77,19 +79,19 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                     key={idx}
                     className="flex justify-between items-center p-2 rounded"
                     style={{
-                      backgroundColor: product.bgColor,
+                      backgroundColor: getProductBackgroundColor(settings, idx),
                       borderRadius: `${settings.border_radius}px`,
                     }}
                   >
                     <span 
                       className="text-sm font-medium"
-                      style={{ color: settings.product_text_color }}
+                      style={{ color: getProductTextColor(settings, idx) }}
                     >
                       {product.name}
                     </span>
                     <span 
                       className="text-sm font-bold"
-                      style={{ color: settings.product_accent_color }}
+                      style={{ color: getProductAccentColor(settings, idx) }}
                     >
                       {product.quantity}
                     </span>
@@ -163,15 +165,17 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                     className="w-full rounded-full relative"
                     style={{ 
                       backgroundColor: settings.progress_background_color,
-                      height: `${Math.max(settings.progress_height, 4)}px`
+                      height: `${Math.max(settings.progress_height / 2, 4)}px`
                     }}
                   >
                     <div 
-                      className="rounded-full transition-all duration-300"
+                      className={`rounded-full transition-all ${settings.progress_animation ? 'animate-pulse' : ''}`}
                       style={{ 
                         backgroundColor: settings.progress_bar_color,
-                        height: `${Math.max(settings.progress_height, 4)}px`,
-                        width: `${mockProgress}%`
+                        height: `${Math.max(settings.progress_height / 2, 4)}px`,
+                        width: `${mockProgress}%`,
+                        transitionDuration: settings.animation_speed === 'slow' ? '2s' : 
+                                           settings.animation_speed === 'fast' ? '0.5s' : '1s'
                       }}
                     />
                     {/* Truck Icon */}
