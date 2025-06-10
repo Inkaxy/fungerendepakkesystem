@@ -37,6 +37,7 @@ export const useCustomerUpload = (
       
       for (const customer of customers) {
         const { original_id, ...customerData } = customer;
+        console.log('Creating customer with data:', customerData);
         const createdCustomer = await createCustomer.mutateAsync(customerData);
         
         newCustomerMapping[original_id] = createdCustomer.id;
@@ -51,7 +52,7 @@ export const useCustomerUpload = (
       
       toast({
         title: "Kunder lastet opp",
-        description: `${customers.length} kunder ble importert`,
+        description: `${customers.length} kunder ble importert med kundenummer`,
       });
     } catch (error) {
       console.error('Customer upload error:', error);

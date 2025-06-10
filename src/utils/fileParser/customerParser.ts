@@ -39,6 +39,7 @@ export const parseCustomerFile = (fileContent: string, bakeryId: string): Parsed
       
       customers.push({
         original_id: customerId,
+        customer_number: customerId, // Save the original customer number
         name: customerName,
         address: address || undefined,
         phone: phone || undefined,

@@ -1,6 +1,7 @@
 
 export interface ParsedProduct {
   original_id: string;
+  product_number?: string; // Add product_number field
   name: string;
   category?: string;
   is_active: boolean;
@@ -9,6 +10,7 @@ export interface ParsedProduct {
 
 export interface ParsedCustomer {
   original_id: string;
+  customer_number?: string; // Add customer_number field
   name: string;
   contact_person?: string;
   phone?: string;

@@ -37,6 +37,7 @@ export const parseProductFile = (fileContent: string, bakeryId: string): ParsedP
       
       products.push({
         original_id: productId,
+        product_number: originalId, // Save the original product number with leading zeros
         name: productName,
         category: 'Imported',
         is_active: true,

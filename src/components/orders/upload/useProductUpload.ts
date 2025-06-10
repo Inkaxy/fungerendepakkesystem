@@ -55,7 +55,7 @@ export const useProductUpload = (
       
       toast({
         title: "Produkter lastet opp",
-        description: `${products.length} produkter ble importert`,
+        description: `${products.length} produkter ble importert med varenummer`,
       });
     } catch (error) {
       console.error('Product upload error:', error);
