@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, ArrowLeft, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -91,7 +92,7 @@ const Login = () => {
         <Card className="border-0 shadow-xl">
           <CardHeader className="space-y-2 text-center pb-6">
             <div className="flex justify-center mb-4">
-              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-11w-auto" />
+              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-8 w-auto" />
             </div>
             
             <CardDescription>Administrer ditt bakeri med vårt moderne pakkesystem</CardDescription>
