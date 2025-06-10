@@ -102,6 +102,8 @@ const CustomerDisplay = () => {
     );
   }
 
+  const isAllPacked = customerPackingData.progress_percentage >= 100;
+
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
@@ -124,7 +126,7 @@ const CustomerDisplay = () => {
                 fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
               }}
             >
-              Pakkeskjerm - {format(new Date(), 'dd. MMMM yyyy', { locale: nb })}
+              {format(new Date(), 'dd. MMMM yyyy', { locale: nb })}
             </p>
           </div>
           <Button
@@ -138,104 +140,74 @@ const CustomerDisplay = () => {
           </Button>
         </div>
 
-        {/* Products to pack (max 3) */}
+        {/* Products List */}
         <Card
           style={{
             backgroundColor: settings?.card_background_color || '#ffffff',
             borderColor: settings?.card_border_color || '#e5e7eb',
             borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
           }}
         >
           <CardContent className="p-8">
-            <div className="space-y-6">
+            <div className="space-y-4">
               {customerPackingData.products.map((product, index) => (
                 <div 
                   key={product.id}
-                  className="flex items-center justify-between p-6 rounded-lg"
+                  className="flex justify-between items-center p-4 rounded-lg"
                   style={{
                     backgroundColor: settings?.product_card_color || '#f9fafb',
                     borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
                   }}
                 >
-                  {/* Product info */}
-                  <div className="flex-1">
-                    <h3 
-                      className="font-bold mb-2"
-                      style={{ 
-                        color: settings?.product_text_color || '#111827',
-                        fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
-                      }}
-                    >
-                      {product.product_name}
-                    </h3>
-                    <p 
-                      className="text-sm mb-1"
-                      style={{ color: settings?.product_accent_color || '#6b7280' }}
-                    >
-                      Kategori: {product.product_category}
-                    </p>
-                    <p 
-                      className="text-lg"
-                      style={{ color: settings?.product_accent_color || '#6b7280' }}
-                    >
-                      {product.quantity_packed} av {product.quantity_ordered} pakket
-                    </p>
-                  </div>
-
-                  {/* Progress */}
-                  <div className="flex-1 mx-8">
-                    <div className="relative">
-                      <div 
-                        className="w-full rounded-full"
-                        style={{ 
-                          backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                          height: settings?.progress_height ? `${settings.progress_height * 2}px` : '16px'
-                        }}
-                      >
-                        <div 
-                          className="rounded-full transition-all duration-300"
-                          style={{ 
-                            backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                            height: settings?.progress_height ? `${settings.progress_height * 2}px` : '16px',
-                            width: `${Math.round((product.quantity_packed / product.quantity_ordered) * 100)}%`
-                          }}
-                        />
-                      </div>
-                      {settings?.show_progress_percentage && (
-                        <div 
-                          className="absolute right-0 top-0 transform translate-x-full ml-4 text-lg font-semibold"
-                          style={{ color: settings?.text_color || '#374151' }}
-                        >
-                          {Math.round((product.quantity_packed / product.quantity_ordered) * 100)}%
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status badge */}
-                  <div className="flex-shrink-0">
-                    <Badge
-                      className="text-lg px-4 py-2 font-semibold"
-                      style={{
-                        backgroundColor: product.packing_status === 'completed' 
-                          ? statusColors.completed
-                          : statusColors.ongoing,
-                        color: 'white'
-                      }}
-                    >
-                      {product.packing_status === 'completed' ? 'Ferdig pakket' : 'Pågående'}
-                    </Badge>
-                  </div>
+                  <h3 
+                    className="font-bold"
+                    style={{ 
+                      color: settings?.product_text_color || '#111827',
+                      fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
+                    }}
+                  >
+                    {product.product_name}
+                  </h3>
+                  <span 
+                    className="text-2xl font-bold"
+                    style={{ color: settings?.product_accent_color || '#6b7280' }}
+                  >
+                    {product.total_line_items}
+                  </span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Overall status */}
+        {/* Status Section */}
         <Card
-          className="text-center"
+          style={{
+            backgroundColor: settings?.card_background_color || '#ffffff',
+            borderColor: settings?.card_border_color || '#e5e7eb',
+            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+          }}
+        >
+          <CardContent className="p-8 text-center space-y-4">
+            <div className="space-y-2">
+              <p 
+                className="text-2xl"
+                style={{ color: settings?.text_color || '#6b7280' }}
+              >
+                Bestilt {customerPackingData.total_line_items} varelinjer
+              </p>
+              <p 
+                className="text-2xl font-semibold"
+                style={{ color: settings?.text_color || '#111827' }}
+              >
+                Pakket {customerPackingData.packed_line_items} av {customerPackingData.total_line_items} varelinjer
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Progress Bar */}
+        <Card
           style={{
             backgroundColor: settings?.card_background_color || '#ffffff',
             borderColor: settings?.card_border_color || '#e5e7eb',
@@ -243,53 +215,54 @@ const CustomerDisplay = () => {
           }}
         >
           <CardContent className="p-8">
-            <div className="flex items-center justify-center space-x-6">
-              <div>
-                <p 
-                  className="text-xl mb-2"
-                  style={{ color: settings?.text_color || '#6b7280' }}
-                >
-                  Total fremdrift
-                </p>
-                <p 
-                  className="text-4xl font-bold"
-                  style={{ color: settings?.text_color || '#111827' }}
-                >
-                  {customerPackingData.progress_percentage}%
-                </p>
-              </div>
-              <div className="flex-1 max-w-md">
-                <div 
-                  className="w-full rounded-full"
-                  style={{ 
-                    backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                    height: settings?.progress_height ? `${settings.progress_height * 3}px` : '24px'
-                  }}
-                >
-                  <div 
-                    className="rounded-full transition-all duration-300"
-                    style={{ 
-                      backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                      height: settings?.progress_height ? `${settings.progress_height * 3}px` : '24px',
-                      width: `${customerPackingData.progress_percentage}%`
-                    }}
-                  />
-                </div>
-              </div>
-              <Badge
-                className="text-2xl px-6 py-3 font-bold"
-                style={{
-                  backgroundColor: customerPackingData.overall_status === 'completed' 
-                    ? statusColors.completed
-                    : statusColors.ongoing,
-                  color: 'white'
+            <div className="space-y-4">
+              <div 
+                className="w-full rounded-full"
+                style={{ 
+                  backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                  height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
                 }}
               >
-                {customerPackingData.overall_status === 'completed' ? 'Ferdig pakket' : 'Pågående'}
-              </Badge>
+                <div 
+                  className="rounded-full transition-all duration-300"
+                  style={{ 
+                    backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                    height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
+                    width: `${customerPackingData.progress_percentage}%`
+                  }}
+                />
+              </div>
+              {settings?.show_progress_percentage && (
+                <div className="text-center">
+                  <span 
+                    className="text-3xl font-bold"
+                    style={{ color: settings?.text_color || '#374151' }}
+                  >
+                    {customerPackingData.progress_percentage}%
+                  </span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Completion Status */}
+        {isAllPacked && (
+          <Card
+            className="text-center"
+            style={{
+              backgroundColor: statusColors.completed,
+              borderColor: statusColors.completed,
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-8">
+              <h2 className="text-4xl font-bold text-white">
+                STATUS: Ferdig Pakket
+              </h2>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Footer */}
         <div className="text-center">

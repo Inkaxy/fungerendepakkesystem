@@ -20,6 +20,7 @@ export const useDisplayRefresh = ({
     const refreshData = () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
     };
 
     intervalRef.current = setInterval(refreshData, interval);
@@ -34,6 +35,7 @@ export const useDisplayRefresh = ({
   const triggerRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['orders'] });
     queryClient.invalidateQueries({ queryKey: ['customers'] });
+    queryClient.invalidateQueries({ queryKey: ['packing-data'] });
   };
 
   return { triggerRefresh };
