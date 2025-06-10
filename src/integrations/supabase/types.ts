@@ -125,10 +125,13 @@ export type Database = {
           show_order_numbers: boolean | null
           show_product_images: boolean | null
           show_progress_percentage: boolean | null
+          show_status_indicator: boolean | null
           spacing: number | null
           status_completed_color: string | null
           status_delivered_color: string | null
           status_in_progress_color: string | null
+          status_indicator_font_size: number | null
+          status_indicator_padding: number | null
           status_pending_color: string | null
           text_color: string | null
           updated_at: string
@@ -162,10 +165,13 @@ export type Database = {
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_percentage?: boolean | null
+          show_status_indicator?: boolean | null
           spacing?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
           status_in_progress_color?: string | null
+          status_indicator_font_size?: number | null
+          status_indicator_padding?: number | null
           status_pending_color?: string | null
           text_color?: string | null
           updated_at?: string
@@ -199,10 +205,13 @@ export type Database = {
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_percentage?: boolean | null
+          show_status_indicator?: boolean | null
           spacing?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
           status_in_progress_color?: string | null
+          status_indicator_font_size?: number | null
+          status_indicator_padding?: number | null
           status_pending_color?: string | null
           text_color?: string | null
           updated_at?: string

@@ -64,10 +64,10 @@ export const useDisplaySettings = () => {
         ...data,
         packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
         packing_status_completed_color: data.status_completed_color || '#10b981',
-        // Set defaults for new status indicator settings
+        // Set defaults for status indicator settings
         show_status_indicator: data.show_status_indicator ?? true,
-        status_indicator_font_size: data.status_indicator_font_size || 32,
-        status_indicator_padding: data.status_indicator_padding || 24,
+        status_indicator_font_size: data.status_indicator_font_size ?? 32,
+        status_indicator_padding: data.status_indicator_padding ?? 24,
         // Set defaults for missing properties
         show_customer_info: data.show_customer_info ?? true,
         show_order_numbers: data.show_order_numbers ?? true,
