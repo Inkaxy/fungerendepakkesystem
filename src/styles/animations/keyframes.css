@@ -32,7 +32,7 @@
   }
 }
 
-/* Cat animation keyframes */
+/* Cat animation keyframes with variable duration support */
 @keyframes cat-run {
   0% { 
     transform: translateX(-100px);
@@ -112,4 +112,19 @@
     transform: translateY(-60px) scale(0.5);
     opacity: 0;
   }
+}
+
+/* Additional cat animation variations for different speeds */
+@keyframes cat-run-slow {
+  0% { transform: translateX(-100px); }
+  50% { transform: translateX(calc(100vw - 100px)); }
+  51% { transform: translateX(calc(100vw - 100px)) scaleX(-1); }
+  100% { transform: translateX(-100px) scaleX(-1); }
+}
+
+@keyframes cat-run-fast {
+  0% { transform: translateX(-100px); }
+  50% { transform: translateX(calc(100vw - 100px)); }
+  51% { transform: translateX(calc(100vw - 100px)) scaleX(-1); }
+  100% { transform: translateX(-100px) scaleX(-1); }
 }

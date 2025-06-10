@@ -31,7 +31,7 @@
   animation: truck-drive 20s linear infinite, truckBoost 0.3s ease-out;
 }
 
-/* Cat-specific animation classes */
+/* Cat-specific animation classes with speed variations */
 .animate-cat-run {
   animation: cat-run 15s linear infinite;
   position: absolute;
@@ -42,12 +42,36 @@
   transition: transform 0.3s ease;
 }
 
+.animate-cat-run.duration-slow {
+  animation-duration: 20s;
+}
+
+.animate-cat-run.duration-fast {
+  animation-duration: 8s;
+}
+
+.animate-cat-run.duration-normal {
+  animation-duration: 15s;
+}
+
 .animate-cat-bounce {
   animation: cat-bounce 1.5s ease-in-out infinite;
   position: absolute;
   font-size: 3rem;
   z-index: 15;
   pointer-events: none;
+}
+
+.animate-cat-bounce.duration-slow {
+  animation-duration: 3s;
+}
+
+.animate-cat-bounce.duration-fast {
+  animation-duration: 1s;
+}
+
+.animate-cat-bounce.duration-normal {
+  animation-duration: 1.5s;
 }
 
 .animate-cat-fall {
@@ -58,6 +82,18 @@
   pointer-events: none;
 }
 
+.animate-cat-fall.duration-slow {
+  animation-duration: 8s;
+}
+
+.animate-cat-fall.duration-fast {
+  animation-duration: 3s;
+}
+
+.animate-cat-fall.duration-normal {
+  animation-duration: 5s;
+}
+
 .animate-cat-fall.collected {
   animation: catCollectEffect 0.7s ease-out forwards;
   z-index: 30;
@@ -65,4 +101,17 @@
 
 .animate-cat-run.boost {
   animation: cat-run 15s linear infinite, truckBoost 0.3s ease-out;
+}
+
+/* Speed-specific duration classes */
+.duration-slow {
+  /* Slow animations */
+}
+
+.duration-normal {
+  /* Normal speed animations */
+}
+
+.duration-fast {
+  /* Fast animations */
 }

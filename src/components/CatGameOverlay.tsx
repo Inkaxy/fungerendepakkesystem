@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { DisplaySettings } from '@/hooks/useDisplaySettings';
 
 interface CollisionEffect {
   id: string;
@@ -10,23 +11,49 @@ interface CollisionEffect {
 }
 
 interface CatGameOverlayProps {
-  score: number;
-  collectedItems: number;
-  collisions: CollisionEffect[];
+  settings?: DisplaySettings;
+  score?: number;
+  collectedItems?: number;
+  collisions?: CollisionEffect[];
 }
 
-export const CatGameOverlay = ({ score, collectedItems, collisions }: CatGameOverlayProps) => {
+export const CatGameOverlay = ({ 
+  settings, 
+  score = 0, 
+  collectedItems = 0, 
+  collisions = [] 
+}: CatGameOverlayProps) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (settings?.enable_cat_animations) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  }, [settings?.enable_cat_animations]);
+
+  if (!isVisible || !settings?.enable_cat_animations) {
+    return null;
+  }
+
+  const animationSpeed = settings.cat_animation_speed || 'normal';
+  const speedClass = animationSpeed === 'slow' ? 'duration-slow' : 
+                     animationSpeed === 'fast' ? 'duration-fast' : 'duration-normal';
+
   return (
     <>
       {/* Score Display with Cat Theme */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        <Badge variant="default" className="bg-orange-500 text-white px-4 py-2 text-lg font-bold">
-          🐾 Score: {score}
-        </Badge>
-        <Badge variant="secondary" className="bg-amber-600 text-white px-4 py-2">
-          😸 Cats: {collectedItems}
-        </Badge>
-      </div>
+      {(score > 0 || collectedItems > 0) && (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          <Badge variant="default" className="bg-orange-500 text-white px-4 py-2 text-lg font-bold">
+            🐾 Score: {score}
+          </Badge>
+          <Badge variant="secondary" className="bg-amber-600 text-white px-4 py-2">
+            😸 Cats: {collectedItems}
+          </Badge>
+        </div>
+      )}
 
       {/* Cat Collision Effects */}
       {collisions.map((collision) => (
@@ -40,28 +67,90 @@ export const CatGameOverlay = ({ score, collectedItems, collisions }: CatGameOve
           }}
         >
           <div className="text-3xl">💖</div>
-          <div className="text-orange-500 font-bold text-sm mt-1">Mjau! +{Math.floor(Math.random() * 100) + 50}</div>
+          <div className="text-orange-500 font-bold text-sm mt-1">
+            Mjau! +{Math.floor(Math.random() * 100) + 50}
+          </div>
         </div>
       ))}
 
       {/* Running Cats */}
-      <div className="animate-cat-run">🐱</div>
+      {settings.show_running_cats && (
+        <div 
+          className={`animate-cat-run ${speedClass}`}
+          style={{
+            animationDuration: settings.cat_animation_speed === 'slow' ? '20s' : 
+                              settings.cat_animation_speed === 'fast' ? '8s' : '15s'
+          }}
+        >
+          🐱
+        </div>
+      )}
       
       {/* Bouncing Cats */}
-      <div className="animate-cat-bounce cat-bounce-1">😺</div>
-      <div className="animate-cat-bounce cat-bounce-2">😸</div>
-      <div className="animate-cat-bounce cat-bounce-3">😻</div>
-      <div className="animate-cat-bounce cat-bounce-4">🙀</div>
+      {settings.show_bouncing_cats && (
+        <>
+          <div 
+            className={`animate-cat-bounce ${speedClass}`}
+            style={{ 
+              position: 'absolute', 
+              left: '10%', 
+              top: '20%',
+              animationDelay: '0s',
+              animationDuration: settings.cat_animation_speed === 'slow' ? '3s' : 
+                                settings.cat_animation_speed === 'fast' ? '1s' : '1.5s'
+            }}
+          >
+            😺
+          </div>
+          <div 
+            className={`animate-cat-bounce ${speedClass}`}
+            style={{ 
+              position: 'absolute', 
+              right: '15%', 
+              top: '30%',
+              animationDelay: '0.5s',
+              animationDuration: settings.cat_animation_speed === 'slow' ? '3s' : 
+                                settings.cat_animation_speed === 'fast' ? '1s' : '1.5s'
+            }}
+          >
+            😸
+          </div>
+          <div 
+            className={`animate-cat-bounce ${speedClass}`}
+            style={{ 
+              position: 'absolute', 
+              left: '50%', 
+              top: '40%',
+              animationDelay: '1s',
+              animationDuration: settings.cat_animation_speed === 'slow' ? '3s' : 
+                                settings.cat_animation_speed === 'fast' ? '1s' : '1.5s'
+            }}
+          >
+            😻
+          </div>
+        </>
+      )}
 
       {/* Falling Cats */}
-      <div className="animate-cat-fall cat-1">🐱</div>
-      <div className="animate-cat-fall cat-2">😺</div>
-      <div className="animate-cat-fall cat-3">😸</div>
-      <div className="animate-cat-fall cat-4">😻</div>
-      <div className="animate-cat-fall cat-5">🙀</div>
-      <div className="animate-cat-fall cat-6">😿</div>
-      <div className="animate-cat-fall cat-7">😾</div>
-      <div className="animate-cat-fall cat-8">🐈</div>
+      {settings.show_falling_cats && (
+        <>
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={`falling-cat-${i}`}
+              className={`animate-cat-fall ${speedClass}`}
+              style={{
+                position: 'absolute',
+                left: `${10 + i * 15}%`,
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: settings.cat_animation_speed === 'slow' ? '8s' : 
+                                  settings.cat_animation_speed === 'fast' ? '3s' : '5s'
+              }}
+            >
+              {['🐱', '😺', '😸', '😻', '🙀', '😿'][i]}
+            </div>
+          ))}
+        </>
+      )}
     </>
   );
 };

@@ -10,7 +10,8 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
+import { generateDisplayStyles, packingStatusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import { format } from 'date-fns';
 
@@ -76,6 +77,9 @@ const CustomerDisplay = () => {
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
+        {/* Cat Game Overlay */}
+        <CatGameOverlay settings={settings} />
+        
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Always show customer header */}
           <CustomerHeader 
@@ -106,6 +110,9 @@ const CustomerDisplay = () => {
 
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
+      {/* Cat Game Overlay */}
+      <CatGameOverlay settings={settings} />
+      
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Customer header - always displayed */}
         <CustomerHeader 
@@ -121,6 +128,7 @@ const CustomerDisplay = () => {
             backgroundColor: settings?.card_background_color || '#ffffff',
             borderColor: settings?.card_border_color || '#e5e7eb',
             borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
           }}
         >
           <CardContent className="p-8">
@@ -130,14 +138,16 @@ const CustomerDisplay = () => {
                   key={product.id}
                   className="flex justify-between items-center p-4 rounded-lg"
                   style={{
-                    backgroundColor: settings?.product_card_color || '#f9fafb',
+                    backgroundColor: getProductBackgroundColor(settings || {} as any, index),
                     borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+                    transform: `scale(${(settings?.product_card_size || 100) / 100})`,
+                    transformOrigin: 'left center'
                   }}
                 >
                   <h3 
                     className="font-bold"
                     style={{ 
-                      color: settings?.product_text_color || '#111827',
+                      color: getProductTextColor(settings || {} as any, index),
                       fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
                     }}
                   >
@@ -145,7 +155,7 @@ const CustomerDisplay = () => {
                   </h3>
                   <span 
                     className="text-2xl font-bold"
-                    style={{ color: settings?.product_accent_color || '#6b7280' }}
+                    style={{ color: getProductAccentColor(settings || {} as any, index) }}
                   >
                     {product.total_line_items}
                   </span>
@@ -161,6 +171,7 @@ const CustomerDisplay = () => {
             backgroundColor: settings?.card_background_color || '#ffffff',
             borderColor: settings?.card_border_color || '#e5e7eb',
             borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
           }}
         >
           <CardContent className="p-8 text-center space-y-4">
@@ -215,6 +226,7 @@ const CustomerDisplay = () => {
               backgroundColor: settings?.card_background_color || '#ffffff',
               borderColor: settings?.card_border_color || '#e5e7eb',
               borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+              boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
             }}
           >
             <CardContent className="p-8">
@@ -227,7 +239,7 @@ const CustomerDisplay = () => {
                   }}
                 >
                   <div 
-                    className="rounded-full transition-all duration-300"
+                    className={`rounded-full transition-all duration-300 ${settings?.progress_animation ? 'animate-pulse' : ''}`}
                     style={{ 
                       backgroundColor: settings?.progress_bar_color || '#3b82f6',
                       height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',

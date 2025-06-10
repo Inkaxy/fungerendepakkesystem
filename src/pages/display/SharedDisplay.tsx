@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +9,8 @@ import { useOrders } from '@/hooks/useOrders';
 import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
+import { generateDisplayStyles, statusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
@@ -45,6 +47,9 @@ const SharedDisplay = () => {
       className="min-h-screen p-8"
       style={displayStyles}
     >
+      {/* Cat Game Overlay */}
+      <CatGameOverlay settings={settings} />
+      
       <div className="max-w-7xl mx-auto">
         {/* Header with refresh button */}
         <div className="flex justify-between items-start mb-8">
@@ -289,12 +294,12 @@ const SharedDisplay = () => {
                             Produkter:
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {order.order_products.map((orderProduct) => (
+                            {order.order_products.map((orderProduct, idx) => (
                               <div 
                                 key={orderProduct.id} 
                                 className="text-sm p-2 rounded"
                                 style={{
-                                  backgroundColor: settings?.card_background_color || '#ffffff',
+                                  backgroundColor: getProductBackgroundColor(settings || {} as any, idx % 3),
                                   borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
                                   transform: `scale(${(settings?.product_card_size || 100) / 100})`,
                                   transformOrigin: 'left center'
@@ -302,13 +307,13 @@ const SharedDisplay = () => {
                               >
                                 <span 
                                   className="font-medium"
-                                  style={{ color: settings?.product_text_color || '#374151' }}
+                                  style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
                                 >
                                   {orderProduct.product?.name}
                                 </span>
                                 <span 
                                   className="ml-2"
-                                  style={{ color: settings?.product_accent_color || '#6b7280' }}
+                                  style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
                                 >
                                   x{orderProduct.quantity}
                                 </span>
