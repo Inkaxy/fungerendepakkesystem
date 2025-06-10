@@ -97,6 +97,7 @@ export type Database = {
       }
       display_settings: {
         Row: {
+          animation_speed: string | null
           auto_refresh_interval: number | null
           background_color: string | null
           background_gradient_end: string | null
@@ -110,16 +111,25 @@ export type Database = {
           card_border_color: string | null
           card_shadow_intensity: number | null
           created_at: string
+          enable_animations: boolean | null
+          fade_transitions: boolean | null
           header_font_size: number | null
           header_text_color: string | null
           id: string
+          product_1_accent_color: string | null
           product_1_bg_color: string | null
+          product_1_text_color: string | null
+          product_2_accent_color: string | null
           product_2_bg_color: string | null
+          product_2_text_color: string | null
+          product_3_accent_color: string | null
           product_3_bg_color: string | null
+          product_3_text_color: string | null
           product_accent_color: string | null
           product_card_color: string | null
           product_card_size: number | null
           product_text_color: string | null
+          progress_animation: boolean | null
           progress_background_color: string | null
           progress_bar_color: string | null
           progress_height: number | null
@@ -143,6 +153,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animation_speed?: string | null
           auto_refresh_interval?: number | null
           background_color?: string | null
           background_gradient_end?: string | null
@@ -156,16 +167,25 @@ export type Database = {
           card_border_color?: string | null
           card_shadow_intensity?: number | null
           created_at?: string
+          enable_animations?: boolean | null
+          fade_transitions?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          product_1_accent_color?: string | null
           product_1_bg_color?: string | null
+          product_1_text_color?: string | null
+          product_2_accent_color?: string | null
           product_2_bg_color?: string | null
+          product_2_text_color?: string | null
+          product_3_accent_color?: string | null
           product_3_bg_color?: string | null
+          product_3_text_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
           product_text_color?: string | null
+          progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
@@ -189,6 +209,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animation_speed?: string | null
           auto_refresh_interval?: number | null
           background_color?: string | null
           background_gradient_end?: string | null
@@ -202,16 +223,25 @@ export type Database = {
           card_border_color?: string | null
           card_shadow_intensity?: number | null
           created_at?: string
+          enable_animations?: boolean | null
+          fade_transitions?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          product_1_accent_color?: string | null
           product_1_bg_color?: string | null
+          product_1_text_color?: string | null
+          product_2_accent_color?: string | null
           product_2_bg_color?: string | null
+          product_2_text_color?: string | null
+          product_3_accent_color?: string | null
           product_3_bg_color?: string | null
+          product_3_text_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
           product_text_color?: string | null
+          progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null

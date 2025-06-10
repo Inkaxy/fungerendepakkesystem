@@ -28,6 +28,14 @@ export interface DisplaySettings {
   product_1_bg_color: string;
   product_2_bg_color: string;
   product_3_bg_color: string;
+  // Individual product text colors
+  product_1_text_color: string;
+  product_2_text_color: string;
+  product_3_text_color: string;
+  // Individual product accent colors
+  product_1_accent_color: string;
+  product_2_accent_color: string;
+  product_3_accent_color: string;
   // Packing-specific settings
   packing_status_ongoing_color: string;
   packing_status_completed_color: string;
@@ -54,6 +62,11 @@ export interface DisplaySettings {
   show_order_numbers?: boolean;
   show_delivery_dates?: boolean;
   show_product_images?: boolean;
+  // Animation settings
+  enable_animations: boolean;
+  animation_speed: 'slow' | 'normal' | 'fast';
+  fade_transitions: boolean;
+  progress_animation: boolean;
 }
 
 export const useDisplaySettings = () => {
@@ -80,6 +93,12 @@ export const useDisplaySettings = () => {
         product_1_bg_color: data.product_1_bg_color || '#ffffff',
         product_2_bg_color: data.product_2_bg_color || '#f9fafb',
         product_3_bg_color: data.product_3_bg_color || '#f3f4f6',
+        product_1_text_color: data.product_1_text_color || '#1f2937',
+        product_2_text_color: data.product_2_text_color || '#1f2937',
+        product_3_text_color: data.product_3_text_color || '#1f2937',
+        product_1_accent_color: data.product_1_accent_color || '#3b82f6',
+        product_2_accent_color: data.product_2_accent_color || '#10b981',
+        product_3_accent_color: data.product_3_accent_color || '#f59e0b',
         // Set defaults for progress bar and truck icon
         show_progress_bar: data.show_progress_bar ?? true,
         show_truck_icon: data.show_truck_icon ?? false,
@@ -90,6 +109,11 @@ export const useDisplaySettings = () => {
         show_delivery_dates: data.show_delivery_dates ?? true,
         show_product_images: data.show_product_images ?? false,
         status_pending_color: data.status_pending_color || '#f59e0b',
+        // Set defaults for animation settings
+        enable_animations: data.enable_animations ?? true,
+        animation_speed: data.animation_speed || 'normal',
+        fade_transitions: data.fade_transitions ?? true,
+        progress_animation: data.progress_animation ?? true,
       };
       
       return mappedData as DisplaySettings;
@@ -124,11 +148,14 @@ export const useUpdateDisplaySettings = () => {
         'card_background_color', 'card_border_color', 'card_shadow_intensity', 'border_radius',
         'spacing', 'product_card_color', 'product_text_color', 'product_accent_color', 'product_card_size',
         'product_1_bg_color', 'product_2_bg_color', 'product_3_bg_color',
+        'product_1_text_color', 'product_2_text_color', 'product_3_text_color',
+        'product_1_accent_color', 'product_2_accent_color', 'product_3_accent_color',
         'progress_bar_color', 'progress_background_color', 'progress_height', 'show_progress_percentage',
         'show_progress_bar', 'show_truck_icon', 'truck_icon_size',
         'auto_refresh_interval', 'show_status_indicator', 'status_indicator_font_size', 'status_indicator_padding',
         'status_in_progress_color', 'status_completed_color', 'status_pending_color', 'status_delivered_color',
-        'show_customer_info', 'show_order_numbers', 'show_delivery_dates', 'show_product_images'
+        'show_customer_info', 'show_order_numbers', 'show_delivery_dates', 'show_product_images',
+        'enable_animations', 'animation_speed', 'fade_transitions', 'progress_animation'
       ];
 
       // Filter to only include allowed database properties

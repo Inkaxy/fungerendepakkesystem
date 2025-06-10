@@ -21,6 +21,9 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     }
   })();
 
+  const animationDuration = settings.animation_speed === 'slow' ? '2s' : 
+                           settings.animation_speed === 'fast' ? '0.5s' : '1s';
+
   return {
     '--header-font-size': `${settings.header_font_size}px`,
     '--body-font-size': `${settings.body_font_size}px`,
@@ -36,6 +39,12 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--product-1-bg-color': settings.product_1_bg_color,
     '--product-2-bg-color': settings.product_2_bg_color,
     '--product-3-bg-color': settings.product_3_bg_color,
+    '--product-1-text-color': settings.product_1_text_color,
+    '--product-2-text-color': settings.product_2_text_color,
+    '--product-3-text-color': settings.product_3_text_color,
+    '--product-1-accent-color': settings.product_1_accent_color,
+    '--product-2-accent-color': settings.product_2_accent_color,
+    '--product-3-accent-color': settings.product_3_accent_color,
     '--packing-status-ongoing': settings.packing_status_ongoing_color,
     '--packing-status-completed': settings.packing_status_completed_color,
     '--progress-bar-color': settings.progress_bar_color,
@@ -43,6 +52,10 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--progress-height': `${settings.progress_height}px`,
     '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
     '--truck-icon-size': `${settings.truck_icon_size}px`,
+    '--animation-duration': animationDuration,
+    '--enable-animations': settings.enable_animations ? '1' : '0',
+    '--fade-transitions': settings.fade_transitions ? '1' : '0',
+    '--progress-animation': settings.progress_animation ? '1' : '0',
     ...backgroundStyle,
   } as React.CSSProperties & { [key: string]: string };
 };
@@ -70,4 +83,46 @@ export const getProductBackgroundColor = (settings: DisplaySettings, productInde
     default:
       return settings.product_card_color;
   }
+};
+
+export const getProductTextColor = (settings: DisplaySettings, productIndex: number) => {
+  switch (productIndex) {
+    case 0:
+      return settings.product_1_text_color;
+    case 1:
+      return settings.product_2_text_color;
+    case 2:
+      return settings.product_3_text_color;
+    default:
+      return settings.product_text_color;
+  }
+};
+
+export const getProductAccentColor = (settings: DisplaySettings, productIndex: number) => {
+  switch (productIndex) {
+    case 0:
+      return settings.product_1_accent_color;
+    case 1:
+      return settings.product_2_accent_color;
+    case 2:
+      return settings.product_3_accent_color;
+    default:
+      return settings.product_accent_color;
+  }
+};
+
+export const getAnimationClasses = (settings: DisplaySettings) => {
+  if (!settings.enable_animations) return '';
+  
+  const classes = ['transition-all'];
+  
+  if (settings.fade_transitions) {
+    classes.push('fade-in');
+  }
+  
+  if (settings.progress_animation) {
+    classes.push('animate-pulse');
+  }
+  
+  return classes.join(' ');
 };

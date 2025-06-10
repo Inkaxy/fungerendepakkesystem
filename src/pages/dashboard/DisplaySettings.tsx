@@ -3,11 +3,13 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, Palette, Layout, Activity } from 'lucide-react';
+import { Save, Eye, Palette, Layout, Activity, Sparkles, Zap } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
 import LayoutBackgroundTab from '@/components/display-settings/LayoutBackgroundTab';
 import ProductColorsTab from '@/components/display-settings/ProductColorsTab';
 import StatusProgressTab from '@/components/display-settings/StatusProgressTab';
+import ThemePresetsTab from '@/components/display-settings/ThemePresetsTab';
+import AnimationSettingsTab from '@/components/display-settings/AnimationSettingsTab';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 
@@ -91,21 +93,36 @@ const DisplaySettings = () => {
               </p>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="layout" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="layout" className="flex items-center space-x-2">
+              <Tabs defaultValue="themes" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="themes" className="flex items-center space-x-1">
+                    <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline">Temaer</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="layout" className="flex items-center space-x-1">
                     <Layout className="h-4 w-4" />
-                    <span className="hidden sm:inline">Layout & Bakgrunn</span>
+                    <span className="hidden sm:inline">Layout</span>
                   </TabsTrigger>
-                  <TabsTrigger value="products" className="flex items-center space-x-2">
+                  <TabsTrigger value="products" className="flex items-center space-x-1">
                     <Palette className="h-4 w-4" />
-                    <span className="hidden sm:inline">Produkter & Farger</span>
+                    <span className="hidden sm:inline">Produkter</span>
                   </TabsTrigger>
-                  <TabsTrigger value="status" className="flex items-center space-x-2">
+                  <TabsTrigger value="status" className="flex items-center space-x-1">
                     <Activity className="h-4 w-4" />
-                    <span className="hidden sm:inline">Status & Fremgang</span>
+                    <span className="hidden sm:inline">Status</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="animations" className="flex items-center space-x-1">
+                    <Zap className="h-4 w-4" />
+                    <span className="hidden sm:inline">Animasjon</span>
                   </TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="themes">
+                  <ThemePresetsTab 
+                    settings={localSettings} 
+                    onUpdate={handleUpdate} 
+                  />
+                </TabsContent>
 
                 <TabsContent value="layout">
                   <LayoutBackgroundTab 
@@ -123,6 +140,13 @@ const DisplaySettings = () => {
 
                 <TabsContent value="status">
                   <StatusProgressTab 
+                    settings={localSettings} 
+                    onUpdate={handleUpdate} 
+                  />
+                </TabsContent>
+
+                <TabsContent value="animations">
+                  <AnimationSettingsTab 
                     settings={localSettings} 
                     onUpdate={handleUpdate} 
                   />
