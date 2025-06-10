@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Building, UserPlus } from 'lucide-react';
+import { Building, UserPlus, Trash2 } from 'lucide-react';
 
 interface AdminHeaderProps {
   onCreateBakery: () => void;
   onCreateUser: () => void;
+  onDeleteAllData: () => void;
 }
 
-const AdminHeader = ({ onCreateBakery, onCreateUser }: AdminHeaderProps) => {
+const AdminHeader = ({ onCreateBakery, onCreateUser, onDeleteAllData }: AdminHeaderProps) => {
   return (
     <div className="flex justify-between items-center">
       <div>
@@ -25,6 +26,10 @@ const AdminHeader = ({ onCreateBakery, onCreateUser }: AdminHeaderProps) => {
         <Button onClick={onCreateUser}>
           <UserPlus className="mr-2 h-4 w-4" />
           Ny Bruker
+        </Button>
+        <Button variant="destructive" onClick={onDeleteAllData}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Slett All Data
         </Button>
       </div>
     </div>

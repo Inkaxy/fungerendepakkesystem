@@ -7,6 +7,7 @@ import CreateUserDialog from '@/components/admin/CreateUserDialog';
 import EditUserDialog from '@/components/admin/EditUserDialog';
 import UserPermissionsDialog from '@/components/admin/UserPermissionsDialog';
 import DeleteConfirmDialog from '@/components/admin/DeleteConfirmDialog';
+import DeleteAllDataDialog from '@/components/admin/DeleteAllDataDialog';
 
 interface Bakery {
   id: string;
@@ -47,6 +48,8 @@ interface AdminDialogsProps {
   setReactivatingUser: (user: User | null) => void;
   permanentDeletingUser: User | null;
   setPermanentDeletingUser: (user: User | null) => void;
+  showDeleteAllData: boolean;
+  setShowDeleteAllData: (show: boolean) => void;
   onDeleteBakery: () => void;
   onDeactivateUser: () => void;
   onReactivateUser: () => void;
@@ -78,6 +81,8 @@ const AdminDialogs = ({
   setReactivatingUser,
   permanentDeletingUser,
   setPermanentDeletingUser,
+  showDeleteAllData,
+  setShowDeleteAllData,
   onDeleteBakery,
   onDeactivateUser,
   onReactivateUser,
@@ -116,6 +121,10 @@ const AdminDialogs = ({
         open={!!managingUserPermissions}
         onOpenChange={(open) => !open && setManagingUserPermissions(null)}
         user={managingUserPermissions}
+      />
+      <DeleteAllDataDialog
+        open={showDeleteAllData}
+        onOpenChange={setShowDeleteAllData}
       />
       <DeleteConfirmDialog
         open={!!deletingBakery}

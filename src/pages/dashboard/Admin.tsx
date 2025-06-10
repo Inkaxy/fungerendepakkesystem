@@ -27,6 +27,7 @@ const Admin = () => {
   const [deactivatingUser, setDeactivatingUser] = useState<any>(null);
   const [reactivatingUser, setReactivatingUser] = useState<any>(null);
   const [permanentDeletingUser, setPermanentDeletingUser] = useState<any>(null);
+  const [showDeleteAllData, setShowDeleteAllData] = useState(false);
   
   const { data: bakeries, isLoading: bakeriesLoading } = useBakeries();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
@@ -93,6 +94,7 @@ const Admin = () => {
       <AdminHeader 
         onCreateBakery={() => setShowCreateBakery(true)}
         onCreateUser={() => setShowCreateUser(true)}
+        onDeleteAllData={() => setShowDeleteAllData(true)}
       />
 
       <AdminStats 
@@ -139,6 +141,8 @@ const Admin = () => {
         setReactivatingUser={setReactivatingUser}
         permanentDeletingUser={permanentDeletingUser}
         setPermanentDeletingUser={setPermanentDeletingUser}
+        showDeleteAllData={showDeleteAllData}
+        setShowDeleteAllData={setShowDeleteAllData}
         onDeleteBakery={handleDeleteBakery}
         onDeactivateUser={handleDeactivateUser}
         onReactivateUser={handleReactivateUser}
