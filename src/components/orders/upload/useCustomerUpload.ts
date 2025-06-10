@@ -53,8 +53,16 @@ export const useCustomerUpload = (
         });
       }
       
+      console.log('=== CUSTOMER MAPPING CREATION DEBUG ===');
+      
       for (const customer of customers) {
         const { original_id, customer_number, ...customerData } = customer;
+        
+        console.log(`Processing customer:`, {
+          original_id,
+          customer_number,
+          name: customerData.name
+        });
         
         // Track customers with/without numbers
         if (customer_number) {
@@ -68,19 +76,22 @@ export const useCustomerUpload = (
         
         if (existingCustomer) {
           // Customer already exists, use existing ID
-          // FIXED: Use customer_number (processed) as the mapping key instead of original_id
-          newCustomerMapping[customer_number || original_id] = existingCustomer.id;
-          // Also map the original_id for backward compatibility
+          // PRIMARY MAPPING: customer_number (processed) -> database UUID
+          newCustomerMapping[customer_number] = existingCustomer.id;
+          // FALLBACK MAPPING: original_id -> database UUID (for backward compatibility)
           if (original_id !== customer_number) {
             newCustomerMapping[original_id] = existingCustomer.id;
           }
+          
           createdCustomers.push(existingCustomer);
           existingCustomersCount++;
-          console.log(`Customer ${customer_number} already exists, using existing ID: ${existingCustomer.id}`);
-          console.log(`Mapping created: ${customer_number} -> ${existingCustomer.id}`);
-          if (original_id !== customer_number) {
-            console.log(`Mapping created: ${original_id} -> ${existingCustomer.id}`);
-          }
+          
+          console.log(`✓ Existing customer found:`, {
+            customer_number,
+            database_id: existingCustomer.id,
+            primary_mapping: `${customer_number} -> ${existingCustomer.id}`,
+            fallback_mapping: original_id !== customer_number ? `${original_id} -> ${existingCustomer.id}` : 'none'
+          });
         } else {
           // Customer doesn't exist, create new one
           console.log('Creating new customer with data:', { customer_number, ...customerData });
@@ -89,24 +100,30 @@ export const useCustomerUpload = (
             ...customerData 
           });
           
-          // FIXED: Use customer_number (processed) as the primary mapping key
-          newCustomerMapping[customer_number || original_id] = createdCustomer.id;
-          // Also map the original_id for backward compatibility
+          // PRIMARY MAPPING: customer_number (processed) -> database UUID
+          newCustomerMapping[customer_number] = createdCustomer.id;
+          // FALLBACK MAPPING: original_id -> database UUID (for backward compatibility)
           if (original_id !== customer_number) {
             newCustomerMapping[original_id] = createdCustomer.id;
           }
+          
           createdCustomers.push(createdCustomer);
           newCustomersCount++;
           
-          console.log(`Created new customer ${customer_number} with ID: ${createdCustomer.id}`);
-          console.log(`Mapping created: ${customer_number} -> ${createdCustomer.id}`);
-          if (original_id !== customer_number) {
-            console.log(`Mapping created: ${original_id} -> ${createdCustomer.id}`);
-          }
+          console.log(`✓ New customer created:`, {
+            customer_number,
+            database_id: createdCustomer.id,
+            primary_mapping: `${customer_number} -> ${createdCustomer.id}`,
+            fallback_mapping: original_id !== customer_number ? `${original_id} -> ${createdCustomer.id}` : 'none'
+          });
         }
       }
       
-      console.log('Final customer mapping:', newCustomerMapping);
+      console.log('=== FINAL CUSTOMER MAPPING ===');
+      console.log('Customer mapping keys:', Object.keys(newCustomerMapping));
+      console.log('Full customer mapping:', newCustomerMapping);
+      console.log('=== END CUSTOMER MAPPING DEBUG ===');
+      
       setCustomerIdMapping(newCustomerMapping);
       setUploadResults(prev => ({ ...prev, customers: createdCustomers }));
       setUploadStatus(prev => ({ ...prev, customers: 'success' }));

@@ -41,16 +41,29 @@ export const useOrderUpload = (
       const text = await file.text();
       const orders = parseOrderFile(text, profile.bakery_id);
       
-      console.log('Parsed orders:', orders);
-      console.log('Product ID mapping:', productIdMapping);
+      console.log('=== ORDER UPLOAD DEBUG ===');
+      console.log('Parsed orders count:', orders.length);
+      console.log('Sample parsed order:', orders[0]);
+      console.log('Product ID mapping keys:', Object.keys(productIdMapping));
+      console.log('Customer ID mapping keys:', Object.keys(customerIdMapping));
       console.log('Customer ID mapping:', customerIdMapping);
+      console.log('=== END ORDER UPLOAD DEBUG ===');
       
       const createdOrders = [];
+      let failedOrders = 0;
       
       for (const order of orders) {
+        console.log(`\n=== Processing order ${order.order_number} ===`);
+        console.log(`Looking for customer ID: "${order.customer_original_id}"`);
+        console.log(`Available customer mapping keys:`, Object.keys(customerIdMapping));
+        
         const customerUuid = customerIdMapping[order.customer_original_id];
+        console.log(`Customer mapping result: ${order.customer_original_id} -> ${customerUuid}`);
+        
         if (!customerUuid) {
-          console.error(`No mapping found for customer ID: ${order.customer_original_id}`);
+          console.error(`❌ No mapping found for customer ID: ${order.customer_original_id}`);
+          console.error(`Available mappings:`, customerIdMapping);
+          failedOrders++;
           toast({
             title: "Feil ved ordreopprettelse",
             description: `Kunde med ID ${order.customer_original_id} ikke funnet. Sørg for at kunder er lastet opp først.`,
@@ -59,11 +72,16 @@ export const useOrderUpload = (
           continue;
         }
         
+        console.log(`✓ Customer found: ${order.customer_original_id} -> ${customerUuid}`);
+        
         const convertedOrderProducts = [];
         for (const orderProduct of order.order_products) {
+          console.log(`Looking for product ID: "${orderProduct.product_original_id}"`);
           const productUuid = productIdMapping[orderProduct.product_original_id];
+          console.log(`Product mapping result: ${orderProduct.product_original_id} -> ${productUuid}`);
+          
           if (!productUuid) {
-            console.error(`No mapping found for product ID: ${orderProduct.product_original_id}`);
+            console.error(`❌ No mapping found for product ID: ${orderProduct.product_original_id}`);
             toast({
               title: "Feil ved ordreopprettelse",
               description: `Produkt med ID ${orderProduct.product_original_id} ikke funnet. Sørg for at produkter er lastet opp først.`,
@@ -71,6 +89,8 @@ export const useOrderUpload = (
             });
             continue;
           }
+          
+          console.log(`✓ Product found: ${orderProduct.product_original_id} -> ${productUuid}`);
           
           convertedOrderProducts.push({
             product_id: productUuid,
@@ -80,7 +100,8 @@ export const useOrderUpload = (
         }
         
         if (convertedOrderProducts.length === 0) {
-          console.warn(`Skipping order ${order.order_number} - no valid products found`);
+          console.warn(`⚠️ Skipping order ${order.order_number} - no valid products found`);
+          failedOrders++;
           continue;
         }
         
@@ -93,17 +114,23 @@ export const useOrderUpload = (
           order_products: convertedOrderProducts
         };
         
-        console.log('Creating order:', orderToCreate);
+        console.log('✓ Creating order:', orderToCreate);
         const createdOrder = await createOrder.mutateAsync(orderToCreate);
         createdOrders.push(createdOrder);
+        console.log(`✓ Order ${order.order_number} created successfully`);
       }
       
       setUploadResults(prev => ({ ...prev, orders: createdOrders }));
       setUploadStatus(prev => ({ ...prev, orders: 'success' }));
       
+      let description = `${createdOrders.length} ordrer ble importert`;
+      if (failedOrders > 0) {
+        description += ` (${failedOrders} ordrer feilet)`;
+      }
+      
       toast({
         title: "Ordrer lastet opp",
-        description: `${createdOrders.length} ordrer ble importert`,
+        description,
       });
     } catch (error) {
       console.error('Order upload error:', error);
