@@ -8,15 +8,18 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, ArrowLeft, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
-
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  
-  const { signIn, signUp, user, isAuthenticating } = useAuthStore();
+  const {
+    signIn,
+    signUp,
+    user,
+    isAuthenticating
+  } = useAuthStore();
   const navigate = useNavigate();
 
   // Demo credentials
@@ -24,16 +27,15 @@ const Login = () => {
     email: 'demobakeri@gmail.com',
     password: 'Demo123'
   };
-
   const handleDemoLogin = () => {
     setEmail(demoCredentials.email);
     setPassword(demoCredentials.password);
     setActiveTab('login');
   };
-
   const handleDemoLoginAndSubmit = async () => {
-    const { error } = await signIn(demoCredentials.email, demoCredentials.password);
-    
+    const {
+      error
+    } = await signIn(demoCredentials.email, demoCredentials.password);
     if (error) {
       toast.error(`Demo innlogging feilet: ${error.message}`);
     } else {
@@ -48,12 +50,11 @@ const Login = () => {
       navigate('/dashboard');
     }
   }, [user, navigate]);
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const { error } = await signIn(email, password);
-    
+    const {
+      error
+    } = await signIn(email, password);
     if (error) {
       toast.error(`Innlogging feilet: ${error.message}`);
     } else {
@@ -61,12 +62,11 @@ const Login = () => {
       navigate('/dashboard');
     }
   };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const { error } = await signUp(email, password, name);
-    
+    const {
+      error
+    } = await signUp(email, password, name);
     if (error) {
       toast.error(`Registrering feilet: ${error.message}`);
     } else {
@@ -78,16 +78,11 @@ const Login = () => {
       setName('');
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 gradient-bread-subtle">
+  return <div className="min-h-screen flex items-center justify-center p-4 gradient-bread-subtle">
       <div className="w-full max-w-md">
         {/* Back to home link */}
         <div className="mb-6">
-          <Link 
-            to="/"
-            className="inline-flex items-center text-bakery-brown hover:text-bakery-orange transition-colors"
-          >
+          <Link to="/" className="inline-flex items-center text-bakery-brown hover:text-bakery-orange transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Tilbake til forsiden
           </Link>
@@ -96,11 +91,7 @@ const Login = () => {
         <Card className="border-0 shadow-xl">
           <CardHeader className="space-y-2 text-center pb-6">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" 
-                alt="Loaf & Load"
-                className="h-20 w-auto"
-              />
+              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-25w-auto" />
             </div>
             <CardTitle className="text-2xl font-bold text-bakery-brown">
               Velkommen til Loaf & Load
@@ -121,25 +112,11 @@ const Login = () => {
                 Test systemet med forhåndsopprettede demo-legitimasjon
               </p>
               <div className="flex gap-2">
-                <Button
-                  onClick={handleDemoLogin}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
+                <Button onClick={handleDemoLogin} variant="outline" size="sm" className="flex-1 text-xs border-blue-300 text-blue-700 hover:bg-blue-100">
                   Fyll inn demo-data
                 </Button>
-                <Button
-                  onClick={handleDemoLoginAndSubmit}
-                  size="sm"
-                  className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={isAuthenticating}
-                >
-                  {isAuthenticating ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    'Logg inn som demo'
-                  )}
+                <Button onClick={handleDemoLoginAndSubmit} size="sm" className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white" disabled={isAuthenticating}>
+                  {isAuthenticating ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Logg inn som demo'}
                 </Button>
               </div>
             </div>
@@ -157,15 +134,7 @@ const Login = () => {
                     <Label htmlFor="email" className="text-bakery-brown font-medium">
                       E-postadresse
                     </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="din@email.no"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange"
-                      required
-                    />
+                    <Input id="email" type="email" placeholder="din@email.no" value={email} onChange={e => setEmail(e.target.value)} className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange" required />
                   </div>
 
                   <div className="space-y-2">
@@ -173,42 +142,18 @@ const Login = () => {
                       Passord
                     </Label>
                     <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Ditt passord"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange pr-10"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-bakery-orange"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                      <Input id="password" type={showPassword ? "text" : "password"} placeholder="Ditt passord" value={password} onChange={e => setPassword(e.target.value)} className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange pr-10" required />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-bakery-orange">
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-bakery-orange hover:bg-bakery-orange-light text-white py-3 font-semibold"
-                    disabled={isAuthenticating}
-                  >
-                    {isAuthenticating ? (
-                      <>
+                  <Button type="submit" className="w-full bg-bakery-orange hover:bg-bakery-orange-light text-white py-3 font-semibold" disabled={isAuthenticating}>
+                    {isAuthenticating ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Logger inn...
-                      </>
-                    ) : (
-                      'Logg inn'
-                    )}
+                      </> : 'Logg inn'}
                   </Button>
                 </form>
               </TabsContent>
@@ -220,30 +165,14 @@ const Login = () => {
                     <Label htmlFor="reg-name" className="text-bakery-brown font-medium">
                       Navn
                     </Label>
-                    <Input
-                      id="reg-name"
-                      type="text"
-                      placeholder="Ditt navn"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange"
-                      required
-                    />
+                    <Input id="reg-name" type="text" placeholder="Ditt navn" value={name} onChange={e => setName(e.target.value)} className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="reg-email" className="text-bakery-brown font-medium">
                       E-postadresse
                     </Label>
-                    <Input
-                      id="reg-email"
-                      type="email"
-                      placeholder="din@email.no"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange"
-                      required
-                    />
+                    <Input id="reg-email" type="email" placeholder="din@email.no" value={email} onChange={e => setEmail(e.target.value)} className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange" required />
                   </div>
 
                   <div className="space-y-2">
@@ -251,43 +180,18 @@ const Login = () => {
                       Passord
                     </Label>
                     <div className="relative">
-                      <Input
-                        id="reg-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Minimum 6 tegn"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange pr-10"
-                        required
-                        minLength={6}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-bakery-orange"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                      <Input id="reg-password" type={showPassword ? "text" : "password"} placeholder="Minimum 6 tegn" value={password} onChange={e => setPassword(e.target.value)} className="border-gray-300 focus:border-bakery-orange focus:ring-bakery-orange pr-10" required minLength={6} />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-bakery-orange">
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-bakery-orange hover:bg-bakery-orange-light text-white py-3 font-semibold"
-                    disabled={isAuthenticating}
-                  >
-                    {isAuthenticating ? (
-                      <>
+                  <Button type="submit" className="w-full bg-bakery-orange hover:bg-bakery-orange-light text-white py-3 font-semibold" disabled={isAuthenticating}>
+                    {isAuthenticating ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Registrerer...
-                      </>
-                    ) : (
-                      'Opprett konto'
-                    )}
+                      </> : 'Opprett konto'}
                   </Button>
                 </form>
               </TabsContent>
@@ -301,8 +205,6 @@ const Login = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
