@@ -1,0 +1,47 @@
+
+/* Custom bakery theme utilities */
+.bg-bakery-orange {
+  background-color: hsl(var(--bakery-orange));
+}
+
+.bg-bakery-orange-light {
+  background-color: hsl(var(--bakery-orange-light));
+}
+
+.bg-bakery-brown {
+  background-color: hsl(var(--bakery-brown));
+}
+
+.bg-bakery-cream {
+  background-color: hsl(var(--bakery-cream));
+}
+
+.text-bakery-orange {
+  color: hsl(var(--bakery-orange));
+}
+
+.text-bakery-brown {
+  color: hsl(var(--bakery-brown));
+}
+
+.border-bakery-orange {
+  border-color: hsl(var(--bakery-orange));
+}
+
+/* Gradient backgrounds inspired by bread colors */
+.gradient-bread {
+  background: linear-gradient(135deg, hsl(var(--bakery-orange-light)) 0%, hsl(var(--bakery-orange)) 100%);
+}
+
+.gradient-bread-subtle {
+  background: linear-gradient(135deg, hsl(var(--bakery-cream)) 0%, rgba(255,255,255,0.9) 100%);
+}
+
+/* Cat-themed gradients */
+.gradient-cat {
+  background: linear-gradient(135deg, #fef7ed 0%, #fed7aa 50%, #fdba74 100%);
+}
+
+.gradient-cat-paws {
+  background: linear-gradient(45deg, #f3f4f6 0%, #fef7ed 50%, #fed7aa 100%);
+}

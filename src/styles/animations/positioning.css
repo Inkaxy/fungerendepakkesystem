@@ -1,0 +1,28 @@
+
+/* Bread positioning variants */
+.bread-1 { animation-duration: 8s; animation-delay: 0s; left: 5%; }
+.bread-2 { animation-duration: 10s; animation-delay: 2s; left: 15%; }
+.bread-3 { animation-duration: 9s; animation-delay: 4s; left: 25%; }
+.bread-4 { animation-duration: 11s; animation-delay: 6s; left: 35%; }
+.bread-5 { animation-duration: 7s; animation-delay: 8s; left: 45%; }
+.bread-6 { animation-duration: 12s; animation-delay: 1s; left: 55%; }
+.bread-7 { animation-duration: 8s; animation-delay: 3s; left: 65%; }
+.bread-8 { animation-duration: 9s; animation-delay: 5s; left: 75%; }
+.bread-9 { animation-duration: 10s; animation-delay: 7s; left: 85%; }
+.bread-10 { animation-duration: 11s; animation-delay: 9s; left: 95%; }
+
+/* Cat-specific positioning */
+.cat-1 { animation-duration: 12s; animation-delay: 0s; left: 8%; }
+.cat-2 { animation-duration: 14s; animation-delay: 3s; left: 18%; }
+.cat-3 { animation-duration: 10s; animation-delay: 6s; left: 28%; }
+.cat-4 { animation-duration: 16s; animation-delay: 2s; left: 38%; }
+.cat-5 { animation-duration: 11s; animation-delay: 9s; left: 48%; }
+.cat-6 { animation-duration: 13s; animation-delay: 5s; left: 58%; }
+.cat-7 { animation-duration: 15s; animation-delay: 8s; left: 68%; }
+.cat-8 { animation-duration: 9s; animation-delay: 1s; left: 78%; }
+
+/* Bounce positions for stationary cats */
+.cat-bounce-1 { bottom: 20%; left: 10%; animation-delay: 0s; }
+.cat-bounce-2 { bottom: 30%; left: 30%; animation-delay: 0.5s; }
+.cat-bounce-3 { bottom: 15%; left: 70%; animation-delay: 1s; }
+.cat-bounce-4 { bottom: 40%; left: 90%; animation-delay: 1.5s; }

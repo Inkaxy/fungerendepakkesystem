@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, Palette, Layout, Activity, Sparkles, Zap, Settings } from 'lucide-react';
+import { Save, Eye, Palette, Layout, Activity, Sparkles, Zap, Settings, Cat } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
 import LayoutBackgroundTab from '@/components/display-settings/LayoutBackgroundTab';
 import ProductColorsTab from '@/components/display-settings/ProductColorsTab';
@@ -11,6 +11,7 @@ import StatusProgressTab from '@/components/display-settings/StatusProgressTab';
 import ThemePresetsTab from '@/components/display-settings/ThemePresetsTab';
 import AnimationSettingsTab from '@/components/display-settings/AnimationSettingsTab';
 import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab';
+import CatAnimationSettingsTab from '@/components/display-settings/CatAnimationSettingsTab';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,7 +96,7 @@ const DisplaySettings = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="themes" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                   <TabsTrigger value="themes" className="flex items-center space-x-1">
                     <Sparkles className="h-4 w-4" />
                     <span className="hidden sm:inline">Temaer</span>
@@ -119,6 +120,10 @@ const DisplaySettings = () => {
                   <TabsTrigger value="animations" className="flex items-center space-x-1">
                     <Zap className="h-4 w-4" />
                     <span className="hidden sm:inline">Animasjon</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="cats" className="flex items-center space-x-1">
+                    <Cat className="h-4 w-4" />
+                    <span className="hidden sm:inline">Katter</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -159,6 +164,13 @@ const DisplaySettings = () => {
 
                 <TabsContent value="animations">
                   <AnimationSettingsTab 
+                    settings={localSettings} 
+                    onUpdate={handleUpdate} 
+                  />
+                </TabsContent>
+
+                <TabsContent value="cats">
+                  <CatAnimationSettingsTab 
                     settings={localSettings} 
                     onUpdate={handleUpdate} 
                   />

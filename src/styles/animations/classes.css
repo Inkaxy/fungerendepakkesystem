@@ -1,0 +1,68 @@
+
+/* Animation utility classes */
+.animate-bread-rise {
+  animation: bread-rise 2s ease-in-out infinite;
+}
+
+.animate-bread-fall {
+  animation: bread-fall linear infinite;
+  position: absolute;
+  font-size: 2rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.animate-bread-fall.collected {
+  animation: collectEffect 0.5s ease-out forwards;
+  z-index: 30;
+}
+
+.animate-truck-drive {
+  animation: truck-drive 20s linear infinite;
+  position: absolute;
+  bottom: 10px;
+  font-size: 5rem;
+  z-index: 20;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.animate-truck-drive.boost {
+  animation: truck-drive 20s linear infinite, truckBoost 0.3s ease-out;
+}
+
+/* Cat-specific animation classes */
+.animate-cat-run {
+  animation: cat-run 15s linear infinite;
+  position: absolute;
+  bottom: 10px;
+  font-size: 4rem;
+  z-index: 20;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.animate-cat-bounce {
+  animation: cat-bounce 1.5s ease-in-out infinite;
+  position: absolute;
+  font-size: 3rem;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.animate-cat-fall {
+  animation: cat-fall linear infinite;
+  position: absolute;
+  font-size: 2.5rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.animate-cat-fall.collected {
+  animation: catCollectEffect 0.7s ease-out forwards;
+  z-index: 30;
+}
+
+.animate-cat-run.boost {
+  animation: cat-run 15s linear infinite, truckBoost 0.3s ease-out;
+}
