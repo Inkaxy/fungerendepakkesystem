@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,7 +80,7 @@ const themes = {
   cats: {
     name: 'Katter',
     icon: Cat,
-    description: 'Søt og koselig kattetema',
+    description: 'Søt og koselig kattetema med animerte katter',
     settings: {
       background_type: 'gradient' as const,
       background_gradient_start: '#fef7ed',
@@ -98,6 +97,11 @@ const themes = {
       progress_bar_color: '#ea580c',
       header_text_color: '#7c2d12',
       text_color: '#92400e',
+      enable_cat_animations: true,
+      cat_animation_speed: 'normal' as const,
+      show_bouncing_cats: true,
+      show_falling_cats: true,
+      show_running_cats: true,
     }
   },
   pride: {
@@ -191,12 +195,14 @@ const ThemePresetsTab = ({ settings, onUpdate }: ThemePresetsTabProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(themes).map(([key, theme]) => {
               const IconComponent = theme.icon;
+              const isCatTheme = key === 'cats';
               return (
                 <Card key={key} className="cursor-pointer hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3 mb-3">
                       <IconComponent className="h-5 w-5 text-gray-600" />
                       <h3 className="font-medium">{theme.name}</h3>
+                      {isCatTheme && <span className="text-lg">🐱</span>}
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{theme.description}</p>
                     
@@ -213,7 +219,7 @@ const ThemePresetsTab = ({ settings, onUpdate }: ThemePresetsTabProps) => {
                           className="w-2 h-2 rounded-full mr-2"
                           style={{ backgroundColor: theme.settings.product_1_accent_color }}
                         />
-                        Produkt 1
+                        {isCatTheme ? '🐱 Produkt 1' : 'Produkt 1'}
                       </div>
                       <div 
                         className="h-8 rounded-md flex items-center px-2 text-xs"
@@ -226,7 +232,7 @@ const ThemePresetsTab = ({ settings, onUpdate }: ThemePresetsTabProps) => {
                           className="w-2 h-2 rounded-full mr-2"
                           style={{ backgroundColor: theme.settings.product_2_accent_color }}
                         />
-                        Produkt 2
+                        {isCatTheme ? '😺 Produkt 2' : 'Produkt 2'}
                       </div>
                       <div 
                         className="h-8 rounded-md flex items-center px-2 text-xs"
@@ -239,9 +245,18 @@ const ThemePresetsTab = ({ settings, onUpdate }: ThemePresetsTabProps) => {
                           className="w-2 h-2 rounded-full mr-2"
                           style={{ backgroundColor: theme.settings.product_3_accent_color }}
                         />
-                        Produkt 3
+                        {isCatTheme ? '😸 Produkt 3' : 'Produkt 3'}
                       </div>
                     </div>
+                    
+                    {/* Special cat theme indicator */}
+                    {isCatTheme && (
+                      <div className="text-center mb-3">
+                        <Badge variant="secondary" className="text-xs">
+                          🎮 Med animerte katter!
+                        </Badge>
+                      </div>
+                    )}
                     
                     <Button 
                       onClick={() => applyTheme(key)}

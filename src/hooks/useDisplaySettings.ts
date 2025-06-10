@@ -69,6 +69,12 @@ export interface DisplaySettings {
   progress_animation: boolean;
   // Customer name display setting
   always_show_customer_name: boolean;
+  // Cat animation settings
+  enable_cat_animations: boolean;
+  cat_animation_speed: 'slow' | 'normal' | 'fast';
+  show_bouncing_cats: boolean;
+  show_falling_cats: boolean;
+  show_running_cats: boolean;
 }
 
 const getDefaultSettings = (bakery_id: string) => ({
@@ -124,6 +130,12 @@ const getDefaultSettings = (bakery_id: string) => ({
   fade_transitions: true,
   progress_animation: true,
   always_show_customer_name: true,
+  // Add cat animation defaults
+  enable_cat_animations: false,
+  cat_animation_speed: 'normal' as const,
+  show_bouncing_cats: true,
+  show_falling_cats: true,
+  show_running_cats: true,
 });
 
 export const useDisplaySettings = () => {
