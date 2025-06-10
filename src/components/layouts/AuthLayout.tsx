@@ -82,7 +82,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-30 w-auto" />
+              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-20 w-auto" />
             </div>
 
             {/* Desktop Navigation */}
