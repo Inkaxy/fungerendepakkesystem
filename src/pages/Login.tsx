@@ -91,11 +91,9 @@ const Login = () => {
         <Card className="border-0 shadow-xl">
           <CardHeader className="space-y-2 text-center pb-6">
             <div className="flex justify-center mb-4">
-              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-25w-auto" />
+              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-22w-auto" />
             </div>
-            <CardTitle className="text-2xl font-bold text-bakery-brown">
-              Velkommen til Loaf & Load
-            </CardTitle>
+            
             <CardDescription>
               Administrer ditt bakeri med vårt moderne system
             </CardDescription>
