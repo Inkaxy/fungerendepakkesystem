@@ -15,9 +15,9 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   const mockProgress = 67; // Mock progress percentage for preview
 
   const products = [
-    { name: 'Produkt 1', quantity: 3 },
-    { name: 'Produkt 2', quantity: 5 },
-    { name: 'Produkt 3', quantity: 2 }
+    { name: 'Rundstykker', quantity: 45, status: 'pending' },
+    { name: 'Croissant', quantity: 12, status: 'in_progress' },
+    { name: 'Grovbrød', quantity: 8, status: 'completed' }
   ];
 
   return (
@@ -25,6 +25,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="text-lg">Live Forhåndsvisning</CardTitle>
+          <p className="text-sm text-gray-600">Slik vil displayet se ut</p>
         </CardHeader>
         <CardContent className="p-0">
           <div 
@@ -35,29 +36,50 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
             }}
           >
             {/* Header with customer name */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-center flex-1">
-                <h1 
-                  className="font-bold mb-2"
-                  style={{ 
-                    fontSize: `${Math.min(settings.header_font_size * 0.6, 24)}px`,
-                    color: settings.header_text_color
-                  }}
-                >
-                  Eksempel Bakeri AS
-                </h1>
-                <p 
-                  className="text-sm"
-                  style={{ 
-                    color: settings.text_color,
-                    opacity: 0.8
-                  }}
-                >
-                  10. juni 2025
-                </p>
+            {settings.always_show_customer_name && (
+              <div className="flex justify-between items-center mb-6">
+                <div className="text-center flex-1">
+                  <h1 
+                    className="font-bold mb-2"
+                    style={{ 
+                      fontSize: `${Math.min(settings.header_font_size * 0.6, 24)}px`,
+                      color: settings.header_text_color
+                    }}
+                  >
+                    Borgheim Bakeri AS
+                  </h1>
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      color: settings.text_color,
+                      opacity: 0.8
+                    }}
+                  >
+                    Leveringsdato: 10. juni 2025
+                  </p>
+                </div>
+                <RefreshCw className="h-4 w-4 text-gray-400" />
               </div>
-              <RefreshCw className="h-4 w-4 text-gray-400" />
-            </div>
+            )}
+
+            {/* STATUS Indicator - Show if enabled */}
+            {settings.show_status_indicator && (
+              <div
+                className="text-center mb-4"
+                style={{
+                  backgroundColor: mockProgress >= 100 ? settings.packing_status_completed_color : settings.packing_status_ongoing_color,
+                  borderRadius: `${settings.border_radius}px`,
+                  padding: `${Math.max(settings.status_indicator_padding / 4, 8)}px`,
+                }}
+              >
+                <h2 
+                  className="font-bold text-white"
+                  style={{ fontSize: `${Math.max(settings.status_indicator_font_size / 2, 14)}px` }}
+                >
+                  STATUS: {mockProgress >= 100 ? 'Ferdig Pakket' : 'Pågående'}
+                </h2>
+              </div>
+            )}
 
             {/* Products List */}
             <div
@@ -75,77 +97,47 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
             >
               <div className="space-y-2">
                 {products.map((product, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-center p-2 rounded"
-                    style={{
-                      backgroundColor: getProductBackgroundColor(settings, idx),
-                      borderRadius: `${settings.border_radius}px`,
-                    }}
-                  >
-                    <span 
-                      className="text-sm font-medium"
-                      style={{ color: getProductTextColor(settings, idx) }}
+                  <div key={idx} className="space-y-1">
+                    <div
+                      className="flex justify-between items-center p-2 rounded"
+                      style={{
+                        backgroundColor: getProductBackgroundColor(settings, idx),
+                        borderRadius: `${settings.border_radius}px`,
+                      }}
                     >
-                      {product.name}
-                    </span>
-                    <span 
-                      className="text-sm font-bold"
-                      style={{ color: getProductAccentColor(settings, idx) }}
-                    >
-                      {product.quantity}
-                    </span>
+                      <span 
+                        className="text-sm font-medium"
+                        style={{ color: getProductTextColor(settings, idx) }}
+                      >
+                        {product.name}
+                      </span>
+                      <span 
+                        className="text-sm font-bold"
+                        style={{ color: getProductAccentColor(settings, idx) }}
+                      >
+                        {product.quantity} stk
+                      </span>
+                    </div>
+                    {/* Product status badge */}
+                    <div className="text-center">
+                      <Badge 
+                        variant={product.status === 'completed' ? 'default' : 'secondary'}
+                        className="text-xs"
+                        style={{
+                          backgroundColor: product.status === 'completed' ? settings.packing_status_completed_color : 
+                                           product.status === 'in_progress' ? settings.packing_status_ongoing_color : 
+                                           '#f59e0b',
+                          color: 'white'
+                        }}
+                      >
+                        {product.status === 'completed' ? 'Ferdig' : 
+                         product.status === 'in_progress' ? 'Pågår' : 'Venter'}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Status Section */}
-            <div
-              className="p-3 rounded mb-3 text-center"
-              style={{
-                backgroundColor: settings.card_background_color,
-                borderColor: settings.card_border_color,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderRadius: `${settings.border_radius}px`,
-                boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
-              }}
-            >
-              <div className="space-y-1">
-                <p 
-                  className="text-xs"
-                  style={{ color: settings.text_color }}
-                >
-                  Bestilt 3 varelinjer
-                </p>
-                <p 
-                  className="text-xs font-semibold"
-                  style={{ color: settings.text_color }}
-                >
-                  Pakket 2 av 3 varelinjer
-                </p>
-              </div>
-            </div>
-
-            {/* STATUS Indicator */}
-            {settings.show_status_indicator && (
-              <div
-                className="text-center mb-3"
-                style={{
-                  backgroundColor: mockProgress >= 100 ? settings.packing_status_completed_color : settings.packing_status_ongoing_color,
-                  borderRadius: `${settings.border_radius}px`,
-                  padding: `${Math.max(settings.status_indicator_padding / 4, 8)}px`,
-                }}
-              >
-                <h2 
-                  className="font-bold text-white"
-                  style={{ fontSize: `${Math.max(settings.status_indicator_font_size / 2, 14)}px` }}
-                >
-                  STATUS: {mockProgress >= 100 ? 'Ferdig Pakket' : 'Pågående'}
-                </h2>
-              </div>
-            )}
 
             {/* Progress Bar - Only show if enabled */}
             {settings.show_progress_bar && (
@@ -161,6 +153,14 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                 }}
               >
                 <div className="space-y-2">
+                  <div className="text-center mb-2">
+                    <p 
+                      className="text-xs"
+                      style={{ color: settings.text_color }}
+                    >
+                      Pakking fremgang: 2 av 3 produkter ferdig
+                    </p>
+                  </div>
                   <div 
                     className="w-full rounded-full relative"
                     style={{ 
@@ -204,6 +204,34 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                 </div>
               </div>
             )}
+
+            {/* Summary information */}
+            <div
+              className="p-2 rounded text-center"
+              style={{
+                backgroundColor: settings.card_background_color,
+                borderColor: settings.card_border_color,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderRadius: `${settings.border_radius}px`,
+                boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
+              }}
+            >
+              <div className="space-y-1">
+                <p 
+                  className="text-xs"
+                  style={{ color: settings.text_color }}
+                >
+                  Totalt 65 stk bestilt
+                </p>
+                <p 
+                  className="text-xs font-semibold"
+                  style={{ color: settings.text_color }}
+                >
+                  45 stk pakket
+                </p>
+              </div>
+            </div>
 
             {/* Footer */}
             <div className="text-center mt-4">
