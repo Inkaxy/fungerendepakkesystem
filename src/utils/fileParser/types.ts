@@ -24,7 +24,7 @@ export interface ParsedOrder {
   order_number: string;
   delivery_date: string;
   status: 'pending' | 'confirmed' | 'in_progress' | 'packed' | 'delivered' | 'cancelled';
-  customer_original_id: string;
+  customer_id: string; // Renamed from customer_original_id - this is the processed customer ID
   bakery_id: string;
   order_products: {
     product_original_id: string;

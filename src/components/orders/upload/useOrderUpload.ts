@@ -54,25 +54,25 @@ export const useOrderUpload = (
       
       for (const order of orders) {
         console.log(`\n=== Processing order ${order.order_number} ===`);
-        console.log(`Looking for customer ID: "${order.customer_original_id}"`);
+        console.log(`Looking for customer ID: "${order.customer_id}"`); // Updated field name
         console.log(`Available customer mapping keys:`, Object.keys(customerIdMapping));
         
-        const customerUuid = customerIdMapping[order.customer_original_id];
-        console.log(`Customer mapping result: ${order.customer_original_id} -> ${customerUuid}`);
+        const customerUuid = customerIdMapping[order.customer_id]; // Updated field name
+        console.log(`Customer mapping result: ${order.customer_id} -> ${customerUuid}`);
         
         if (!customerUuid) {
-          console.error(`❌ No mapping found for customer ID: ${order.customer_original_id}`);
+          console.error(`❌ No mapping found for customer ID: ${order.customer_id}`);
           console.error(`Available mappings:`, customerIdMapping);
           failedOrders++;
           toast({
             title: "Feil ved ordreopprettelse",
-            description: `Kunde med ID ${order.customer_original_id} ikke funnet. Sørg for at kunder er lastet opp først.`,
+            description: `Kunde med ID ${order.customer_id} ikke funnet. Sørg for at kunder er lastet opp først.`,
             variant: "destructive",
           });
           continue;
         }
         
-        console.log(`✓ Customer found: ${order.customer_original_id} -> ${customerUuid}`);
+        console.log(`✓ Customer found: ${order.customer_id} -> ${customerUuid}`);
         
         const convertedOrderProducts = [];
         for (const orderProduct of order.order_products) {

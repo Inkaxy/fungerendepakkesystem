@@ -42,7 +42,7 @@ export const parseOrderFile = (fileContent: string, bakeryId: string): ParsedOrd
       
       // Resten i midten er kundenummer
       const customerPart = withoutPrefix.slice(0, -5);
-      const customerId = removeLeadingZeros(customerPart);
+      const customerId = removeLeadingZeros(customerPart); // This is the processed customer ID
       
       console.log(`Parsing line ${i + 1}:`);
       console.log(`- Product ID raw: ${productIdRaw} -> processed: ${productId}`);
@@ -75,7 +75,7 @@ export const parseOrderFile = (fileContent: string, bakeryId: string): ParsedOrd
           order_number: orderNumber,
           delivery_date: orderDate,
           status: 'pending',
-          customer_original_id: customerId,
+          customer_id: customerId, // Renamed from customer_original_id for clarity - this is processed ID
           bakery_id: bakeryId,
           order_products: []
         };

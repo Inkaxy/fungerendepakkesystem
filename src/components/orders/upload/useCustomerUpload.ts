@@ -76,12 +76,8 @@ export const useCustomerUpload = (
         
         if (existingCustomer) {
           // Customer already exists, use existing ID
-          // PRIMARY MAPPING: customer_number (processed) -> database UUID
+          // Use PROCESSED ID (customer_number) as the mapping key for order lookup
           newCustomerMapping[customer_number] = existingCustomer.id;
-          // FALLBACK MAPPING: original_id -> database UUID (for backward compatibility)
-          if (original_id !== customer_number) {
-            newCustomerMapping[original_id] = existingCustomer.id;
-          }
           
           createdCustomers.push(existingCustomer);
           existingCustomersCount++;
@@ -89,8 +85,8 @@ export const useCustomerUpload = (
           console.log(`✓ Existing customer found:`, {
             customer_number,
             database_id: existingCustomer.id,
-            primary_mapping: `${customer_number} -> ${existingCustomer.id}`,
-            fallback_mapping: original_id !== customer_number ? `${original_id} -> ${existingCustomer.id}` : 'none'
+            mapping_key: customer_number,
+            mapping: `${customer_number} -> ${existingCustomer.id}`
           });
         } else {
           // Customer doesn't exist, create new one
@@ -100,12 +96,8 @@ export const useCustomerUpload = (
             ...customerData 
           });
           
-          // PRIMARY MAPPING: customer_number (processed) -> database UUID
+          // Use PROCESSED ID (customer_number) as the mapping key for order lookup
           newCustomerMapping[customer_number] = createdCustomer.id;
-          // FALLBACK MAPPING: original_id -> database UUID (for backward compatibility)
-          if (original_id !== customer_number) {
-            newCustomerMapping[original_id] = createdCustomer.id;
-          }
           
           createdCustomers.push(createdCustomer);
           newCustomersCount++;
@@ -113,14 +105,14 @@ export const useCustomerUpload = (
           console.log(`✓ New customer created:`, {
             customer_number,
             database_id: createdCustomer.id,
-            primary_mapping: `${customer_number} -> ${createdCustomer.id}`,
-            fallback_mapping: original_id !== customer_number ? `${original_id} -> ${createdCustomer.id}` : 'none'
+            mapping_key: customer_number,
+            mapping: `${customer_number} -> ${createdCustomer.id}`
           });
         }
       }
       
       console.log('=== FINAL CUSTOMER MAPPING ===');
-      console.log('Customer mapping keys:', Object.keys(newCustomerMapping));
+      console.log('Customer mapping keys (should be processed IDs):', Object.keys(newCustomerMapping));
       console.log('Full customer mapping:', newCustomerMapping);
       console.log('=== END CUSTOMER MAPPING DEBUG ===');
       
