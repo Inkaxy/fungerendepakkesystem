@@ -279,7 +279,7 @@ const CustomerDisplay = () => {
                   {/* Bread Van Icon */}
                   {settings?.show_truck_icon && (
                     <img 
-                      src="/lovable-uploads/6f302e96-c693-4887-b0a5-ecf82015ae4a.png"
+                      src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
                       alt="Varebil"
                       className="absolute top-1/2 transform -translate-y-1/2" 
                       style={{ 

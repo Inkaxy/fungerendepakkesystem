@@ -29,7 +29,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
         </CardHeader>
         <CardContent className="p-0">
           <div 
-            className="relative h-[600px] overflow-y-auto rounded-b-lg p-4"
+            className="relative h-[700px] overflow-y-auto rounded-b-lg p-4"
             style={{
               ...styles,
               fontSize: `${settings.body_font_size}px`,
@@ -206,7 +206,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                     {/* Bread Van Icon */}
                     {settings.show_truck_icon && (
                       <img 
-                        src="/lovable-uploads/b3ac9345-de05-4c43-b926-5de697d66cce.png"
+                        src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
                         alt="Varebil"
                         className="absolute top-1/2 transform -translate-y-1/2" 
                         style={{ 
