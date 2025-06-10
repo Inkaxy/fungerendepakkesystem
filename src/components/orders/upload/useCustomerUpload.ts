@@ -29,15 +29,19 @@ export const useCustomerUpload = (
       setUploadStatus(prev => ({ ...prev, customers: 'uploading' }));
       
       const text = await file.text();
+      console.log('Customer file content preview:', text.slice(0, 200));
+      
       const customers = parseCustomerFile(text, profile.bakery_id);
       
-      console.log('Parsed customers:', customers);
-      console.log('Existing customers:', existingCustomers);
+      console.log('Parsed customers from file:', customers);
+      console.log('Existing customers in database:', existingCustomers);
       
       const newCustomerMapping: IdMapping = {};
       const createdCustomers = [];
       let newCustomersCount = 0;
       let existingCustomersCount = 0;
+      let customersWithNumbers = 0;
+      let customersWithoutNumbers = 0;
       
       // Create a map of existing customers by customer_number for quick lookup
       const existingCustomerMap = new Map();
@@ -51,6 +55,13 @@ export const useCustomerUpload = (
       
       for (const customer of customers) {
         const { original_id, customer_number, ...customerData } = customer;
+        
+        // Track customers with/without numbers
+        if (customer_number) {
+          customersWithNumbers++;
+        } else {
+          customersWithoutNumbers++;
+        }
         
         // Check if customer already exists by customer_number
         const existingCustomer = customer_number ? existingCustomerMap.get(customer_number) : null;
@@ -81,15 +92,24 @@ export const useCustomerUpload = (
       setUploadResults(prev => ({ ...prev, customers: createdCustomers }));
       setUploadStatus(prev => ({ ...prev, customers: 'success' }));
       
-      // Show detailed message about new vs existing customers
+      // Show detailed message about new vs existing customers and number statistics
       const totalCustomers = newCustomersCount + existingCustomersCount;
       let description = `${totalCustomers} kunder behandlet`;
+      
       if (newCustomersCount > 0 && existingCustomersCount > 0) {
         description += ` (${newCustomersCount} nye, ${existingCustomersCount} eksisterende)`;
       } else if (newCustomersCount > 0) {
         description += ` (${newCustomersCount} nye kunder opprettet)`;
       } else if (existingCustomersCount > 0) {
         description += ` (alle ${existingCustomersCount} kunder eksisterte allerede)`;
+      }
+      
+      if (customersWithNumbers > 0) {
+        description += `. ${customersWithNumbers} kunder har kundenummer`;
+      }
+      
+      if (customersWithoutNumbers > 0) {
+        description += `, ${customersWithoutNumbers} mangler kundenummer`;
       }
       
       toast({

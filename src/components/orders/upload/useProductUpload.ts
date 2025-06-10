@@ -32,15 +32,19 @@ export const useProductUpload = (
       setUploadStatus(prev => ({ ...prev, products: 'uploading' }));
       
       const text = await file.text();
+      console.log('File content preview:', text.slice(0, 200));
+      
       const products = parseProductFile(text, profile.bakery_id);
       
-      console.log('Parsed products:', products);
-      console.log('Existing products:', existingProducts);
+      console.log('Parsed products from file:', products);
+      console.log('Existing products in database:', existingProducts);
       
       const newProductMapping: IdMapping = {};
       const createdProducts = [];
       let newProductsCount = 0;
       let existingProductsCount = 0;
+      let productsWithNumbers = 0;
+      let productsWithoutNumbers = 0;
       
       // Create a map of existing products by product_number for quick lookup
       const existingProductMap = new Map();
@@ -54,6 +58,13 @@ export const useProductUpload = (
       
       for (const product of products) {
         const { original_id, product_number, ...productData } = product;
+        
+        // Track products with/without numbers
+        if (product_number) {
+          productsWithNumbers++;
+        } else {
+          productsWithoutNumbers++;
+        }
         
         // Check if product already exists by product_number
         const existingProduct = product_number ? existingProductMap.get(product_number) : null;
@@ -84,15 +95,24 @@ export const useProductUpload = (
       setUploadResults(prev => ({ ...prev, products: createdProducts }));
       setUploadStatus(prev => ({ ...prev, products: 'success' }));
       
-      // Show detailed message about new vs existing products
+      // Show detailed message about new vs existing products and number statistics
       const totalProducts = newProductsCount + existingProductsCount;
       let description = `${totalProducts} produkter behandlet`;
+      
       if (newProductsCount > 0 && existingProductsCount > 0) {
         description += ` (${newProductsCount} nye, ${existingProductsCount} eksisterende)`;
       } else if (newProductsCount > 0) {
         description += ` (${newProductsCount} nye produkter opprettet)`;
       } else if (existingProductsCount > 0) {
         description += ` (alle ${existingProductsCount} produkter eksisterte allerede)`;
+      }
+      
+      if (productsWithNumbers > 0) {
+        description += `. ${productsWithNumbers} produkter har varenummer`;
+      }
+      
+      if (productsWithoutNumbers > 0) {
+        description += `, ${productsWithoutNumbers} mangler varenummer`;
       }
       
       toast({

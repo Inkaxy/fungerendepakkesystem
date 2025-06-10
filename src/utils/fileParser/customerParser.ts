@@ -6,12 +6,15 @@ export const parseCustomerFile = (fileContent: string, bakeryId: string): Parsed
   const lines = fileContent.split('\n').filter(line => line.trim());
   const customers: ParsedCustomer[] = [];
   
+  console.log(`Starting customer parsing. Total lines: ${lines.length}`);
+  
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
     try {
-      let customerId: string;
+      let originalCustomerId: string;
+      let processedCustomerId: string;
       let customerName: string;
       let address: string = '';
       let phone: string = '';
@@ -22,14 +25,14 @@ export const parseCustomerFile = (fileContent: string, bakeryId: string): Parsed
           console.warn(`Line ${i + 1}: Cannot parse labeled format - ${line}`);
           continue;
         }
-        ({ customerId, customerName, address, phone } = result);
+        ({ originalCustomerId, processedCustomerId, customerName, address, phone } = result);
       } else {
         const result = parseStandardFormat(line);
         if (!result) {
           console.warn(`Line ${i + 1}: Insufficient data - ${line}`);
           continue;
         }
-        ({ customerId, customerName, address } = result);
+        ({ originalCustomerId, processedCustomerId, customerName, address } = result);
       }
       
       if (!customerName) {
@@ -37,9 +40,11 @@ export const parseCustomerFile = (fileContent: string, bakeryId: string): Parsed
         continue;
       }
       
+      console.log(`Line ${i + 1}: Customer parsed - Original: "${originalCustomerId}", Processed: "${processedCustomerId}", Name: "${customerName}"`);
+      
       customers.push({
-        original_id: customerId,
-        customer_number: customerId, // Save the original customer number
+        original_id: originalCustomerId, // Keep original for internal mapping
+        customer_number: processedCustomerId, // Use processed number for display
         name: customerName,
         address: address || undefined,
         phone: phone || undefined,
@@ -48,11 +53,12 @@ export const parseCustomerFile = (fileContent: string, bakeryId: string): Parsed
       });
       
     } catch (error) {
-      console.error(`Line ${i + 1}: Parse error - ${error.message}`);
+      console.error(`Line ${i + 1}: Parse error - ${error.message}`, error);
     }
   }
   
-  console.log(`Parsed ${customers.length} customers from ${lines.length} lines`);
+  console.log(`Customer parsing completed. Successfully parsed ${customers.length} customers from ${lines.length} lines`);
+  console.log('Sample parsed customers:', customers.slice(0, 3));
   return customers;
 };
 
@@ -66,8 +72,14 @@ const parseLabeledFormat = (line: string) => {
     return null;
   }
   
+  const originalCustomerId = customerIdMatch[1];
+  const processedCustomerId = removeLeadingZeros(originalCustomerId);
+  
+  console.log(`Labeled format - Original: "${originalCustomerId}", Processed: "${processedCustomerId}"`);
+  
   return {
-    customerId: removeLeadingZeros(customerIdMatch[1]),
+    originalCustomerId,
+    processedCustomerId,
     customerName: nameMatch[1].trim(),
     address: addressMatch ? addressMatch[1].trim() : '',
     phone: phoneMatch ? phoneMatch[1] : ''
@@ -81,8 +93,14 @@ const parseStandardFormat = (line: string) => {
     return null;
   }
   
+  const originalCustomerId = parts[0];
+  const processedCustomerId = removeLeadingZeros(originalCustomerId);
+  
+  console.log(`Standard format - Original: "${originalCustomerId}", Processed: "${processedCustomerId}"`);
+  
   return {
-    customerId: removeLeadingZeros(parts[0]),
+    originalCustomerId,
+    processedCustomerId,
     customerName: parts[1],
     address: parts[2] || ''
   };
