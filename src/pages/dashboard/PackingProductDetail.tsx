@@ -205,42 +205,57 @@ const PackingProductDetail = () => {
     setDeviationQuantities(newDeviationQuantities);
   };
 
-  const handleMarkAllPacked = async (productIdToMark: string) => {
-    const product = allProductsData.find(p => p.id === productIdToMark);
-    if (!product) return;
+  const handleMarkAllPacked = async (productIdToMark?: string) => {
+    let itemsToProcess;
+    let productName = '';
+
+    if (isMultiProductMode && productIdToMark) {
+      // Multi-product mode: mark all items for specific product
+      const product = allProductsData.find(p => p.id === productIdToMark);
+      if (!product) return;
+      itemsToProcess = product.items;
+      productName = product.name;
+    } else if (!isMultiProductMode && currentProductData) {
+      // Single product mode: mark all items for current product
+      itemsToProcess = currentProductData.items;
+      productName = currentProductData.productName;
+    } else {
+      return;
+    }
+
+    // Filter out items that already have deviations - don't override them
+    const itemsToMark = itemsToProcess.filter(item => !deviationItems.has(item.key));
+    
+    if (itemsToMark.length === 0) {
+      toast({
+        title: "Ingen elementer å markere",
+        description: "Alle elementer er enten allerede pakket eller har registrerte avvik",
+      });
+      return;
+    }
 
     // Update local state immediately
     const newPackedItems = new Set(packedItems);
-    const newDeviationItems = new Set(deviationItems);
-    const newDeviationQuantities = new Map(deviationQuantities);
-    
-    product.items.forEach(item => {
+    itemsToMark.forEach(item => {
       newPackedItems.add(item.key);
-      newDeviationItems.delete(item.key);
-      newDeviationQuantities.delete(item.key);
     });
-    
     setPackedItems(newPackedItems);
-    setDeviationItems(newDeviationItems);
-    setDeviationQuantities(newDeviationQuantities);
 
     // Save to database
     try {
-      const orderProductIds = product.items.map(item => item.orderProductId);
+      const orderProductIds = itemsToMark.map(item => item.orderProductId);
       await updateMultipleOrderProductsStatus.mutateAsync({
         orderProductIds,
         packingStatus: 'packed'
       });
 
       toast({
-        title: "Alle elementer markert som pakket",
-        description: `${product.items.length} elementer for ${product.name} er lagret i database`,
+        title: "Elementer markert som pakket",
+        description: `${itemsToMark.length} elementer for ${productName} er lagret i database`,
       });
     } catch (error) {
       // Revert local state on error
       setPackedItems(packedItems);
-      setDeviationItems(deviationItems);
-      setDeviationQuantities(deviationQuantities);
       console.error('Failed to update multiple packing statuses:', error);
     }
   };
@@ -330,7 +345,10 @@ const PackingProductDetail = () => {
       <CustomerPackingTable
         items={currentProductData?.items || []}
         packedItems={packedItems}
+        deviationItems={deviationItems}
         onItemToggle={handleItemToggle}
+        onMarkAllPacked={() => handleMarkAllPacked()}
+        productName={currentProductData?.productName}
       />
     </div>
   );
