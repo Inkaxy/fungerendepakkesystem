@@ -1,5 +1,6 @@
 
 import { ParsedOrder } from './types';
+import { removeLeadingZeros } from './idUtils';
 
 export const parseOrderFile = (fileContent: string, bakeryId: string): ParsedOrder[] => {
   const lines = fileContent.split('\n').filter(line => line.trim());
@@ -18,22 +19,42 @@ export const parseOrderFile = (fileContent: string, bakeryId: string): ParsedOrd
         throw new Error(`Invalid format - expected product, composite field, quantity, ignored field, and date. Got ${parts.length} parts`);
       }
       
+      // Parse første ord som varenummer
       const productIdRaw = parts[0];
-      const productId = parseInt(productIdRaw, 10).toString();
+      const productId = removeLeadingZeros(productIdRaw);
       
+      // Parse andre ord (composite field) med ny logikk
       const compositeField = parts[1];
       if (compositeField.length < 9) {
         throw new Error(`Composite field too short: ${compositeField} (expected at least 9 characters)`);
       }
       
-      const customerIdRaw = compositeField.substring(4, 9);
-      const customerId = parseInt(customerIdRaw, 10).toString();
+      // Fjern første 4 siffer (1000), da står vi igjen med resten
+      const withoutPrefix = compositeField.substring(4);
       
-      const quantityRaw = parts[2];
-      const quantity = parseInt(quantityRaw, 10);
+      // De siste 5 sifrene er antallet
+      if (withoutPrefix.length < 5) {
+        throw new Error(`Composite field after removing prefix too short: ${withoutPrefix}`);
+      }
       
+      const quantityPart = withoutPrefix.slice(-5);
+      const quantity = parseInt(removeLeadingZeros(quantityPart), 10);
+      
+      // Resten i midten er kundenummer
+      const customerPart = withoutPrefix.slice(0, -5);
+      const customerId = removeLeadingZeros(customerPart);
+      
+      console.log(`Parsing line ${i + 1}:`);
+      console.log(`- Product ID raw: ${productIdRaw} -> processed: ${productId}`);
+      console.log(`- Composite field: ${compositeField}`);
+      console.log(`- Without prefix (1000): ${withoutPrefix}`);
+      console.log(`- Customer part: ${customerPart} -> processed: ${customerId}`);
+      console.log(`- Quantity part: ${quantityPart} -> processed: ${quantity}`);
+      
+      // Ignorer tredje felt (parts[3])
       console.log('Ignored field (position 4):', parts[3]);
       
+      // Parse dato (fjerde felt)
       const dateStr = parts[4];
       if (dateStr.length !== 8) {
         throw new Error(`Invalid date format: ${dateStr} (expected 8 digits)`);
