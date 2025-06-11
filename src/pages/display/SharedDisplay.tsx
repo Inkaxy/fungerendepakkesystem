@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,14 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Users, Calendar, Package, RefreshCw } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
-import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
+import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { generateDisplayStyles, statusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
-import CustomerHeader from '@/components/display/CustomerHeader';
+import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -28,10 +25,8 @@ const SharedDisplay = () => {
     true // activeOnly = true to show only selected products
   );
   
-  // Enable real-time updates for orders, display settings, and active products
-  useRealTimeOrders();
-  useRealTimeDisplaySettings();
-  useRealTimeActivePackingProducts(); // New real-time listener for active products
+  // Enhanced real-time updates with connection monitoring
+  const { connectionStatus } = useRealTimeDisplay();
   
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
@@ -68,7 +63,7 @@ const SharedDisplay = () => {
       <CatGameOverlay settings={settings} />
       
       <div className="max-w-7xl mx-auto">
-        {/* Header with refresh button */}
+        {/* Header with refresh button and connection status */}
         <div className="flex justify-between items-start mb-8">
           <div className="text-center flex-1">
             <h1 
@@ -90,15 +85,17 @@ const SharedDisplay = () => {
               Produkter valgt for pakking i dag
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={triggerRefresh}
-            className="ml-4"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Oppdater
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <ConnectionStatus status={connectionStatus} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerRefresh}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Oppdater
+            </Button>
+          </div>
         </div>
 
         {/* Statistics */}
@@ -198,7 +195,6 @@ const SharedDisplay = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {/* Progress - based on ALL line items */}
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span style={{ color: settings?.text_color || '#374151' }}>Fremgang (alle varer):</span>
@@ -228,7 +224,6 @@ const SharedDisplay = () => {
                         </div>
                       </div>
 
-                      {/* Active Products with quantities and units */}
                       <div>
                         <h4 
                           className="text-sm font-medium mb-2"

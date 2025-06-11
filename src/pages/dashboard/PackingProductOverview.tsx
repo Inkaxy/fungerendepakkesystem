@@ -7,8 +7,10 @@ import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
+import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import ProductsTable from '@/components/packing/ProductsTable';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
+import ConnectionStatus from '@/components/display/ConnectionStatus';
 
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
@@ -19,6 +21,9 @@ const PackingProductOverview = () => {
   const { data: orders } = useOrders(date);
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
   const setActivePackingProducts = useSetActivePackingProducts();
+  
+  // Enhanced real-time updates
+  const { connectionStatus } = useRealTimeDisplay();
 
   // Calculate product statistics with category from products table
   const productStats = orders?.reduce((acc, order) => {
@@ -172,14 +177,17 @@ const PackingProductOverview = () => {
             </div>
           </div>
           
-          <Button 
-            onClick={() => setShowReport(true)}
-            className="flex items-center space-x-2"
-            variant="outline"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Generer rapport</span>
-          </Button>
+          <div className="flex items-center gap-4">
+            <ConnectionStatus status={connectionStatus} />
+            <Button 
+              onClick={() => setShowReport(true)}
+              className="flex items-center space-x-2"
+              variant="outline"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Generer rapport</span>
+            </Button>
+          </div>
         </div>
       </div>
 

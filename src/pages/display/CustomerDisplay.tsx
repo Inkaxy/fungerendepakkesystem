@@ -7,14 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Package2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
-import { useRealTimeOrders } from '@/hooks/useRealTimeOrders';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
+import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { generateDisplayStyles, packingStatusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
+import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { format } from 'date-fns';
 
 const CustomerDisplay = () => {
@@ -22,10 +21,8 @@ const CustomerDisplay = () => {
   const { data: customers, isLoading: customersLoading } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
-  // Enable real-time updates for orders, display settings, and active products
-  useRealTimeOrders();
-  useRealTimeDisplaySettings();
-  useRealTimeActivePackingProducts(); // New real-time listener for active products
+  // Enhanced real-time updates with connection monitoring
+  const { connectionStatus } = useRealTimeDisplay();
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
@@ -88,6 +85,11 @@ const CustomerDisplay = () => {
         <CatGameOverlay settings={settings} />
         
         <div className="max-w-4xl mx-auto space-y-8">
+          {/* Connection Status */}
+          <div className="flex justify-end">
+            <ConnectionStatus status={connectionStatus} />
+          </div>
+
           {/* Always show customer header */}
           <CustomerHeader 
             customerName={customer.name}
@@ -128,6 +130,11 @@ const CustomerDisplay = () => {
       <CatGameOverlay settings={settings} />
       
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Connection Status */}
+        <div className="flex justify-end">
+          <ConnectionStatus status={connectionStatus} />
+        </div>
+
         {/* Customer header - always displayed */}
         <CustomerHeader 
           customerName={customer.name}
@@ -249,7 +256,6 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Progress Bar - based on ALL line items */}
         {settings?.show_progress_bar && (
           <Card
             style={{
@@ -276,7 +282,6 @@ const CustomerDisplay = () => {
                       width: `${customerPackingData.progress_percentage}%`
                     }}
                   />
-                  {/* Bread Van Icon */}
                   {settings?.show_truck_icon && (
                     <img 
                       src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
@@ -307,7 +312,6 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Completion Status */}
         {isAllPacked && settings?.show_status_indicator && (
           <Card
             className="text-center"
@@ -334,7 +338,6 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Footer */}
         <div className="text-center">
           <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
             Sist oppdatert: {format(new Date(), 'HH:mm:ss')}
