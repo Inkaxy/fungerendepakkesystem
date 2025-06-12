@@ -30,12 +30,17 @@ export interface PackingCustomer {
 
 export const usePackingData = (customerId?: string, date?: string, activeOnly: boolean = false) => {
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
-  const { data: activeProducts } = useActivePackingProducts(activeOnly ? targetDate : undefined);
+  const { data: activeProducts, isLoading: activeProductsLoading, error: activeProductsError } = useActivePackingProducts(activeOnly ? targetDate : undefined);
 
   return useQuery({
     queryKey: ['packing-data', customerId, targetDate, activeOnly],
     queryFn: async () => {
-      console.log('Fetching packing data for date:', targetDate, 'customer:', customerId, 'activeOnly:', activeOnly);
+      console.log('🔍 Starting packing data fetch:', {
+        customerId,
+        targetDate,
+        activeOnly,
+        activeProductsCount: activeProducts?.length || 0
+      });
       
       let query = supabase
         .from('orders')
@@ -55,31 +60,43 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
         .in('status', ['pending', 'in_progress', 'packed']);
 
       if (customerId) {
+        console.log('🎯 Filtering by customer ID:', customerId);
         query = query.eq('customer_id', customerId);
       }
 
       const { data: orders, error } = await query;
 
       if (error) {
-        console.error('Error fetching packing data:', error);
+        console.error('❌ Error fetching orders:', error);
         throw error;
       }
 
-      console.log('Raw orders data:', orders);
+      console.log('📦 Raw orders data:', {
+        ordersCount: orders?.length || 0,
+        orders: orders?.map(o => ({
+          id: o.id,
+          customer: o.customer?.name,
+          productsCount: o.order_products?.length || 0
+        }))
+      });
 
       // Create a set of active product IDs for filtering
       const activeProductIds = new Set<string>();
-      if (activeProducts) {
+      if (activeProducts && activeOnly) {
         activeProducts.forEach(ap => {
           activeProductIds.add(ap.product_id);
         });
+        console.log('🎨 Active product IDs:', Array.from(activeProductIds));
       }
 
       // Group by customer and aggregate products
       const customerMap = new Map<string, PackingCustomer>();
 
       orders?.forEach(order => {
-        if (!order.customer) return;
+        if (!order.customer) {
+          console.warn('⚠️ Order missing customer:', order.id);
+          return;
+        }
 
         const customerId = order.customer.id;
         let customer = customerMap.get(customerId);
@@ -97,11 +114,15 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             packed_line_items_all: 0,
           };
           customerMap.set(customerId, customer);
+          console.log('👤 Created new customer entry:', customer.name);
         }
 
         // Process all order products for total calculations
         order.order_products?.forEach(op => {
-          if (!op.product) return;
+          if (!op.product) {
+            console.warn('⚠️ Order product missing product info:', op.id);
+            return;
+          }
 
           // Count ALL line items for correct percentage calculation
           customer!.total_line_items_all += 1;
@@ -109,9 +130,19 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             customer!.packed_line_items_all += 1;
           }
 
-          // Only process active products for display
-          const isActiveProduct = activeProductIds.has(op.product_id);
-          if (activeOnly && !isActiveProduct) {
+          // Only process active products for display when activeOnly is true
+          const isActiveProduct = !activeOnly || activeProductIds.has(op.product_id);
+          
+          console.log('📋 Processing product:', {
+            productName: op.product.name,
+            productId: op.product_id,
+            isActiveProduct,
+            activeOnly,
+            packingStatus: op.packing_status
+          });
+
+          if (!isActiveProduct) {
+            console.log('⏭️ Skipping non-active product:', op.product.name);
             return;
           }
 
@@ -124,12 +155,17 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             if (op.packing_status === 'packed' || op.packing_status === 'completed') {
               existingProduct.packed_line_items += 1;
             }
+            console.log('➕ Updated existing product:', {
+              productName: existingProduct.product_name,
+              totalQuantity: existingProduct.total_quantity,
+              lineItems: `${existingProduct.packed_line_items}/${existingProduct.total_line_items}`
+            });
           } else {
             const validPackingStatus = (['pending', 'in_progress', 'packed', 'completed'].includes(op.packing_status || '')) 
               ? op.packing_status as 'pending' | 'in_progress' | 'packed' | 'completed'
               : 'pending';
 
-            customer!.products.push({
+            const newProduct = {
               id: op.id,
               product_id: op.product_id,
               product_name: op.product.name,
@@ -139,6 +175,13 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               total_line_items: 1,
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
               packing_status: validPackingStatus,
+            };
+
+            customer!.products.push(newProduct);
+            console.log('🆕 Added new product:', {
+              productName: newProduct.product_name,
+              quantity: newProduct.total_quantity,
+              status: newProduct.packing_status
             });
           }
 
@@ -183,13 +226,24 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             })
             .slice(0, 3);
         }
+
+        console.log('📊 Customer summary:', {
+          name: customer.name,
+          productsCount: customer.products.length,
+          progress: `${customer.progress_percentage}%`,
+          status: customer.overall_status
+        });
       });
 
       const result = Array.from(customerMap.values());
-      console.log('Processed packing data:', result);
+      console.log('✅ Final packing data result:', {
+        customersCount: result.length,
+        totalActiveProducts: result.reduce((sum, c) => sum + c.products.length, 0)
+      });
       
       return result;
     },
+    enabled: !activeOnly || !activeProductsLoading,
     refetchInterval: 10000, // Refetch every 10 seconds to ensure fresh data
   });
 };

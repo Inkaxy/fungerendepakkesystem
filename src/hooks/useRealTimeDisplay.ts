@@ -21,10 +21,13 @@ export const useRealTimeDisplay = () => {
     
     if (statuses.every(status => status === 'connected')) {
       setOverallStatus('connected');
+      console.log('🟢 Real-time connection: All services connected');
     } else if (statuses.some(status => status === 'disconnected')) {
       setOverallStatus('disconnected');
+      console.log('🔴 Real-time connection: Some services disconnected', { ordersStatus, productsStatus });
     } else {
       setOverallStatus('connecting');
+      console.log('🟡 Real-time connection: Connecting...', { ordersStatus, productsStatus });
     }
   }, [ordersStatus, productsStatus]);
 
