@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import PackingTabHeader from './PackingTabHeader';
-import PackingProductCard from './PackingProductCard';
+import MultiProductPackingTable from './MultiProductPackingTable';
 import DeviationDialog from './DeviationDialog';
 
 interface CustomerItem {
@@ -41,7 +41,6 @@ const PackingTabsInterface = ({
   onItemDeviation,
   onMarkAllPacked
 }: PackingTabsInterfaceProps) => {
-  const [activeTab, setActiveTab] = useState(products[0]?.id || '');
   const [deviationDialog, setDeviationDialog] = useState<{
     isOpen: boolean;
     item?: CustomerItem;
@@ -49,24 +48,30 @@ const PackingTabsInterface = ({
   }>({ isOpen: false });
   const { toast } = useToast();
 
-  const getProductProgress = (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return { packed: 0, total: 0, percentage: 0 };
-    
-    const packed = product.items.filter(item => packedItems.has(item.key)).length;
-    const total = product.items.length;
-    const percentage = total > 0 ? Math.round((packed / total) * 100) : 0;
-    
-    return { packed, total, percentage };
-  };
-
-  const handleDeviationClick = (item: CustomerItem) => {
-    const product = products.find(p => p.items.some(i => i.key === item.key));
-    setDeviationDialog({
-      isOpen: true,
-      item,
-      productName: product?.name || ''
-    });
+  const handleItemDeviation = (itemKey: string, hasDeviation: boolean, actualQuantity?: number) => {
+    if (hasDeviation && actualQuantity === undefined) {
+      // Open deviation dialog to get actual quantity
+      const item = products.flatMap(p => p.items).find(i => i.key === itemKey);
+      const product = products.find(p => p.items.some(i => i.key === itemKey));
+      
+      if (item) {
+        setDeviationDialog({
+          isOpen: true,
+          item,
+          productName: product?.name || ''
+        });
+      }
+    } else {
+      // Process the deviation with actual quantity
+      onItemDeviation(itemKey, hasDeviation, actualQuantity);
+      
+      if (hasDeviation) {
+        toast({
+          title: "Avvik registrert",
+          description: "Avvik er registrert for denne varen",
+        });
+      }
+    }
   };
 
   const handleDeviationConfirm = (actualQuantity: number) => {
@@ -74,7 +79,6 @@ const PackingTabsInterface = ({
       const hasDeviation = actualQuantity !== deviationDialog.item.quantity;
       onItemDeviation(deviationDialog.item.key, hasDeviation, actualQuantity);
       
-      // Auto-save feedback - removed since database save is handled in parent
       if (hasDeviation) {
         toast({
           title: "Avvik registrert",
@@ -85,38 +89,16 @@ const PackingTabsInterface = ({
     setDeviationDialog({ isOpen: false });
   };
 
-  const handleItemToggle = (itemKey: string, checked: boolean) => {
-    // Database save is handled in parent component
-    onItemToggle(itemKey, checked);
-  };
-
-  const handleMarkAllPacked = (productId: string) => {
-    // Database save is handled in parent component
-    onMarkAllPacked(productId);
-  };
-
-  const currentProduct = products.find(p => p.id === activeTab);
-
   return (
     <div className="space-y-8">
-      <PackingTabHeader
+      <MultiProductPackingTable
         products={products}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        getProductProgress={getProductProgress}
+        packedItems={packedItems}
+        deviationItems={deviationItems}
+        onItemToggle={onItemToggle}
+        onItemDeviation={handleItemDeviation}
+        onMarkAllPacked={onMarkAllPacked}
       />
-
-      {currentProduct && (
-        <PackingProductCard
-          product={currentProduct}
-          progress={getProductProgress(currentProduct.id)}
-          packedItems={packedItems}
-          deviationItems={deviationItems}
-          onItemToggle={handleItemToggle}
-          onDeviationClick={handleDeviationClick}
-          onMarkAllPacked={handleMarkAllPacked}
-        />
-      )}
 
       <DeviationDialog
         isOpen={deviationDialog.isOpen}

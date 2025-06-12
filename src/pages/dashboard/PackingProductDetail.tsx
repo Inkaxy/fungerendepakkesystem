@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
@@ -12,6 +11,7 @@ import ProductCategoryBadge from '@/components/packing/ProductCategoryBadge';
 import PackingTabsInterface from '@/components/packing/PackingTabsInterface';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
 import ProductPackingTable from '@/components/packing/ProductPackingTable';
+import DeviationDialog from '@/components/packing/DeviationDialog';
 
 const PackingProductDetail = () => {
   const { date, productId } = useParams<{ date: string; productId: string }>();
@@ -26,7 +26,10 @@ const PackingProductDetail = () => {
   const [packedItems, setPackedItems] = useState<Set<string>>(new Set());
   const [deviationItems, setDeviationItems] = useState<Set<string>>(new Set());
   const [deviationQuantities, setDeviationQuantities] = useState<Map<string, number>>(new Map());
-  const [showReport, setShowReport] = useState(false);
+  const [showDeviationDialog, setShowDeviationDialog] = useState<{
+    isOpen: boolean;
+    item?: any;
+  }>({ isOpen: false });
   
   const { data: orders } = useOrders(date);
   const updateOrderProductStatus = useUpdateOrderProductPackingStatus();
@@ -188,6 +191,20 @@ const PackingProductDetail = () => {
   };
 
   const handleItemDeviation = (itemKey: string, hasDeviation: boolean, actualQuantity?: number) => {
+    if (hasDeviation && actualQuantity === undefined) {
+      // Open deviation dialog for single product mode
+      if (!isMultiProductMode && currentProductData) {
+        const item = currentProductData.items.find(i => i.key === itemKey);
+        if (item) {
+          setShowDeviationDialog({
+            isOpen: true,
+            item
+          });
+          return;
+        }
+      }
+    }
+
     const newDeviationItems = new Set(deviationItems);
     const newDeviationQuantities = new Map(deviationQuantities);
     
@@ -206,6 +223,21 @@ const PackingProductDetail = () => {
     
     setDeviationItems(newDeviationItems);
     setDeviationQuantities(newDeviationQuantities);
+  };
+
+  const handleDeviationConfirm = (actualQuantity: number) => {
+    if (showDeviationDialog.item) {
+      const hasDeviation = actualQuantity !== showDeviationDialog.item.quantity;
+      handleItemDeviation(showDeviationDialog.item.key, hasDeviation, actualQuantity);
+      
+      if (hasDeviation) {
+        toast({
+          title: "Avvik registrert",
+          description: `Avvik for ${showDeviationDialog.item.customerName} er registrert`,
+        });
+      }
+    }
+    setShowDeviationDialog({ isOpen: false });
   };
 
   const handleMarkAllPacked = async (productIdToMark?: string) => {
@@ -366,6 +398,15 @@ const PackingProductDetail = () => {
         onItemToggle={handleItemToggle}
         onItemDeviation={handleItemDeviation}
         onMarkAllPacked={() => handleMarkAllPacked()}
+      />
+
+      <DeviationDialog
+        isOpen={showDeviationDialog.isOpen}
+        onClose={() => setShowDeviationDialog({ isOpen: false })}
+        onConfirm={handleDeviationConfirm}
+        customerName={showDeviationDialog.item?.customerName || ''}
+        productName={currentProductData?.productName || ''}
+        orderedQuantity={showDeviationDialog.item?.quantity || 0}
       />
     </div>
   );

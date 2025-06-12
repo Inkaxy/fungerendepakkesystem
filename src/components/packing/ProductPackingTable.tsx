@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check, AlertTriangle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -173,9 +172,6 @@ const ProductPackingTable = ({
                           Kundenr: {item.customerNumber}
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground">
-                        Ordre: {item.orderNumber}
-                      </div>
                     </div>
                   </TableCell>
                   
