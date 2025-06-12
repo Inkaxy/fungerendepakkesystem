@@ -60,7 +60,8 @@ const SharedDisplay = () => {
     sum + customer.products.reduce((productSum, product) => productSum + product.total_quantity, 0), 0
   );
 
-  const isToday = activePackingDate === format(new Date(), 'yyyy-MM-dd');
+  // Fix the date comparison - ensure activePackingDate exists before comparing
+  const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : true;
 
   return (
     <div 
