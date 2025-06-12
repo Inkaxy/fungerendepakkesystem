@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
@@ -7,10 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import PackingProductHeader from '@/components/packing/PackingProductHeader';
-import CustomerPackingTable from '@/components/packing/CustomerPackingTable';
 import ProductCategoryBadge from '@/components/packing/ProductCategoryBadge';
 import PackingTabsInterface from '@/components/packing/PackingTabsInterface';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
+import ProductPackingTable from '@/components/packing/ProductPackingTable';
 
 const PackingProductDetail = () => {
   const { date, productId } = useParams<{ date: string; productId: string }>();
@@ -331,7 +332,7 @@ const PackingProductDetail = () => {
     );
   }
 
-  // Render single product interface (existing functionality)
+  // Render single product interface with new table
   return (
     <div className="space-y-6">
       <PackingProductHeader
@@ -356,13 +357,15 @@ const PackingProductDetail = () => {
         </div>
       )}
 
-      <CustomerPackingTable
+      <ProductPackingTable
+        productName={currentProductData?.productName || ''}
+        productNumber={currentProductData?.productNumber || ''}
         items={currentProductData?.items || []}
         packedItems={packedItems}
         deviationItems={deviationItems}
         onItemToggle={handleItemToggle}
+        onItemDeviation={handleItemDeviation}
         onMarkAllPacked={() => handleMarkAllPacked()}
-        productName={currentProductData?.productName}
       />
     </div>
   );
