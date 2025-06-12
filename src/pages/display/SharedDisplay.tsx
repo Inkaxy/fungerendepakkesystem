@@ -85,7 +85,7 @@ const SharedDisplay = () => {
                 color: settings?.header_text_color || '#111827'
               }}
             >
-              Felles Display - Aktive Produkter
+              Felles Display
             </h1>
             <p 
               className="text-xl mb-2"
@@ -94,7 +94,7 @@ const SharedDisplay = () => {
                 fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
               }}
             >
-              Produkter valgt for pakking
+              Pakkestatus for kunder
             </p>
             {/* Date indicator */}
             {activePackingDate && (
@@ -277,7 +277,7 @@ const SharedDisplay = () => {
                           className="text-sm font-medium mb-2"
                           style={{ color: settings?.text_color || '#374151' }}
                         >
-                          Aktive Produkter:
+                          Produkter:
                         </h4>
                         <div className="space-y-1">
                           {customerData.products.map((product, idx) => (

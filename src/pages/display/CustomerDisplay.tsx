@@ -213,26 +213,6 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Active Products indicator */}
-        <Card
-          style={{
-            backgroundColor: settings?.product_accent_color || '#3b82f6',
-            borderColor: settings?.product_accent_color || '#3b82f6',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          }}
-        >
-          <CardContent className="p-4 text-center">
-            <h2 
-              className="font-bold text-white"
-              style={{ 
-                fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.2}px` : '1.2rem' 
-              }}
-            >
-              Aktive Produkter for Pakking
-            </h2>
-          </CardContent>
-        </Card>
-
         {/* Products List with customer-specific quantities */}
         <Card
           style={{
@@ -416,7 +396,7 @@ const CustomerDisplay = () => {
             className="text-sm mt-1"
             style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}
           >
-            Automatisk oppdatering hvert 30. sekund • Viser kun aktive produkter
+            Automatisk oppdatering hvert 30. sekund
           </p>
         </div>
       </div>
