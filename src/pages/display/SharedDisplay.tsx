@@ -193,7 +193,7 @@ const SharedDisplay = () => {
         )}
 
         {/* Active Packing Products by Customer */}
-        {!dateLoading && sharedDisplayPackingData.length > 0 ? (
+        {!dateLoading && sharedDisplayPackingData.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {sharedDisplayPackingData.map((customerData) => {
               const customer = sharedDisplayCustomers.find(c => c.id === customerData.id);
@@ -332,7 +332,10 @@ const SharedDisplay = () => {
               );
             })}
           </div>
-        ) : !dateLoading ? (
+        )}
+
+        {/* No active products message */}
+        {!dateLoading && sharedDisplayPackingData.length === 0 && (
           <Card
             style={{
               backgroundColor: settings?.card_background_color || '#ffffff',
