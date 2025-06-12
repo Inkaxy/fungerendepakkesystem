@@ -1,16 +1,19 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar, Package, RefreshCw } from 'lucide-react';
+import { Users, Calendar, Package, RefreshCw, Clock } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
+import DebugInfo from '@/components/display/DebugInfo';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -18,10 +21,13 @@ const SharedDisplay = () => {
   const { data: customers } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
-  // Use packing data with activeOnly to show selected products
+  // Get the active packing date instead of using today's date
+  const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
+  
+  // Use packing data with the active packing date
   const { data: packingData } = usePackingData(
     undefined, 
-    format(new Date(), 'yyyy-MM-dd'), 
+    activePackingDate,
     true // activeOnly = true to show only selected products
   );
   
@@ -54,6 +60,8 @@ const SharedDisplay = () => {
     sum + customer.products.reduce((productSum, product) => productSum + product.total_quantity, 0), 0
   );
 
+  const isToday = activePackingDate === format(new Date(), 'yyyy-MM-dd');
+
   return (
     <div 
       className="min-h-screen p-8"
@@ -63,6 +71,9 @@ const SharedDisplay = () => {
       <CatGameOverlay settings={settings} />
       
       <div className="max-w-7xl mx-auto">
+        {/* Debug Info - only show when there are issues */}
+        <DebugInfo showDebug={!packingData || packingData.length === 0} />
+
         {/* Header with refresh button and connection status */}
         <div className="flex justify-between items-start mb-8">
           <div className="text-center flex-1">
@@ -76,14 +87,30 @@ const SharedDisplay = () => {
               Felles Display - Aktive Produkter
             </h1>
             <p 
-              className="text-xl"
+              className="text-xl mb-2"
               style={{ 
                 color: settings?.text_color || '#4b5563',
                 fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
               }}
             >
-              Produkter valgt for pakking i dag
+              Produkter valgt for pakking
             </p>
+            {/* Date indicator */}
+            {activePackingDate && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+                <span 
+                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                  style={{ 
+                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                  }}
+                >
+                  {!isToday && 'PAKKING FOR: '}
+                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  {!isToday && ' (ikke i dag)'}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-end gap-2">
             <ConnectionStatus status={connectionStatus} />
@@ -98,54 +125,74 @@ const SharedDisplay = () => {
           </div>
         </div>
 
+        {/* Loading state */}
+        {dateLoading && (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="text-center p-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p style={{ color: settings?.text_color || '#6b7280' }}>
+                Laster pakkeinformasjon...
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {[
-            { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length, desc: 'Har produkter valgt for pakking' },
-            { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0), desc: 'Forskjellige produkter' },
-            { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts, desc: 'Antall produkter som skal pakkes' }
-          ].map((stat, idx) => (
-            <Card 
-              key={idx}
-              style={{
-                backgroundColor: settings?.card_background_color || '#ffffff',
-                borderColor: settings?.card_border_color || '#e5e7eb',
-                borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-                boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
-              }}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle 
-                  className="text-sm font-medium"
-                  style={{ color: settings?.text_color || '#6b7280' }}
-                >
-                  {stat.label}
-                </CardTitle>
-                <stat.icon 
-                  className="h-4 w-4"
-                  style={{ color: settings?.product_accent_color || '#6b7280' }}
-                />
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="text-2xl font-bold"
-                  style={{ color: settings?.text_color || '#111827' }}
-                >
-                  {stat.value}
-                </div>
-                <p 
-                  className="text-xs"
-                  style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
-                >
-                  {stat.desc}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {!dateLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[
+              { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length, desc: 'Har produkter valgt for pakking' },
+              { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0), desc: 'Forskjellige produkter' },
+              { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts, desc: 'Antall produkter som skal pakkes' }
+            ].map((stat, idx) => (
+              <Card 
+                key={idx}
+                style={{
+                  backgroundColor: settings?.card_background_color || '#ffffff',
+                  borderColor: settings?.card_border_color || '#e5e7eb',
+                  borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+                  boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+                }}
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle 
+                    className="text-sm font-medium"
+                    style={{ color: settings?.text_color || '#6b7280' }}
+                  >
+                    {stat.label}
+                  </CardTitle>
+                  <stat.icon 
+                    className="h-4 w-4"
+                    style={{ color: settings?.product_accent_color || '#6b7280' }}
+                  />
+                </CardHeader>
+                <CardContent>
+                  <div 
+                    className="text-2xl font-bold"
+                    style={{ color: settings?.text_color || '#111827' }}
+                  >
+                    {stat.value}
+                  </div>
+                  <p 
+                    className="text-xs"
+                    style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+                  >
+                    {stat.desc}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Active Packing Products by Customer */}
-        {sharedDisplayPackingData.length > 0 ? (
+        {!dateLoading && sharedDisplayPackingData.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {sharedDisplayPackingData.map((customerData) => {
               const customer = sharedDisplayCustomers.find(c => c.id === customerData.id);
@@ -284,7 +331,7 @@ const SharedDisplay = () => {
               );
             })}
           </div>
-        ) : (
+        ) : !dateLoading ? (
           <Card
             style={{
               backgroundColor: settings?.card_background_color || '#ffffff',
@@ -299,7 +346,12 @@ const SharedDisplay = () => {
                 className="text-xl mb-6"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Ingen aktive produkter valgt for pakking i dag
+                Ingen aktive produkter valgt for pakking
+                {activePackingDate && !isToday && (
+                  <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
+                    for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  </span>
+                )}
               </p>
               <p 
                 className="text-sm"

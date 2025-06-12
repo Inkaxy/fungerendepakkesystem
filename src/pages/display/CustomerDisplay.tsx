@@ -4,17 +4,20 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Package2 } from 'lucide-react';
+import { Package2, Clock } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
+import DebugInfo from '@/components/display/DebugInfo';
 import { format } from 'date-fns';
+import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
@@ -29,14 +32,19 @@ const CustomerDisplay = () => {
   // Find customer by display_url
   const customer = customers?.find(c => c.display_url === displayUrl);
   
+  // Get the active packing date instead of using today's date
+  const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
+  
   // Use packing data with activeOnly to show selected products
   const { data: packingData, isLoading: packingLoading } = usePackingData(
     customer?.id, 
-    format(new Date(), 'yyyy-MM-dd'),
+    activePackingDate,
     true // activeOnly = true to show only selected products
   );
 
-  if (customersLoading || packingLoading) {
+  const isToday = activePackingDate === format(new Date(), 'yyyy-MM-dd');
+
+  if (customersLoading || dateLoading || packingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
            style={settings ? generateDisplayStyles(settings) : {}}>
@@ -85,6 +93,9 @@ const CustomerDisplay = () => {
         <CatGameOverlay settings={settings} />
         
         <div className="max-w-4xl mx-auto space-y-8">
+          {/* Debug Info */}
+          <DebugInfo customerId={customer.id} showDebug={true} />
+
           {/* Connection Status */}
           <div className="flex justify-end">
             <ConnectionStatus status={connectionStatus} />
@@ -98,6 +109,33 @@ const CustomerDisplay = () => {
             settings={settings}
           />
 
+          {/* Date indicator */}
+          {activePackingDate && (
+            <Card
+              style={{
+                backgroundColor: settings?.card_background_color || '#ffffff',
+                borderColor: settings?.card_border_color || '#e5e7eb',
+                borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+              }}
+            >
+              <CardContent className="p-4 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+                  <span 
+                    className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                    style={{ 
+                      color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                    }}
+                  >
+                    {!isToday && 'PAKKING FOR: '}
+                    {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                    {!isToday && ' (ikke i dag)'}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* No active products message */}
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
@@ -106,7 +144,12 @@ const CustomerDisplay = () => {
                 className="text-xl mb-6"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Ingen aktive produkter valgt for pakking i dag
+                Ingen aktive produkter valgt for pakking
+                {activePackingDate && !isToday && (
+                  <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
+                    for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  </span>
+                )}
               </p>
               <p 
                 className="text-sm"
@@ -142,6 +185,33 @@ const CustomerDisplay = () => {
           onRefresh={triggerRefresh}
           settings={settings}
         />
+
+        {/* Date indicator */}
+        {activePackingDate && (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+                <span 
+                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                  style={{ 
+                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                  }}
+                >
+                  {!isToday && 'PAKKING FOR: '}
+                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  {!isToday && ' (ikke i dag)'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Active Products indicator */}
         <Card
