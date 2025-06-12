@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
-import ProductsTable from '@/components/packing/ProductsTable';
+import ModernPackingTable from '@/components/packing/ModernPackingTable';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 
@@ -25,7 +26,7 @@ const PackingProductOverview = () => {
   // Enhanced real-time updates
   const { connectionStatus } = useRealTimeDisplay();
 
-  // Calculate product statistics with category from products table
+  // Calculate product statistics for active product selection
   const productStats = orders?.reduce((acc, order) => {
     order.order_products?.forEach(item => {
       const productId = item.product_id;
@@ -89,28 +90,6 @@ const PackingProductOverview = () => {
     return reportItems;
   };
 
-  const handleProductSelection = (productId: string, checked: boolean) => {
-    if (checked && selectedProducts.length < 3) {
-      setSelectedProducts([...selectedProducts, productId]);
-    } else if (!checked) {
-      setSelectedProducts(selectedProducts.filter(id => id !== productId));
-    }
-  };
-
-  const handleProductActivate = (productId: string) => {
-    if (selectedProducts.includes(productId)) {
-      navigate(`/dashboard/orders/packing/${date}/${productId}`, {
-        state: { selectedProducts }
-      });
-    } else if (selectedProducts.length < 3) {
-      const newSelectedProducts = [...selectedProducts, productId];
-      setSelectedProducts(newSelectedProducts);
-      navigate(`/dashboard/orders/packing/${date}/${productId}`, {
-        state: { selectedProducts: newSelectedProducts }
-      });
-    }
-  };
-
   const handleStartPacking = async () => {
     if (selectedProducts.length === 0) return;
     
@@ -172,7 +151,7 @@ const PackingProductOverview = () => {
                 Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
               </h1>
               <p className="text-muted-foreground">
-                Velg opptil 3 produkter for pakking
+                Oversikt over alle bestillinger og pakking for denne dagen
               </p>
             </div>
           </div>
@@ -191,13 +170,11 @@ const PackingProductOverview = () => {
         </div>
       </div>
 
-      {/* Products table with sticky header */}
+      {/* Modern packing table */}
       <div className="flex-1 min-h-0">
-        <ProductsTable
-          products={productList}
+        <ModernPackingTable
+          orders={orders || []}
           selectedProducts={selectedProducts}
-          onProductSelection={handleProductSelection}
-          onProductActivate={handleProductActivate}
           onStartPacking={handleStartPacking}
           isStartPackingLoading={createOrUpdateSession.isPending}
         />
