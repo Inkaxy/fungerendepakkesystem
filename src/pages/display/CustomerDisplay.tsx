@@ -2,7 +2,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -11,11 +10,14 @@ import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
-import { generateDisplayStyles, packingStatusColorMap, getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import DebugInfo from '@/components/display/DebugInfo';
+import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
+import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
+import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -24,22 +26,18 @@ const CustomerDisplay = () => {
   const { data: customers, isLoading: customersLoading } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
-  // Enhanced real-time updates with connection monitoring
   const { connectionStatus } = useRealTimeDisplay();
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
-  // Find customer by display_url
   const customer = customers?.find(c => c.display_url === displayUrl);
   
-  // Get the active packing date instead of using today's date
   const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
   
-  // Use packing data with activeOnly to show selected products
   const { data: packingData, isLoading: packingLoading } = usePackingData(
     customer?.id, 
     activePackingDate,
-    true // activeOnly = true to show only selected products
+    true
   );
 
   const isToday = activePackingDate === format(new Date(), 'yyyy-MM-dd');
@@ -89,19 +87,15 @@ const CustomerDisplay = () => {
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
-        {/* Cat Game Overlay */}
         <CatGameOverlay settings={settings} />
         
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Debug Info */}
           <DebugInfo customerId={customer.id} showDebug={true} />
 
-          {/* Connection Status */}
           <div className="flex justify-end">
             <ConnectionStatus status={connectionStatus} />
           </div>
 
-          {/* Always show customer header */}
           <CustomerHeader 
             customerName={customer.name}
             showRefresh={true}
@@ -109,7 +103,6 @@ const CustomerDisplay = () => {
             settings={settings}
           />
 
-          {/* Date indicator */}
           {activePackingDate && (
             <Card
               style={{
@@ -136,7 +129,6 @@ const CustomerDisplay = () => {
             </Card>
           )}
 
-          {/* No active products message */}
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
               <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
@@ -164,21 +156,17 @@ const CustomerDisplay = () => {
     );
   }
 
-  // Check if customer is completed based on ALL line items
   const isAllPacked = customerPackingData.progress_percentage >= 100;
 
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
-      {/* Cat Game Overlay */}
       <CatGameOverlay settings={settings} />
       
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Connection Status */}
         <div className="flex justify-end">
           <ConnectionStatus status={connectionStatus} />
         </div>
 
-        {/* Customer header - always displayed */}
         <CustomerHeader 
           customerName={customer.name}
           showRefresh={true}
@@ -186,7 +174,6 @@ const CustomerDisplay = () => {
           settings={settings}
         />
 
-        {/* Date indicator */}
         {activePackingDate && (
           <Card
             style={{
@@ -213,179 +200,27 @@ const CustomerDisplay = () => {
           </Card>
         )}
 
-        {/* Products List with customer-specific quantities */}
-        <Card
-          style={{
-            backgroundColor: settings?.card_background_color || '#ffffff',
-            borderColor: settings?.card_border_color || '#e5e7eb',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
-          }}
-        >
-          <CardContent className="p-8">
-            <div className="space-y-4">
-              {customerPackingData.products.map((product, index) => (
-                <div 
-                  key={product.id}
-                  className="flex justify-between items-center p-4 rounded-lg"
-                  style={{
-                    backgroundColor: getProductBackgroundColor(settings || {} as any, index),
-                    borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-                    transform: `scale(${(settings?.product_card_size || 100) / 100})`,
-                    transformOrigin: 'left center'
-                  }}
-                >
-                  <div className="flex-1">
-                    <h3 
-                      className="font-bold mb-1"
-                      style={{ 
-                        color: getProductTextColor(settings || {} as any, index),
-                        fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
-                      }}
-                    >
-                      {product.product_name}
-                    </h3>
-                  </div>
-                  <div className="text-right space-y-2">
-                    {/* Customer-specific quantity prominently displayed */}
-                    <div 
-                      className="text-3xl font-bold"
-                      style={{ color: getProductAccentColor(settings || {} as any, index) }}
-                    >
-                      {product.total_quantity} {product.product_unit}
-                    </div>
-                    <div className="text-right">
-                      <span 
-                        className="text-lg font-semibold block mb-1"
-                        style={{ color: getProductTextColor(settings || {} as any, index) }}
-                      >
-                        {product.packed_line_items}/{product.total_line_items}
-                      </span>
-                      <Badge 
-                        variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                        style={{
-                          backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
-                          color: 'white'
-                        }}
-                      >
-                        {product.packing_status === 'completed' ? 'Ferdig' : 
-                         product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <CustomerProductsList
+          customerPackingData={customerPackingData}
+          settings={settings}
+          statusColors={statusColors}
+        />
 
-        {/* STATUS Indicator - Pågående */}
-        {settings?.show_status_indicator && !isAllPacked && (
-          <Card
-            className="text-center"
-            style={{
-              backgroundColor: statusColors.ongoing,
-              borderColor: statusColors.ongoing,
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent 
-              style={{ 
-                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding}px` : '32px' 
-              }}
-            >
-              <h2 
-                className="font-bold text-white"
-                style={{ 
-                  fontSize: settings?.status_indicator_font_size ? `${settings.status_indicator_font_size}px` : '32px' 
-                }}
-              >
-                STATUS: Pågående
-              </h2>
-            </CardContent>
-          </Card>
-        )}
+        <CustomerStatusIndicator
+          isAllPacked={isAllPacked}
+          settings={settings}
+        />
 
-        {settings?.show_progress_bar && (
-          <Card
-            style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-              boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
-            }}
-          >
-            <CardContent className="p-8">
-              <div className="space-y-4">
-                <div 
-                  className="w-full rounded-full relative"
-                  style={{ 
-                    backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                    height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
-                  }}
-                >
-                  <div 
-                    className={`rounded-full transition-all duration-300 ${settings?.progress_animation ? 'animate-pulse' : ''}`}
-                    style={{ 
-                      backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                      height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
-                      width: `${customerPackingData.progress_percentage}%`
-                    }}
-                  />
-                  {settings?.show_truck_icon && (
-                    <img 
-                      src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
-                      alt="Varebil"
-                      className="absolute top-1/2 transform -translate-y-1/2" 
-                      style={{ 
-                        left: `${customerPackingData.progress_percentage}%`, 
-                        marginLeft: `-${(settings?.truck_icon_size || 24) / 2}px`,
-                        width: `${settings?.truck_icon_size || 24}px`,
-                        height: `${settings?.truck_icon_size || 24}px`,
-                        objectFit: 'contain'
-                      }}
-                    />
-                  )}
-                </div>
-                {settings?.show_progress_percentage && (
-                  <div className="text-center">
-                    <span 
-                      className="text-3xl font-bold"
-                      style={{ color: settings?.text_color || '#374151' }}
-                    >
-                      {customerPackingData.progress_percentage}%
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <CustomerProgressBar
+          customerPackingData={customerPackingData}
+          settings={settings}
+        />
 
         {isAllPacked && settings?.show_status_indicator && (
-          <Card
-            className="text-center"
-            style={{
-              backgroundColor: statusColors.completed,
-              borderColor: statusColors.completed,
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent 
-              style={{ 
-                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding}px` : '32px' 
-              }}
-            >
-              <h2 
-                className="font-bold text-white"
-                style={{ 
-                  fontSize: settings?.status_indicator_font_size ? `${settings.status_indicator_font_size}px` : '32px' 
-                }}
-              >
-                STATUS: Ferdig Pakket
-              </h2>
-            </CardContent>
-          </Card>
+          <CustomerStatusIndicator
+            isAllPacked={true}
+            settings={settings}
+          />
         )}
 
         <div className="text-center">
