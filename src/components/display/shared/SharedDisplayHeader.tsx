@@ -27,7 +27,7 @@ const SharedDisplayHeader = ({ settings, connectionStatus, onRefresh, activePack
             color: settings?.header_text_color || '#111827'
           }}
         >
-          Felles Display
+          {settings?.main_title || 'Felles Display'}
         </h1>
         <p 
           className="text-xl mb-2"
@@ -36,9 +36,9 @@ const SharedDisplayHeader = ({ settings, connectionStatus, onRefresh, activePack
             fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
           }}
         >
-          Pakkestatus for kunder
+          {settings?.subtitle || 'Pakkestatus for kunder'}
         </p>
-        {activePackingDate && (
+        {settings?.show_date_indicator && activePackingDate && (
           <div className="flex items-center justify-center gap-2 mt-2">
             <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
             <span 

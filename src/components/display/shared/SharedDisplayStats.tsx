@@ -21,8 +21,29 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
     { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts, desc: 'Antall produkter som skal pakkes' }
   ];
 
+  // Determine grid columns class based on settings
+  const getStatsGridClass = () => {
+    const columns = settings?.stats_columns || 3;
+    switch (columns) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-1 md:grid-cols-2';
+      case 3: return 'grid-cols-1 md:grid-cols-3';
+      case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
+      default: return 'grid-cols-1 md:grid-cols-3';
+    }
+  };
+
+  // Get card height class based on settings
+  const getCardHeightClass = () => {
+    switch (settings?.stats_card_height) {
+      case 'compact': return 'py-2';
+      case 'extended': return 'py-6';
+      default: return 'py-4';
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className={`grid ${getStatsGridClass()} gap-6 mb-8`}>
       {stats.map((stat, idx) => (
         <Card 
           key={idx}
@@ -33,7 +54,7 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
             boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
           }}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${getCardHeightClass()}`}>
             <CardTitle 
               className="text-sm font-medium"
               style={{ color: settings?.text_color || '#6b7280' }}
@@ -42,10 +63,10 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
             </CardTitle>
             <stat.icon 
               className="h-4 w-4"
-              style={{ color: settings?.product_accent_color || '#6b7280' }}
+              style={{ color: settings?.stats_icon_color || '#6b7280' }}
             />
           </CardHeader>
-          <CardContent>
+          <CardContent className={getCardHeightClass()}>
             <div 
               className="text-2xl font-bold"
               style={{ color: settings?.text_color || '#111827' }}

@@ -38,9 +38,35 @@ const SharedDisplay = () => {
 
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  const sharedDisplayPackingData = packingData?.filter(data => 
+  let sharedDisplayPackingData = packingData?.filter(data => 
     sharedDisplayCustomers.some(customer => customer.id === data.id)
   ) || [];
+
+  // Apply customer sorting based on settings
+  if (settings?.customer_sort_order && sharedDisplayPackingData.length > 0) {
+    switch (settings.customer_sort_order) {
+      case 'alphabetical':
+        sharedDisplayPackingData = sharedDisplayPackingData.sort((a, b) => {
+          const customerA = sharedDisplayCustomers.find(c => c.id === a.id);
+          const customerB = sharedDisplayCustomers.find(c => c.id === b.id);
+          return (customerA?.name || '').localeCompare(customerB?.name || '');
+        });
+        break;
+      case 'status':
+        sharedDisplayPackingData = sharedDisplayPackingData.sort((a, b) => {
+          if (a.overall_status === b.overall_status) return 0;
+          if (a.overall_status === 'completed') return 1;
+          if (b.overall_status === 'completed') return -1;
+          return 0;
+        });
+        break;
+      case 'progress':
+        sharedDisplayPackingData = sharedDisplayPackingData.sort((a, b) => 
+          b.progress_percentage - a.progress_percentage
+        );
+        break;
+    }
+  }
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? statusColorMap(settings) : {
@@ -51,6 +77,18 @@ const SharedDisplay = () => {
   };
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : true;
+
+  // Determine grid columns class based on settings
+  const getCustomerGridClass = () => {
+    const columns = settings?.customer_cards_columns || 3;
+    switch (columns) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-1 md:grid-cols-2';
+      case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+      case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+      default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+    }
+  };
 
   return (
     <div 
@@ -86,7 +124,7 @@ const SharedDisplay = () => {
           </Card>
         )}
 
-        {!dateLoading && (
+        {!dateLoading && settings?.show_stats_cards && (
           <SharedDisplayStats
             settings={settings}
             sharedDisplayPackingData={sharedDisplayPackingData}
@@ -94,7 +132,12 @@ const SharedDisplay = () => {
         )}
 
         {!dateLoading && sharedDisplayPackingData.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div 
+            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
+            style={{ 
+              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+            }}
+          >
             {sharedDisplayPackingData.map((customerData) => {
               const customer = sharedDisplayCustomers.find(c => c.id === customerData.id);
               if (!customer) return null;
