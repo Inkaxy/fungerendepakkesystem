@@ -146,12 +146,18 @@ export type Database = {
           card_shadow_intensity: number | null
           cat_animation_speed: string | null
           created_at: string
+          customer_card_height: string | null
+          customer_cards_columns: number | null
+          customer_cards_gap: number | null
+          customer_sort_order: string | null
           enable_animations: boolean | null
           enable_cat_animations: boolean | null
           fade_transitions: boolean | null
           header_font_size: number | null
           header_text_color: string | null
           id: string
+          main_title: string | null
+          max_products_per_card: number | null
           product_1_accent_color: string | null
           product_1_bg_color: string | null
           product_1_text_color: string | null
@@ -164,6 +170,7 @@ export type Database = {
           product_accent_color: string | null
           product_card_color: string | null
           product_card_size: number | null
+          product_list_style: string | null
           product_text_color: string | null
           progress_animation: boolean | null
           progress_background_color: string | null
@@ -171,22 +178,31 @@ export type Database = {
           progress_height: number | null
           show_bouncing_cats: boolean | null
           show_customer_info: boolean | null
+          show_customer_numbers: boolean | null
+          show_date_indicator: boolean | null
           show_delivery_dates: boolean | null
           show_falling_cats: boolean | null
+          show_line_items_count: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
           show_progress_bar: boolean | null
           show_progress_percentage: boolean | null
           show_running_cats: boolean | null
+          show_stats_cards: boolean | null
+          show_status_badges: boolean | null
           show_status_indicator: boolean | null
           show_truck_icon: boolean | null
           spacing: number | null
+          stats_card_height: string | null
+          stats_columns: number | null
+          stats_icon_color: string | null
           status_completed_color: string | null
           status_delivered_color: string | null
           status_in_progress_color: string | null
           status_indicator_font_size: number | null
           status_indicator_padding: number | null
           status_pending_color: string | null
+          subtitle: string | null
           text_color: string | null
           truck_icon_size: number | null
           updated_at: string
@@ -208,12 +224,18 @@ export type Database = {
           card_shadow_intensity?: number | null
           cat_animation_speed?: string | null
           created_at?: string
+          customer_card_height?: string | null
+          customer_cards_columns?: number | null
+          customer_cards_gap?: number | null
+          customer_sort_order?: string | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          main_title?: string | null
+          max_products_per_card?: number | null
           product_1_accent_color?: string | null
           product_1_bg_color?: string | null
           product_1_text_color?: string | null
@@ -226,6 +248,7 @@ export type Database = {
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
+          product_list_style?: string | null
           product_text_color?: string | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
@@ -233,22 +256,31 @@ export type Database = {
           progress_height?: number | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
+          show_customer_numbers?: boolean | null
+          show_date_indicator?: boolean | null
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
+          show_line_items_count?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
           show_running_cats?: boolean | null
+          show_stats_cards?: boolean | null
+          show_status_badges?: boolean | null
           show_status_indicator?: boolean | null
           show_truck_icon?: boolean | null
           spacing?: number | null
+          stats_card_height?: string | null
+          stats_columns?: number | null
+          stats_icon_color?: string | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
           status_in_progress_color?: string | null
           status_indicator_font_size?: number | null
           status_indicator_padding?: number | null
           status_pending_color?: string | null
+          subtitle?: string | null
           text_color?: string | null
           truck_icon_size?: number | null
           updated_at?: string
@@ -270,12 +302,18 @@ export type Database = {
           card_shadow_intensity?: number | null
           cat_animation_speed?: string | null
           created_at?: string
+          customer_card_height?: string | null
+          customer_cards_columns?: number | null
+          customer_cards_gap?: number | null
+          customer_sort_order?: string | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          main_title?: string | null
+          max_products_per_card?: number | null
           product_1_accent_color?: string | null
           product_1_bg_color?: string | null
           product_1_text_color?: string | null
@@ -288,6 +326,7 @@ export type Database = {
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
+          product_list_style?: string | null
           product_text_color?: string | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
@@ -295,22 +334,31 @@ export type Database = {
           progress_height?: number | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
+          show_customer_numbers?: boolean | null
+          show_date_indicator?: boolean | null
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
+          show_line_items_count?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
           show_running_cats?: boolean | null
+          show_stats_cards?: boolean | null
+          show_status_badges?: boolean | null
           show_status_indicator?: boolean | null
           show_truck_icon?: boolean | null
           spacing?: number | null
+          stats_card_height?: string | null
+          stats_columns?: number | null
+          stats_icon_color?: string | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
           status_in_progress_color?: string | null
           status_indicator_font_size?: number | null
           status_indicator_padding?: number | null
           status_pending_color?: string | null
+          subtitle?: string | null
           text_color?: string | null
           truck_icon_size?: number | null
           updated_at?: string

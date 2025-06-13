@@ -38,6 +38,23 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     show_bouncing_cats: data.show_bouncing_cats ?? true,
     show_falling_cats: data.show_falling_cats ?? true,
     show_running_cats: data.show_running_cats ?? true,
+    // Shared display settings with proper defaults
+    show_stats_cards: data.show_stats_cards ?? true,
+    stats_columns: data.stats_columns ?? 3,
+    stats_icon_color: data.stats_icon_color || '#3b82f6',
+    stats_card_height: data.stats_card_height || 'normal',
+    customer_cards_columns: data.customer_cards_columns ?? 3,
+    customer_card_height: data.customer_card_height || 'normal',
+    show_customer_numbers: data.show_customer_numbers ?? true,
+    show_status_badges: data.show_status_badges ?? true,
+    customer_cards_gap: data.customer_cards_gap ?? 24,
+    main_title: data.main_title || 'Felles Display',
+    subtitle: data.subtitle || 'Pakkestatus for kunder',
+    show_date_indicator: data.show_date_indicator ?? true,
+    max_products_per_card: data.max_products_per_card ?? 10,
+    product_list_style: data.product_list_style || 'normal',
+    show_line_items_count: data.show_line_items_count ?? true,
+    customer_sort_order: data.customer_sort_order || 'alphabetical',
   } as DisplaySettings;
 };
 

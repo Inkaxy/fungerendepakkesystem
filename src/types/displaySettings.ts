@@ -71,4 +71,21 @@ export interface DisplaySettings {
   show_bouncing_cats: boolean;
   show_falling_cats: boolean;
   show_running_cats: boolean;
+  // Shared display settings
+  show_stats_cards: boolean;
+  stats_columns: number;
+  stats_icon_color: string;
+  stats_card_height: 'compact' | 'normal' | 'extended';
+  customer_cards_columns: number;
+  customer_card_height: 'compact' | 'normal' | 'extended';
+  show_customer_numbers: boolean;
+  show_status_badges: boolean;
+  customer_cards_gap: number;
+  main_title: string;
+  subtitle: string;
+  show_date_indicator: boolean;
+  max_products_per_card: number;
+  product_list_style: 'compact' | 'normal';
+  show_line_items_count: boolean;
+  customer_sort_order: 'alphabetical' | 'status' | 'progress';
 }
