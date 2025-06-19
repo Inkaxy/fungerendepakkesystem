@@ -1,13 +1,16 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Truck, Package, Users, BarChart3, Clock, CheckCircle } from 'lucide-react';
+import { Truck, Package, Users, BarChart3, Clock, CheckCircle, Shield, Zap } from 'lucide-react';
 import { useCollisionDetection } from '@/hooks/useCollisionDetection';
 import { GameOverlay } from '@/components/GameOverlay';
+import { useAuthStore } from '@/stores/authStore';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const {
     score,
     collectedItems,
@@ -31,23 +34,41 @@ const Index = () => {
     title: "Rapporter",
     description: "Detaljerte rapporter og statistikk for bedre innsikt"
   }];
-  const stats = [{
-    number: "500+",
-    label: "Bakeri-partnere",
-    icon: Users
+
+  // Replace mock stats with realistic feature highlights
+  const benefits = [{
+    icon: Shield,
+    title: "Pålitelig System",
+    description: "Stabil plattform du kan stole på"
   }, {
-    number: "50k+",
-    label: "Daglige leveranser",
-    icon: Truck
+    icon: Zap,
+    title: "Enkelt å Bruke",
+    description: "Intuitivt grensesnitt for alle"
   }, {
-    number: "99.8%",
-    label: "Oppetid",
-    icon: CheckCircle
+    icon: CheckCircle,
+    title: "Komplett Løsning",
+    description: "Alt du trenger på ett sted"
   }, {
-    number: "<2min",
-    label: "Gjennomsnittlig pakketid",
-    icon: Clock
+    icon: Clock,
+    title: "Spar Tid",
+    description: "Automatiser repetitive oppgaver"
   }];
+
+  const handleLearnMore = () => {
+    // Scroll to features section
+    const featuresSection = document.getElementById('features-section');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleLoginClick = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return <div className="min-h-screen">
       <GameOverlay score={score} collectedItems={collectedItems} collisions={collisions} />
@@ -86,36 +107,44 @@ const Index = () => {
             <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Loaf & Load" className="h-64 w-auto animate-bread-rise" />
           </div>
           
-          
-          
           <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
             Komplett pakking- og leveringssystem for moderne bakerier
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate('/login')} className="bg-white text-bakery-brown hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
-              Logg inn
+            <Button size="lg" onClick={handleLoginClick} className="bg-white text-bakery-brown hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+              {user ? 'Gå til Dashboard' : 'Logg inn'}
             </Button>
-            <Button variant="outline" size="lg" className="bg-white/20 backdrop-blur border-white text-white hover:bg-white hover:text-bakery-brown px-8 py-3 text-lg font-semibold">
+            <Button variant="outline" size="lg" onClick={handleLearnMore} className="bg-white/20 backdrop-blur border-white text-white hover:bg-white hover:text-bakery-brown px-8 py-3 text-lg font-semibold">
               Les mer
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Benefits Section - Replacing Mock Stats */}
       <section className="py-16 bg-bakery-cream">
         <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-bakery-brown mb-4">
+              Hvorfor velge Loaf & Load?
+            </h2>
+            <p className="text-lg text-gray-600">
+              Vi gjør bakeri-drift enklere og mer effektiv
+            </p>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => <div key={index} className="text-center">
+            {benefits.map((benefit, index) => <div key={index} className="text-center">
                 <div className="flex justify-center mb-4">
-                  <stat.icon className="h-8 w-8 text-bakery-orange" />
+                  <div className="p-3 rounded-lg bg-bakery-orange/10">
+                    <benefit.icon className="h-8 w-8 text-bakery-orange" />
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-bakery-brown mb-2">
-                  {stat.number}
+                <div className="text-xl font-semibold text-bakery-brown mb-2">
+                  {benefit.title}
                 </div>
                 <div className="text-sm text-gray-600">
-                  {stat.label}
+                  {benefit.description}
                 </div>
               </div>)}
           </div>
@@ -123,7 +152,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4">
+      <section id="features-section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-bakery-brown mb-4">
@@ -163,10 +192,10 @@ const Index = () => {
             Klar til å modernisere ditt bakeri?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Bli med tusenvis av bakerier som allerede bruker Loaf & Load for å effektivisere sin drift
+            Start med å utforske systemet vårt og se hvordan det kan hjelpe ditt bakeri
           </p>
-          <Button size="lg" onClick={() => navigate('/login')} className="bg-bakery-orange hover:bg-bakery-orange-light text-white px-8 py-3 text-lg font-semibold">
-            Kom i gang i dag
+          <Button size="lg" onClick={handleLoginClick} className="bg-bakery-orange hover:bg-bakery-orange-light text-white px-8 py-3 text-lg font-semibold">
+            {user ? 'Gå til Dashboard' : 'Kom i gang i dag'}
           </Button>
         </div>
       </section>
