@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -14,11 +13,13 @@ import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab
 import SharedDisplaySettingsTab from '@/components/display-settings/SharedDisplaySettingsTab';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const DisplaySettings = () => {
   const { data: settings, isLoading } = useDisplaySettings();
   const updateSettings = useUpdateDisplaySettings();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [localSettings, setLocalSettings] = React.useState(settings);
 
   React.useEffect(() => {
@@ -40,7 +41,7 @@ const DisplaySettings = () => {
   };
 
   const handlePreview = () => {
-    window.open('/display/shared', '_blank');
+    navigate('/display/shared');
   };
 
   if (isLoading || !localSettings) {
