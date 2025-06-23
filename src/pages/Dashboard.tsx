@@ -3,10 +3,15 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/stores/authStore';
-import { Users, Package, BarChart3 } from 'lucide-react';
+import { Users, Package, BarChart3, Clock, CheckCircle, TrendingUp } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { nb } from 'date-fns/locale';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { Loader2 } from 'lucide-react';
 
 const Dashboard = () => {
   const { profile } = useAuthStore();
+  const { data: stats, isLoading, error } = useDashboardStats();
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -26,27 +31,80 @@ const Dashboard = () => {
     }
   };
 
-  const mockStats = [
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'order_packed': return 'bg-green-500';
+      case 'order_created': return 'bg-blue-500';
+      case 'customer_added': return 'bg-purple-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Velkommen, {profile?.name || 'Bruker'}!
+              </h1>
+              <p className="text-red-600 mt-1">
+                Kunne ikke laste statistikk: {error.message}
+              </p>
+            </div>
+            <div className="text-right">
+              <Badge variant={getRoleBadgeVariant(profile?.role || '')} className="mb-2">
+                {getRoleName(profile?.role || '')}
+              </Badge>
+              {profile?.bakery_name && (
+                <p className="text-sm text-gray-600">
+                  {profile.bakery_name}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const statsCards = [
     {
       title: "Aktive Ordrer",
-      value: "12",
-      description: "3 klar for pakking",
+      value: stats?.activeOrders?.toString() || "0",
+      description: `${stats?.pendingOrders || 0} venter på behandling`,
       icon: Package,
       color: "text-blue-600"
     },
     {
       title: "Kunder",
-      value: "45",
-      description: "totalt",
+      value: stats?.totalCustomers?.toString() || "0",
+      description: "aktive kunder",
       icon: Users,
       color: "text-purple-600"
     },
     {
-      title: "Omsetning",
-      value: "25.400 kr",
+      title: "Ukens Omsetning",
+      value: `${stats?.weeklyRevenue?.toLocaleString('nb-NO') || '0'} kr`,
       description: "denne uken",
       icon: BarChart3,
       color: "text-orange-600"
+    },
+    {
+      title: "Pakket I Dag",
+      value: stats?.completedOrdersToday?.toString() || "0",
+      description: "ordrer fullført",
+      icon: CheckCircle,
+      color: "text-green-600"
     }
   ];
 
@@ -77,8 +135,8 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {mockStats.map((stat, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statsCards.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -96,7 +154,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions and Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -106,13 +164,26 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-medium">Pakking</h4>
+            <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+              <h4 className="font-medium flex items-center">
+                <Package className="h-4 w-4 mr-2 text-blue-600" />
+                Pakking
+              </h4>
               <p className="text-sm text-gray-600">Start pakking av nye ordrer</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-medium">Rapporter</h4>
-              <p className="text-sm text-gray-600">Generer ukens rapport</p>
+            <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+              <h4 className="font-medium flex items-center">
+                <BarChart3 className="h-4 w-4 mr-2 text-orange-600" />
+                Rapporter
+              </h4>
+              <p className="text-sm text-gray-600">Se avviksrapporter og statistikk</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+              <h4 className="font-medium flex items-center">
+                <Users className="h-4 w-4 mr-2 text-purple-600" />
+                Kunder
+              </h4>
+              <p className="text-sm text-gray-600">Administrer kundeinformasjon</p>
             </div>
           </CardContent>
         </Card>
@@ -126,27 +197,26 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm">Ordre #1234 pakket</p>
-                  <p className="text-xs text-gray-500">5 minutter siden</p>
+              {stats?.recentActivity && stats.recentActivity.length > 0 ? (
+                stats.recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${getActivityIcon(activity.type)}`}></div>
+                    <div className="flex-1">
+                      <p className="text-sm">{activity.message}</p>
+                      <p className="text-xs text-gray-500">
+                        {formatDistanceToNow(new Date(activity.timestamp), { 
+                          addSuffix: true, 
+                          locale: nb 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-500">Ingen nylige aktiviteter</p>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm">Ny kunde registrert</p>
-                  <p className="text-xs text-gray-500">15 minutter siden</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm">Ordre oppdatert</p>
-                  <p className="text-xs text-gray-500">30 minutter siden</p>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
