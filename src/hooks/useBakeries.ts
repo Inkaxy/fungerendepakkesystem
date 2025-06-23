@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 interface Bakery {
   id: string;
@@ -17,12 +17,47 @@ export const useBakeries = () => {
   return useQuery({
     queryKey: ['bakeries'],
     queryFn: async () => {
+      console.log('🔍 Fetching bakeries...');
+      
+      // Check authentication status
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session:', session?.user?.email || 'No session');
+      
+      if (!session?.user) {
+        console.error('❌ No authenticated user found');
+        throw new Error('Du må være logget inn for å se bakerier');
+      }
+
+      // Check user role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, email')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      console.log('User profile:', profile);
+      
+      if (profileError) {
+        console.error('❌ Error fetching user profile:', profileError);
+        throw new Error('Kunne ikke hente brukerprofil');
+      }
+
+      if (!profile || profile.role !== 'super_admin') {
+        console.error('❌ User is not super admin:', profile?.role);
+        throw new Error('Du må være super admin for å se bakerier');
+      }
+
       const { data, error } = await supabase
         .from('bakeries')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching bakeries:', error);
+        throw error;
+      }
+      
+      console.log('✅ Bakeries fetched successfully:', data?.length);
       return data as Bakery[];
     },
   });
@@ -31,16 +66,38 @@ export const useBakeries = () => {
 export const useCreateBakery = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user, profile } = useAuthStore();
 
   return useMutation({
     mutationFn: async (bakery: Omit<Bakery, 'id' | 'created_at' | 'updated_at'>) => {
+      console.log('🏗️ Creating bakery:', bakery.name);
+      
+      // Check authentication
+      if (!user) {
+        console.error('❌ No authenticated user');
+        throw new Error('Du må være logget inn for å opprette bakeri');
+      }
+
+      // Check user role
+      if (!profile || profile.role !== 'super_admin') {
+        console.error('❌ User is not super admin:', profile?.role);
+        throw new Error('Du må være super admin for å opprette bakeri');
+      }
+
+      console.log('✅ User authenticated:', user.email, 'Role:', profile.role);
+
       const { data, error } = await supabase
         .from('bakeries')
         .insert(bakery)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error creating bakery:', error);
+        throw error;
+      }
+      
+      console.log('✅ Bakery created successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -51,6 +108,7 @@ export const useCreateBakery = () => {
       });
     },
     onError: (error) => {
+      console.error('Create bakery mutation error:', error);
       toast({
         title: "Feil",
         description: `Kunne ikke opprette bakeri: ${error.message}`,
@@ -116,7 +174,7 @@ export const useDeleteBakery = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bakeries'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] }); // Also refresh profiles since bakery relationship might change
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: "Suksess",
         description: "Bakeri slettet",

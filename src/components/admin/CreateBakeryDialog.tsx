@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useCreateBakery } from '@/hooks/useBakeries';
+import { useAuthStore } from '@/stores/authStore';
 
 const createBakerySchema = z.object({
   name: z.string().min(1, 'Navn er påkrevd'),
@@ -38,6 +39,7 @@ interface CreateBakeryDialogProps {
 
 const CreateBakeryDialog = ({ open, onOpenChange }: CreateBakeryDialogProps) => {
   const createBakery = useCreateBakery();
+  const { user, profile } = useAuthStore();
 
   const form = useForm<CreateBakeryForm>({
     resolver: zodResolver(createBakerySchema),
@@ -50,6 +52,10 @@ const CreateBakeryDialog = ({ open, onOpenChange }: CreateBakeryDialogProps) => 
   });
 
   const onSubmit = async (data: CreateBakeryForm) => {
+    console.log('🏗️ Creating bakery form submission:', data);
+    console.log('Current user:', user?.email);
+    console.log('Current profile:', profile?.role);
+    
     try {
       await createBakery.mutateAsync({
         name: data.name,
@@ -60,6 +66,7 @@ const CreateBakeryDialog = ({ open, onOpenChange }: CreateBakeryDialogProps) => 
       form.reset();
       onOpenChange(false);
     } catch (error) {
+      console.error('❌ Error in form submission:', error);
       // Error is handled by the mutation
     }
   };
@@ -73,6 +80,14 @@ const CreateBakeryDialog = ({ open, onOpenChange }: CreateBakeryDialogProps) => 
             Fyll ut informasjonen for det nye bakeriet.
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Debug information */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
+            Debug: {user?.email} - {profile?.role}
+          </div>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

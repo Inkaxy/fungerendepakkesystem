@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Loader2 } from 'lucide-react';
 import { useBakeries, useDeleteBakery } from '@/hooks/useBakeries';
@@ -16,7 +15,15 @@ import UsersSection from '@/components/admin/UsersSection';
 import AdminDialogs from '@/components/admin/AdminDialogs';
 
 const Admin = () => {
-  const { profile } = useAuthStore();
+  const { profile, user } = useAuthStore();
+  
+  // Debug authentication status
+  useEffect(() => {
+    console.log('🔍 Admin page - Auth status:');
+    console.log('User:', user?.email || 'No user');
+    console.log('Profile:', { role: profile?.role, email: profile?.email } || 'No profile');
+  }, [user, profile]);
+
   const [showCreateBakery, setShowCreateBakery] = useState(false);
   const [editingBakery, setEditingBakery] = useState<any>(null);
   const [viewingBakeryUsers, setViewingBakeryUsers] = useState<any>(null);
@@ -29,10 +36,10 @@ const Admin = () => {
   const [permanentDeletingUser, setPermanentDeletingUser] = useState<any>(null);
   const [showDeleteAllData, setShowDeleteAllData] = useState(false);
   
-  const { data: bakeries, isLoading: bakeriesLoading } = useBakeries();
+  const { data: bakeries, isLoading: bakeriesLoading, error: bakeriesError } = useBakeries();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
   const deleteBakery = useDeleteBakery();
-  const deactivateProfile = useDeleteProfile(); // This is now deactivation
+  const deactivateProfile = useDeleteProfile();
   const reactivateProfile = useReactivateProfile();
   const permanentDeleteProfile = usePermanentDeleteProfile();
 
@@ -43,6 +50,24 @@ const Admin = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Ingen tilgang</h1>
           <p className="text-gray-600">Du har ikke tilgang til administrasjonspanelet.</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Din rolle: {profile?.role || 'Ingen rolle'} | E-post: {profile?.email || 'Ingen e-post'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show bakeries loading error if exists
+  if (bakeriesError) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Feil ved lasting av bakerier</h1>
+          <p className="text-gray-600 mb-4">{bakeriesError.message}</p>
+          <p className="text-sm text-gray-500">
+            Sjekk konsollen for mer informasjon eller prøv å oppdatere siden.
+          </p>
         </div>
       </div>
     );
