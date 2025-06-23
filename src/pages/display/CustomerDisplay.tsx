@@ -11,7 +11,6 @@ import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
-import { CatGameOverlay } from '@/components/CatGameOverlay';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import DebugInfo from '@/components/display/DebugInfo';
@@ -87,8 +86,6 @@ const CustomerDisplay = () => {
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
-        <CatGameOverlay settings={settings} />
-        
         <div className="max-w-4xl mx-auto space-y-8">
           <DebugInfo customerId={customer.id} showDebug={true} />
 
@@ -160,8 +157,6 @@ const CustomerDisplay = () => {
 
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
-      <CatGameOverlay settings={settings} />
-      
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-end">
           <ConnectionStatus status={connectionStatus} />
