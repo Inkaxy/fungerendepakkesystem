@@ -65,12 +65,6 @@ export interface DisplaySettings {
   progress_animation: boolean;
   // Customer name display setting
   always_show_customer_name: boolean;
-  // Cat animation settings
-  enable_cat_animations: boolean;
-  cat_animation_speed: 'slow' | 'normal' | 'fast';
-  show_bouncing_cats: boolean;
-  show_falling_cats: boolean;
-  show_running_cats: boolean;
   // Shared display settings
   show_stats_cards: boolean;
   stats_columns: number;

@@ -23,9 +23,6 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
 
   const animationDuration = settings.animation_speed === 'slow' ? '2s' : 
                            settings.animation_speed === 'fast' ? '0.5s' : '1s';
-  
-  const catAnimationDuration = settings.cat_animation_speed === 'slow' ? '20s' : 
-                               settings.cat_animation_speed === 'fast' ? '8s' : '15s';
 
   return {
     '--header-font-size': `${settings.header_font_size}px`,
@@ -56,11 +53,9 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
     '--truck-icon-size': `${settings.truck_icon_size}px`,
     '--animation-duration': animationDuration,
-    '--cat-animation-duration': catAnimationDuration,
     '--enable-animations': settings.enable_animations ? '1' : '0',
     '--fade-transitions': settings.fade_transitions ? '1' : '0',
     '--progress-animation': settings.progress_animation ? '1' : '0',
-    '--enable-cat-animations': settings.enable_cat_animations ? '1' : '0',
     '--product-card-size': `${settings.product_card_size}%`,
     ...backgroundStyle,
   } as React.CSSProperties & { [key: string]: string };
@@ -132,11 +127,3 @@ export const getAnimationClasses = (settings: DisplaySettings) => {
   
   return classes.join(' ');
 };
-
-export const getCatAnimationSettings = (settings: DisplaySettings) => ({
-  enabled: settings.enable_cat_animations,
-  speed: settings.cat_animation_speed,
-  showBouncing: settings.show_bouncing_cats,
-  showFalling: settings.show_falling_cats,
-  showRunning: settings.show_running_cats,
-});
