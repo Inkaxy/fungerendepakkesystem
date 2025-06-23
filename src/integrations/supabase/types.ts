@@ -373,6 +373,44 @@ export type Database = {
           },
         ]
       }
+      display_stations: {
+        Row: {
+          bakery_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_shared: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_shared?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_shared?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_stations_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_products: {
         Row: {
           created_at: string | null
