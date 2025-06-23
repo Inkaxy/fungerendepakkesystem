@@ -1,12 +1,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay } from 'date-fns';
 
 interface DashboardStats {
   activeOrders: number;
   totalCustomers: number;
-  weeklyRevenue: number;
   pendingOrders: number;
   completedOrdersToday: number;
   recentActivity: Array<{
@@ -22,8 +21,6 @@ export const useDashboardStats = () => {
     queryKey: ['dashboard-stats'],
     queryFn: async (): Promise<DashboardStats> => {
       const now = new Date();
-      const weekStart = format(startOfWeek(now), 'yyyy-MM-dd');
-      const weekEnd = format(endOfWeek(now), 'yyyy-MM-dd');
       const todayStart = startOfDay(now);
       const todayEnd = endOfDay(now);
 
@@ -52,15 +49,6 @@ export const useDashboardStats = () => {
         .select('id')
         .eq('bakery_id', profile.bakery_id)
         .eq('status', 'active');
-
-      // Fetch weekly revenue
-      const { data: weeklyOrders } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .eq('bakery_id', profile.bakery_id)
-        .gte('delivery_date', weekStart)
-        .lte('delivery_date', weekEnd)
-        .in('status', ['packed', 'delivered']);
 
       // Fetch pending orders
       const { data: pendingOrders } = await supabase
@@ -131,12 +119,9 @@ export const useDashboardStats = () => {
       recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       recentActivity.splice(6);
 
-      const weeklyRevenue = weeklyOrders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
-
       return {
         activeOrders: activeOrders?.length || 0,
         totalCustomers: customers?.length || 0,
-        weeklyRevenue,
         pendingOrders: pendingOrders?.length || 0,
         completedOrdersToday: completedToday?.length || 0,
         recentActivity

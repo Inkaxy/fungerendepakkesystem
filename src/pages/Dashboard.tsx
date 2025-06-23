@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/stores/authStore';
-import { Users, Package, BarChart3, Clock, CheckCircle, TrendingUp } from 'lucide-react';
+import { Users, Package, Clock, CheckCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -93,13 +92,6 @@ const Dashboard = () => {
       color: "text-purple-600"
     },
     {
-      title: "Ukens Omsetning",
-      value: `${stats?.weeklyRevenue?.toLocaleString('nb-NO') || '0'} kr`,
-      description: "denne uken",
-      icon: BarChart3,
-      color: "text-orange-600"
-    },
-    {
       title: "Pakket I Dag",
       value: stats?.completedOrdersToday?.toString() || "0",
       description: "ordrer fullført",
@@ -135,7 +127,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statsCards.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -173,7 +165,7 @@ const Dashboard = () => {
             </div>
             <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
               <h4 className="font-medium flex items-center">
-                <BarChart3 className="h-4 w-4 mr-2 text-orange-600" />
+                <Clock className="h-4 w-4 mr-2 text-orange-600" />
                 Rapporter
               </h4>
               <p className="text-sm text-gray-600">Se avviksrapporter og statistikk</p>
