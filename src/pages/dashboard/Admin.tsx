@@ -21,7 +21,9 @@ const Admin = () => {
   useEffect(() => {
     console.log('🔍 Admin page - Auth status:');
     console.log('User:', user?.email || 'No user');
-    console.log('Profile:', { role: profile?.role, email: profile?.email } || 'No profile');
+    console.log('Profile role:', profile?.role || 'No profile role');
+    console.log('User ID:', user?.id || 'No user ID');
+    console.log('Profile object:', profile);
   }, [user, profile]);
 
   const [showCreateBakery, setShowCreateBakery] = useState(false);
