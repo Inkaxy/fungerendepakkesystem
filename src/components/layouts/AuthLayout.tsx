@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,9 @@ import { toast } from 'sonner';
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
-
 const AuthLayout: React.FC<AuthLayoutProps> = ({
   children
 }) => {
@@ -25,17 +22,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   } = useAuthStore();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
   const handleSignOut = async () => {
     await signOut();
     toast.success('Du er nå logget ut');
   };
-  
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
-  
   const getRoleName = (role: string) => {
     switch (role) {
       case 'super_admin':
@@ -48,7 +42,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         return 'Bruker';
     }
   };
-  
   const navigationItems = [{
     name: 'Dashboard',
     href: '/dashboard'
@@ -76,59 +69,35 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
       href: '/dashboard/admin'
     });
   }
-  
   const isActiveRoute = (href: string) => {
     return location.pathname === href;
   };
-  
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo Section */}
             <div className="flex items-center flex-shrink-0">
-              <img 
-                src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" 
-                alt="Logo" 
-                className="h-16 w-auto object-contain" 
-              />
+              <img src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png" alt="Logo" className="h-20 w-auto max-h-20 " />
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-1">
-              {navigationItems.map(item => (
-                <Link 
-                  key={item.name} 
-                  to={item.href} 
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100",
-                    isActiveRoute(item.href) 
-                      ? "text-primary bg-primary/10 border border-primary/20" 
-                      : "text-gray-700 hover:text-gray-900"
-                  )}
-                >
+              {navigationItems.map(item => <Link key={item.name} to={item.href} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100", isActiveRoute(item.href) ? "text-primary bg-primary/10 border border-primary/20" : "text-gray-700 hover:text-gray-900")}>
                   {item.name}
-                </Link>
-              ))}
+                </Link>)}
             </nav>
 
             {/* Right Section */}
             <div className="flex items-center space-x-4">
               {/* Mobile menu button */}
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="lg:hidden p-2"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
+              <Button variant="ghost" size="sm" className="lg:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
 
               {/* User info (hidden on mobile) */}
-              {profile && (
-                <div className="hidden md:flex flex-col items-end text-right">
+              {profile && <div className="hidden md:flex flex-col items-end text-right">
                   <div className="text-sm font-semibold text-gray-900">
                     {profile.name || 'Ukjent bruker'}
                   </div>
@@ -136,8 +105,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                     {getRoleName(profile.role)}
                     {profile.bakery_name && ` • ${profile.bakery_name}`}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* User dropdown menu */}
               <DropdownMenu>
@@ -186,27 +154,13 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
 
           {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden border-t border-gray-200 py-4">
+          {mobileMenuOpen && <div className="lg:hidden border-t border-gray-200 py-4">
               <div className="space-y-2">
-                {navigationItems.map(item => (
-                  <Link 
-                    key={item.name} 
-                    to={item.href} 
-                    className={cn(
-                      "block px-4 py-3 text-base font-medium rounded-lg transition-all",
-                      isActiveRoute(item.href) 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                    )} 
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
+                {navigationItems.map(item => <Link key={item.name} to={item.href} className={cn("block px-4 py-3 text-base font-medium rounded-lg transition-all", isActiveRoute(item.href) ? "bg-primary text-primary-foreground" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")} onClick={() => setMobileMenuOpen(false)}>
                     {item.name}
-                  </Link>
-                ))}
+                  </Link>)}
               </div>
-            </div>
-          )}
+            </div>}
         </div>
       </header>
 
@@ -214,8 +168,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {children}
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default AuthLayout;
