@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -8,7 +7,6 @@ import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
-import { CatGameOverlay } from '@/components/CatGameOverlay';
 import DebugInfo from '@/components/display/DebugInfo';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
@@ -95,7 +93,6 @@ const SharedDisplay = () => {
       className="min-h-screen p-8"
       style={displayStyles}
     >
-      <CatGameOverlay settings={settings} />
       
       <div className="max-w-7xl mx-auto">
         <DebugInfo showDebug={!packingData || packingData.length === 0} />
