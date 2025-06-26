@@ -18,11 +18,22 @@ export const useDisplayRefresh = ({
     if (!enabled) return;
 
     const refreshData = () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-      queryClient.invalidateQueries({ queryKey: ['display-settings'] });
-      queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
+      console.log('🔄 Display refresh triggered');
+      
+      // Comprehensive refresh of all display-related queries
+      const queriesToRefresh = [
+        'orders',
+        'customers', 
+        'packing-data',
+        'display-settings',
+        'active-packing-products',
+        'active-packing-date'
+      ];
+
+      queriesToRefresh.forEach(queryKey => {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.refetchQueries({ queryKey: [queryKey] });
+      });
     };
 
     intervalRef.current = setInterval(refreshData, interval);
@@ -35,11 +46,21 @@ export const useDisplayRefresh = ({
   }, [enabled, interval, queryClient]);
 
   const triggerRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['orders'] });
-    queryClient.invalidateQueries({ queryKey: ['customers'] });
-    queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-    queryClient.invalidateQueries({ queryKey: ['display-settings'] });
-    queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
+    console.log('🔄 Manual display refresh triggered');
+    
+    const queriesToRefresh = [
+      'orders',
+      'customers',
+      'packing-data', 
+      'display-settings',
+      'active-packing-products',
+      'active-packing-date'
+    ];
+
+    queriesToRefresh.forEach(queryKey => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.refetchQueries({ queryKey: [queryKey] });
+    });
   };
 
   return { triggerRefresh };

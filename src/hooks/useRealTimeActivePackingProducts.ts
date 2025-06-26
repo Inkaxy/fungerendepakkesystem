@@ -24,14 +24,21 @@ export const useRealTimeActivePackingProducts = () => {
         (payload) => {
           console.log('🔔 Active packing products changed:', payload);
           
-          // Invalidate all relevant queries immediately
-          queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
-          queryClient.invalidateQueries({ queryKey: ['active-packing-date'] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
-          queryClient.invalidateQueries({ queryKey: ['packing-sessions'] });
+          // Immediate and comprehensive invalidation
+          const queriesToInvalidate = [
+            'active-packing-products',
+            'active-packing-date', 
+            'packing-data',
+            'orders',
+            'packing-sessions'
+          ];
 
-          // Force refetch of critical queries
+          queriesToInvalidate.forEach(queryKey => {
+            queryClient.invalidateQueries({ queryKey: [queryKey] });
+          });
+
+          // Force immediate refetch of critical queries
+          queryClient.refetchQueries({ queryKey: ['active-packing-date'] });
           queryClient.refetchQueries({ queryKey: ['packing-data'] });
 
           // Enhanced notifications for product selection changes
@@ -70,6 +77,13 @@ export const useRealTimeActivePackingProducts = () => {
           console.log('✅ Active packing products real-time connection established');
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Active packing products real-time connection error');
+          
+          // Retry connection after a delay
+          setTimeout(() => {
+            console.log('🔄 Retrying active packing products connection...');
+            channel.unsubscribe();
+            // The useEffect will re-run and create a new connection
+          }, 5000);
         }
       });
 

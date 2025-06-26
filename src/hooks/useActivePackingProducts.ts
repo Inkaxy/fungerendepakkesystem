@@ -20,20 +20,32 @@ export const useActivePackingProducts = (sessionDate?: string) => {
     queryFn: async () => {
       if (!sessionDate) return [];
 
-      const { data, error } = await supabase
-        .from('active_packing_products')
-        .select('*')
-        .eq('session_date', sessionDate)
-        .order('product_name');
+      console.log('🔍 Fetching active packing products for date:', sessionDate);
 
-      if (error) {
-        console.error('Error fetching active packing products:', error);
+      try {
+        const { data, error } = await supabase
+          .from('active_packing_products')
+          .select('*')
+          .eq('session_date', sessionDate)
+          .order('product_name');
+
+        if (error) {
+          console.error('❌ Error fetching active packing products:', error);
+          throw error;
+        }
+
+        console.log('✅ Active packing products fetched:', data?.length || 0, 'products');
+        return data as ActivePackingProduct[];
+      } catch (error) {
+        console.error('❌ Error in useActivePackingProducts:', error);
         throw error;
       }
-
-      return data as ActivePackingProduct[];
     },
     enabled: !!sessionDate,
+    staleTime: 2000, // Consider data stale after 2 seconds for immediate updates
+    refetchInterval: 5000, // More frequent updates
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
@@ -46,6 +58,8 @@ export const useSetActivePackingProducts = () => {
       sessionDate: string;
       products: { id: string; name: string; totalQuantity: number }[];
     }) => {
+      console.log('💾 Setting active packing products:', { sessionDate, products });
+
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
 
@@ -58,41 +72,72 @@ export const useSetActivePackingProducts = () => {
 
       if (!profile?.bakery_id) throw new Error('No bakery found for user');
 
-      // Clear existing active products for this session
-      await supabase
-        .from('active_packing_products')
-        .delete()
-        .eq('bakery_id', profile.bakery_id)
-        .eq('session_date', sessionDate);
-
-      // Insert new active products
-      if (products.length > 0) {
-        const activeProducts = products.map(product => ({
-          bakery_id: profile.bakery_id,
-          session_date: sessionDate,
-          product_id: product.id,
-          product_name: product.name,
-          total_quantity: product.totalQuantity,
-        }));
-
-        const { error } = await supabase
+      try {
+        // Clear existing active products for this session
+        console.log('🧹 Clearing existing active products...');
+        const { error: deleteError } = await supabase
           .from('active_packing_products')
-          .insert(activeProducts);
+          .delete()
+          .eq('bakery_id', profile.bakery_id)
+          .eq('session_date', sessionDate);
 
-        if (error) throw error;
+        if (deleteError) {
+          console.error('❌ Error clearing active products:', deleteError);
+          throw deleteError;
+        }
+
+        // Insert new active products
+        if (products.length > 0) {
+          const activeProducts = products.map(product => ({
+            bakery_id: profile.bakery_id,
+            session_date: sessionDate,
+            product_id: product.id,
+            product_name: product.name,
+            total_quantity: product.totalQuantity,
+          }));
+
+          console.log('➕ Inserting new active products:', activeProducts);
+          const { error: insertError } = await supabase
+            .from('active_packing_products')
+            .insert(activeProducts);
+
+          if (insertError) {
+            console.error('❌ Error inserting active products:', insertError);
+            throw insertError;
+          }
+        }
+
+        console.log('✅ Active packing products set successfully');
+        return products;
+      } catch (error) {
+        console.error('❌ Error in setActivePackingProducts:', error);
+        throw error;
       }
-
-      return products;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['active-packing-products', variables.sessionDate] });
+      console.log('🎉 Active packing products mutation successful');
+      
+      // Comprehensive query invalidation and refetch
+      const queriesToInvalidate = [
+        ['active-packing-products', variables.sessionDate],
+        ['active-packing-date'],
+        ['packing-data'],
+        ['orders'],
+        ['packing-sessions']
+      ];
+
+      queriesToInvalidate.forEach(queryKey => {
+        queryClient.invalidateQueries({ queryKey });
+        queryClient.refetchQueries({ queryKey });
+      });
+
       toast({
         title: "Aktive produkter oppdatert",
         description: `${variables.products.length} produkter er valgt for pakking`,
       });
     },
     onError: (error) => {
-      console.error('Error setting active packing products:', error);
+      console.error('❌ Error setting active packing products:', error);
       toast({
         title: "Feil",
         description: "Kunne ikke lagre valgte produkter",
@@ -108,6 +153,8 @@ export const useClearActivePackingProducts = () => {
 
   return useMutation({
     mutationFn: async (sessionDate: string) => {
+      console.log('🧹 Clearing active packing products for date:', sessionDate);
+
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
 
@@ -126,16 +173,33 @@ export const useClearActivePackingProducts = () => {
         .eq('session_date', sessionDate);
 
       if (error) throw error;
+      
+      console.log('✅ Active packing products cleared successfully');
     },
     onSuccess: (_, sessionDate) => {
-      queryClient.invalidateQueries({ queryKey: ['active-packing-products', sessionDate] });
+      console.log('🎉 Clear active packing products mutation successful');
+      
+      // Comprehensive query invalidation
+      const queriesToInvalidate = [
+        ['active-packing-products', sessionDate],
+        ['active-packing-date'],
+        ['packing-data'],
+        ['orders'],
+        ['packing-sessions']
+      ];
+
+      queriesToInvalidate.forEach(queryKey => {
+        queryClient.invalidateQueries({ queryKey });
+        queryClient.refetchQueries({ queryKey });
+      });
+
       toast({
         title: "Pakking avsluttet",
         description: "Aktive produkter er fjernet",
       });
     },
     onError: (error) => {
-      console.error('Error clearing active packing products:', error);
+      console.error('❌ Error clearing active packing products:', error);
       toast({
         title: "Feil",
         description: "Kunne ikke avslutte pakking",

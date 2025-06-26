@@ -31,10 +31,12 @@ const PackingProductOverview = () => {
   // Effect to force query updates when products are selected
   useEffect(() => {
     if (selectedProducts.length > 0) {
-      console.log('🔄 Products selected, forcing query updates:', selectedProducts);
-      // Force invalidation of packing data queries
+      console.log('🔄 Products selected, forcing immediate query updates:', selectedProducts);
+      // Immediate invalidation and refetch of critical queries
       queryClient.invalidateQueries({ queryKey: ['packing-data'] });
       queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
+      queryClient.refetchQueries({ queryKey: ['packing-data'] });
+      queryClient.refetchQueries({ queryKey: ['active-packing-products'] });
     }
   }, [selectedProducts, queryClient]);
 
@@ -157,18 +159,12 @@ const PackingProductOverview = () => {
         products: activeProducts
       });
 
-      // Force immediate query updates
-      console.log('🔄 Forcing query updates after product activation');
-      queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
-      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-      queryClient.invalidateQueries({ queryKey: ['active-packing-date'] });
+      console.log('✅ Packing session started successfully');
       
-      // Wait a moment for invalidation to propagate
-      setTimeout(() => {
-        navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {
-          state: { selectedProducts }
-        });
-      }, 500);
+      // Navigate immediately without delay
+      navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {
+        state: { selectedProducts }
+      });
       
     } catch (error) {
       console.error('❌ Failed to start packing session:', error);
