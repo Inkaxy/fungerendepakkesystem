@@ -35,11 +35,11 @@ const CustomerDisplay = () => {
   
   const { data: packingData, isLoading: packingLoading } = usePackingData(
     customer?.id, 
-    activePackingDate,
+    activePackingDate || undefined,
     true
   );
 
-  const isToday = activePackingDate === format(new Date(), 'yyyy-MM-dd');
+  const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
   if (customersLoading || dateLoading || packingLoading) {
     return (
@@ -83,6 +83,44 @@ const CustomerDisplay = () => {
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
+  // If no active packing date, show message that no products are selected
+  if (!activePackingDate) {
+    return (
+      <div className="min-h-screen p-8" style={displayStyles}>
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="flex justify-end">
+            <ConnectionStatus status={connectionStatus} />
+          </div>
+
+          <CustomerHeader 
+            customerName={customer.name}
+            showRefresh={true}
+            onRefresh={triggerRefresh}
+            settings={settings}
+          />
+
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center p-12">
+              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
+              <p 
+                className="text-xl mb-6"
+                style={{ color: settings?.text_color || '#6b7280' }}
+              >
+                Ingen produkter valgt for pakking
+              </p>
+              <p 
+                className="text-sm"
+                style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+              >
+                Gå til Pakking-siden for å velge produkter som skal pakkes
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
@@ -100,31 +138,29 @@ const CustomerDisplay = () => {
             settings={settings}
           />
 
-          {activePackingDate && (
-            <Card
-              style={{
-                backgroundColor: settings?.card_background_color || '#ffffff',
-                borderColor: settings?.card_border_color || '#e5e7eb',
-                borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-              }}
-            >
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
-                  <span 
-                    className={`text-sm ${!isToday ? 'font-bold' : ''}`}
-                    style={{ 
-                      color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
-                    }}
-                  >
-                    {!isToday && 'PAKKING FOR: '}
-                    {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-                    {!isToday && ' (ikke i dag)'}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+                <span 
+                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                  style={{ 
+                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                  }}
+                >
+                  {!isToday && 'PAKKING FOR: '}
+                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  {!isToday && ' (ikke i dag)'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
@@ -133,7 +169,7 @@ const CustomerDisplay = () => {
                 className="text-xl mb-6"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                Ingen aktive produkter valgt for pakking
+                {customer.name} har ingen aktive produkter valgt for pakking
                 {activePackingDate && !isToday && (
                   <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
                     for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
@@ -144,7 +180,7 @@ const CustomerDisplay = () => {
                 className="text-sm"
                 style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
               >
-                Gå til Pakking-siden for å velge produkter som skal pakkes
+                Produkter valgt for andre kunder vises ikke på denne kundespesifikke skjermen
               </p>
             </CardContent>
           </Card>
@@ -169,31 +205,29 @@ const CustomerDisplay = () => {
           settings={settings}
         />
 
-        {activePackingDate && (
-          <Card
-            style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2">
-                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
-                <span 
-                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
-                  style={{ 
-                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
-                  }}
-                >
-                  {!isToday && 'PAKKING FOR: '}
-                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-                  {!isToday && ' (ikke i dag)'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card
+          style={{
+            backgroundColor: settings?.card_background_color || '#ffffff',
+            borderColor: settings?.card_border_color || '#e5e7eb',
+            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+          }}
+        >
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+              <span 
+                className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                style={{ 
+                  color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                }}
+              >
+                {!isToday && 'PAKKING FOR: '}
+                {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                {!isToday && ' (ikke i dag)'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
         <CustomerProductsList
           customerPackingData={customerPackingData}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -23,7 +24,7 @@ const SharedDisplay = () => {
   
   const { data: packingData } = usePackingData(
     undefined, 
-    activePackingDate,
+    activePackingDate || undefined,
     true
   );
   
@@ -74,7 +75,7 @@ const SharedDisplay = () => {
     delivered: '#059669'
   };
 
-  const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : true;
+  const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
   // Determine grid columns class based on settings
   const getCustomerGridClass = () => {
@@ -95,7 +96,7 @@ const SharedDisplay = () => {
     >
       
       <div className="max-w-7xl mx-auto">
-        <DebugInfo showDebug={!packingData || packingData.length === 0} />
+        <DebugInfo showDebug={!activePackingDate || !packingData || packingData.length === 0} />
 
         <SharedDisplayHeader
           settings={settings}
@@ -121,14 +122,22 @@ const SharedDisplay = () => {
           </Card>
         )}
 
-        {!dateLoading && settings?.show_stats_cards && (
+        {!dateLoading && !activePackingDate && (
+          <EmptyPackingState
+            settings={settings}
+            activePackingDate={null}
+            isToday={false}
+          />
+        )}
+
+        {!dateLoading && activePackingDate && settings?.show_stats_cards && (
           <SharedDisplayStats
             settings={settings}
             sharedDisplayPackingData={sharedDisplayPackingData}
           />
         )}
 
-        {!dateLoading && sharedDisplayPackingData.length > 0 && (
+        {!dateLoading && activePackingDate && sharedDisplayPackingData.length > 0 && (
           <div 
             className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
@@ -152,7 +161,7 @@ const SharedDisplay = () => {
           </div>
         )}
 
-        {!dateLoading && sharedDisplayPackingData.length === 0 && (
+        {!dateLoading && activePackingDate && sharedDisplayPackingData.length === 0 && (
           <EmptyPackingState
             settings={settings}
             activePackingDate={activePackingDate}

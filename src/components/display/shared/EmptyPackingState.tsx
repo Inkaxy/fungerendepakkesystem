@@ -8,7 +8,7 @@ import { nb } from 'date-fns/locale';
 
 interface EmptyPackingStateProps {
   settings: DisplaySettings | undefined;
-  activePackingDate: string | undefined;
+  activePackingDate: string | null;
   isToday: boolean;
 }
 
@@ -28,11 +28,17 @@ const EmptyPackingState = ({ settings, activePackingDate, isToday }: EmptyPackin
           className="text-xl mb-6"
           style={{ color: settings?.text_color || '#6b7280' }}
         >
-          Ingen aktive produkter valgt for pakking
-          {activePackingDate && !isToday && (
-            <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
-              for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-            </span>
+          {activePackingDate ? (
+            <>
+              Ingen aktive produkter valgt for pakking
+              {!isToday && (
+                <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
+                  for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                </span>
+              )}
+            </>
+          ) : (
+            'Ingen produkter valgt for pakking'
           )}
         </p>
         <p 

@@ -27,8 +27,7 @@ export const useActivePackingDate = () => {
         return null;
       }
 
-      // Check if there are any active packing products for today or any recent date
-      const today = format(new Date(), 'yyyy-MM-dd');
+      // Check if there are any active packing products for any date
       const { data: activeProducts } = await supabase
         .from('active_packing_products')
         .select('session_date')
@@ -55,9 +54,9 @@ export const useActivePackingDate = () => {
         return sessions[0].session_date;
       }
 
-      // Default to today if nothing else is found
-      console.log('📅 Using today as default:', today);
-      return today;
+      // Return null if no active packing date found
+      console.log('📅 No active packing date found');
+      return null;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
     staleTime: 10000, // Consider data stale after 10 seconds
