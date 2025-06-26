@@ -24,26 +24,30 @@ export const useRealTimePackingSessions = () => {
           console.log('Packing session changed:', payload);
           
           // Invalidate relevant queries
-          queryClient.invalidateQueries({ queryKey: ['packing_sessions'] });
-          queryClient.invalidateQueries({ queryKey: ['packing_session'] });
+          queryClient.invalidateQueries({ queryKey: ['packing-sessions'] });
+          queryClient.invalidateQueries({ queryKey: ['active-packing-date'] });
           queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+          queryClient.invalidateQueries({ queryKey: ['orders'] });
 
-          // Show notifications based on event type
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const session = payload.new as any;
+          // Show notification for session status changes
+          if (payload.eventType === 'UPDATE') {
+            const newStatus = payload.new?.status;
+            const oldStatus = payload.old?.status;
             
-            if (session.status === 'in_progress') {
-              toast({
-                title: "Pakking startet",
-                description: `Pakkeøkt for ${session.session_date} er nå aktiv`,
-                duration: 3000,
-              });
-            } else if (session.status === 'completed') {
-              toast({
-                title: "Pakking fullført",
-                description: `All pakking for ${session.session_date} er ferdig`,
-                duration: 5000,
-              });
+            if (oldStatus !== newStatus) {
+              if (newStatus === 'in_progress') {
+                toast({
+                  title: "Pakking startet",
+                  description: "Pakkesession er nå aktiv",
+                  duration: 3000,
+                });
+              } else if (newStatus === 'completed') {
+                toast({
+                  title: "Pakking fullført",
+                  description: "Pakkesession er ferdigstilt",
+                  duration: 3000,
+                });
+              }
             }
           }
         }

@@ -7,50 +7,59 @@ export const useActivePackingDate = () => {
   return useQuery({
     queryKey: ['active-packing-date'],
     queryFn: async () => {
+      console.log('🔍 Fetching active packing date');
+      
+      // Get user's bakery_id first
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.id) {
+        console.log('❌ No authenticated user found');
+        return null;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('bakery_id')
+        .eq('id', user.user.id)
+        .single();
+
+      if (!profile?.bakery_id) {
+        console.log('❌ No bakery found for user');
+        return null;
+      }
+
+      // Check if there are any active packing products for today or any recent date
       const today = format(new Date(), 'yyyy-MM-dd');
-      
-      console.log('🔍 Finding active packing date, starting with today:', today);
-      
-      // First check if there are active products for today
-      const { data: todayProducts, error: todayError } = await supabase
+      const { data: activeProducts } = await supabase
         .from('active_packing_products')
         .select('session_date')
-        .eq('session_date', today)
-        .limit(1);
-
-      if (todayError) {
-        console.error('❌ Error checking today\'s active products:', todayError);
-        throw todayError;
-      }
-
-      if (todayProducts && todayProducts.length > 0) {
-        console.log('✅ Found active products for today:', today);
-        return today;
-      }
-
-      console.log('⚠️ No active products for today, looking for most recent active session...');
-
-      // If no active products for today, find the most recent session with active products
-      const { data: recentSession, error: sessionError } = await supabase
-        .from('active_packing_products')
-        .select('session_date')
+        .eq('bakery_id', profile.bakery_id)
         .order('session_date', { ascending: false })
         .limit(1);
 
-      if (sessionError) {
-        console.error('❌ Error finding recent active session:', sessionError);
-        throw sessionError;
+      if (activeProducts && activeProducts.length > 0) {
+        console.log('✅ Found active packing date:', activeProducts[0].session_date);
+        return activeProducts[0].session_date;
       }
 
-      if (recentSession && recentSession.length > 0) {
-        const activeDate = recentSession[0].session_date;
-        console.log('✅ Found most recent active session date:', activeDate);
-        return activeDate;
+      // If no active products, check for recent packing sessions
+      const { data: sessions } = await supabase
+        .from('packing_sessions')
+        .select('session_date')
+        .eq('bakery_id', profile.bakery_id)
+        .in('status', ['ready', 'in_progress'])
+        .order('session_date', { ascending: false })
+        .limit(1);
+
+      if (sessions && sessions.length > 0) {
+        console.log('✅ Found active session date:', sessions[0].session_date);
+        return sessions[0].session_date;
       }
 
-      console.log('⚠️ No active packing sessions found, falling back to today');
+      // Default to today if nothing else is found
+      console.log('📅 Using today as default:', today);
       return today;
     },
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 10000, // Consider data stale after 10 seconds
   });
 };

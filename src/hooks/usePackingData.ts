@@ -30,10 +30,10 @@ export interface PackingCustomer {
 
 export const usePackingData = (customerId?: string, date?: string, activeOnly: boolean = false) => {
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
-  const { data: activeProducts, isLoading: activeProductsLoading, error: activeProductsError } = useActivePackingProducts(activeOnly ? targetDate : undefined);
+  const { data: activeProducts, isLoading: activeProductsLoading } = useActivePackingProducts(activeOnly ? targetDate : undefined);
 
   return useQuery({
-    queryKey: ['packing-data', customerId, targetDate, activeOnly],
+    queryKey: ['packing-data', customerId, targetDate, activeOnly, activeProducts?.length || 0],
     queryFn: async () => {
       console.log('🔍 Starting packing data fetch:', {
         customerId,
@@ -82,7 +82,9 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
 
       // Create a set of active product IDs for filtering
       const activeProductIds = new Set<string>();
-      if (activeProducts && activeOnly) {
+      
+      // Always populate active product IDs if we have them, regardless of activeOnly flag
+      if (activeProducts && activeProducts.length > 0) {
         activeProducts.forEach(ap => {
           activeProductIds.add(ap.product_id);
         });
@@ -130,18 +132,19 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             customer!.packed_line_items_all += 1;
           }
 
-          // Only process active products for display when activeOnly is true
-          const isActiveProduct = !activeOnly || activeProductIds.has(op.product_id);
+          // Check if this product is active (if we have active products, only show those)
+          const shouldIncludeProduct = !activeOnly || activeProductIds.size === 0 || activeProductIds.has(op.product_id);
           
           console.log('📋 Processing product:', {
             productName: op.product.name,
             productId: op.product_id,
-            isActiveProduct,
+            shouldIncludeProduct,
             activeOnly,
+            hasActiveProducts: activeProductIds.size > 0,
             packingStatus: op.packing_status
           });
 
-          if (!isActiveProduct) {
+          if (!shouldIncludeProduct) {
             console.log('⏭️ Skipping non-active product:', op.product.name);
             return;
           }
@@ -185,8 +188,8 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             });
           }
 
-          // Update customer totals for active products only
-          if (isActiveProduct) {
+          // Update customer totals for displayed products only
+          if (shouldIncludeProduct) {
             customer!.total_line_items += 1;
             if (op.packing_status === 'packed' || op.packing_status === 'completed') {
               customer!.packed_line_items += 1;
@@ -244,6 +247,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
       return result;
     },
     enabled: !activeOnly || !activeProductsLoading,
-    refetchInterval: 10000, // Refetch every 10 seconds to ensure fresh data
+    refetchInterval: 5000, // More frequent updates for better responsiveness
+    staleTime: 1000, // Consider data stale after 1 second for better reactivity
   });
 };

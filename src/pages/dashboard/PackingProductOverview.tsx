@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText } from 'lucide-react';
@@ -8,6 +9,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useQueryClient } from '@tanstack/react-query';
 import ProductsTable from '@/components/packing/ProductsTable';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
@@ -15,6 +17,7 @@ import ConnectionStatus from '@/components/display/ConnectionStatus';
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showReport, setShowReport] = useState(false);
   
@@ -24,6 +27,16 @@ const PackingProductOverview = () => {
   
   // Enhanced real-time updates
   const { connectionStatus } = useRealTimeDisplay();
+
+  // Effect to force query updates when products are selected
+  useEffect(() => {
+    if (selectedProducts.length > 0) {
+      console.log('🔄 Products selected, forcing query updates:', selectedProducts);
+      // Force invalidation of packing data queries
+      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+      queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
+    }
+  }, [selectedProducts, queryClient]);
 
   // Calculate product statistics with category from products table
   const productStats = orders?.reduce((acc, order) => {
@@ -115,6 +128,8 @@ const PackingProductOverview = () => {
     if (selectedProducts.length === 0) return;
     
     try {
+      console.log('🚀 Starting packing session with products:', selectedProducts);
+      
       // Create packing session
       await createOrUpdateSession.mutateAsync({
         bakery_id: orders?.[0]?.bakery_id || '',
@@ -136,16 +151,27 @@ const PackingProductOverview = () => {
         };
       });
 
+      console.log('💾 Saving active products:', activeProducts);
       await setActivePackingProducts.mutateAsync({
         sessionDate: date || '',
         products: activeProducts
       });
 
-      navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {
-        state: { selectedProducts }
-      });
+      // Force immediate query updates
+      console.log('🔄 Forcing query updates after product activation');
+      queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
+      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+      queryClient.invalidateQueries({ queryKey: ['active-packing-date'] });
+      
+      // Wait a moment for invalidation to propagate
+      setTimeout(() => {
+        navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {
+          state: { selectedProducts }
+        });
+      }, 500);
+      
     } catch (error) {
-      console.error('Failed to start packing session:', error);
+      console.error('❌ Failed to start packing session:', error);
     }
   };
 
