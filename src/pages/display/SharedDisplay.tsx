@@ -8,7 +8,6 @@ import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
-import DebugInfo from '@/components/display/DebugInfo';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
@@ -94,10 +93,7 @@ const SharedDisplay = () => {
       className="min-h-screen p-8"
       style={displayStyles}
     >
-      
       <div className="max-w-7xl mx-auto">
-        <DebugInfo showDebug={!activePackingDate || !packingData || packingData.length === 0} />
-
         <SharedDisplayHeader
           settings={settings}
           connectionStatus={connectionStatus}

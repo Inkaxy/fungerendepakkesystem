@@ -13,7 +13,6 @@ import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
-import DebugInfo from '@/components/display/DebugInfo';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
@@ -125,8 +124,6 @@ const CustomerDisplay = () => {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          <DebugInfo customerId={customer.id} showDebug={true} />
-
           <div className="flex justify-end">
             <ConnectionStatus status={connectionStatus} />
           </div>
