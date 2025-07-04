@@ -51,10 +51,11 @@ export const useDisplaySettings = () => {
       if (!data) {
         console.log('No existing settings found, creating defaults');
         const defaultSettings = getDefaultSettings(profile.bakery_id);
+        const dbSettings = mapDisplaySettingsToDatabase(defaultSettings);
         
         const { data: newSettings, error: createError } = await supabase
           .from('display_settings')
-          .insert(defaultSettings)
+          .insert(dbSettings as any)
           .select()
           .single();
 
@@ -126,11 +127,12 @@ export const useUpdateDisplaySettings = () => {
       if (!updateData) {
         console.log('No existing settings to update, creating new ones');
         const defaultSettings = getDefaultSettings(profile.bakery_id);
-        const newSettings = { ...defaultSettings, ...dbSettings };
+        const mappedDefaults = mapDisplaySettingsToDatabase(defaultSettings);
+        const newSettings = { ...mappedDefaults, ...dbSettings };
         
         const { data: insertData, error: insertError } = await supabase
           .from('display_settings')
-          .insert(newSettings)
+          .insert(newSettings as any)
           .select()
           .single();
 
