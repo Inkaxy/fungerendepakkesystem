@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package2, Clock } from 'lucide-react';
+import { Package2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
@@ -97,17 +97,16 @@ const CustomerDisplay = () => {
   // If no active packing date, show message that no products are selected
   if (!activePackingDate) {
     return (
-      <div className="min-h-screen p-8" style={displayStyles}>
+      <div className="min-h-screen p-8 relative" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex justify-end">
-            <ConnectionStatus status={connectionStatus} />
+          {/* Connection status overlay in bottom right */}
+          <div className="fixed bottom-4 right-4 z-10">
+            <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
           </div>
 
           <CustomerHeader 
             customerName={customer.name}
-            showRefresh={true}
-            onRefresh={triggerRefresh}
-          settings={customerDisplaySettings}
+            settings={customerDisplaySettings}
           />
 
           <Card className="max-w-2xl mx-auto">
@@ -134,42 +133,17 @@ const CustomerDisplay = () => {
 
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
-      <div className="min-h-screen p-8" style={displayStyles}>
+      <div className="min-h-screen p-8 relative" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex justify-end">
-            <ConnectionStatus status={connectionStatus} />
+          {/* Connection status overlay in bottom right */}
+          <div className="fixed bottom-4 right-4 z-10">
+            <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
           </div>
 
           <CustomerHeader 
             customerName={customer.name}
-            showRefresh={true}
-            onRefresh={triggerRefresh}
             settings={customerDisplaySettings}
           />
-
-          <Card
-            style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2">
-                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
-                <span 
-                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
-                  style={{ 
-                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
-                  }}
-                >
-                  {!isToday && 'PAKKING FOR: '}
-                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-                  {!isToday && ' (ikke i dag)'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
@@ -201,42 +175,17 @@ const CustomerDisplay = () => {
   const isAllPacked = customerPackingData.progress_percentage >= 100;
 
   return (
-    <div className="min-h-screen p-8" style={displayStyles}>
+    <div className="min-h-screen p-8 relative" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-end">
-          <ConnectionStatus status={connectionStatus} />
+        {/* Connection status overlay in bottom right */}
+        <div className="fixed bottom-4 right-4 z-10">
+          <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
         </div>
 
         <CustomerHeader 
           customerName={customer.name}
-          showRefresh={true}
-          onRefresh={triggerRefresh}
           settings={customerDisplaySettings}
         />
-
-        <Card
-          style={{
-            backgroundColor: settings?.card_background_color || '#ffffff',
-            borderColor: settings?.card_border_color || '#e5e7eb',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          }}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
-              <span 
-                className={`text-sm ${!isToday ? 'font-bold' : ''}`}
-                style={{ 
-                  color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
-                }}
-              >
-                {!isToday && 'PAKKING FOR: '}
-                {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-                {!isToday && ' (ikke i dag)'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
 
         <CustomerProductsList
           customerPackingData={customerPackingData}

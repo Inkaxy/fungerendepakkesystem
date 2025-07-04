@@ -233,8 +233,6 @@ const SharedDisplay = () => {
         <SharedDisplayHeader
           settings={settings}
           connectionStatus={connectionStatus}
-          onRefresh={triggerRefresh}
-          activePackingDate={activePackingDate}
         />
 
         {dateLoading && (
