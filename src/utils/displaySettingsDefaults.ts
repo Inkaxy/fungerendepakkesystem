@@ -73,4 +73,8 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   product_list_style: 'normal' as const,
   show_line_items_count: true,
   customer_sort_order: 'alphabetical' as const,
+  // Screen size and layout optimization
+  screen_size_preset: 'standard' as const,
+  force_single_screen: false,
+  large_screen_optimization: false,
 });

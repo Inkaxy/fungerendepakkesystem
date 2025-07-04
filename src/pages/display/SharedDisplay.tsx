@@ -76,17 +76,57 @@ const SharedDisplay = () => {
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
-  // Determine grid columns class based on settings
+  // Determine grid columns class based on settings and single screen mode
   const getCustomerGridClass = () => {
-    const columns = settings?.customer_cards_columns || 3;
-    switch (columns) {
+    const baseColumns = settings?.customer_cards_columns || 3;
+    const customerCount = sharedDisplayPackingData.length;
+    
+    // If force_single_screen is enabled, calculate optimal layout
+    if (settings?.force_single_screen && customerCount > 0) {
+      // Calculate optimal columns to fit all customers on screen
+      const optimalColumns = Math.min(Math.ceil(Math.sqrt(customerCount * 1.5)), 6);
+      const columns = Math.max(optimalColumns, baseColumns);
+      
+      switch (columns) {
+        case 1: return 'grid-cols-1';
+        case 2: return 'grid-cols-1 md:grid-cols-2';
+        case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+        case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+        case 5: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
+        case 6: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6';
+        default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6';
+      }
+    }
+    
+    // Standard responsive grid
+    switch (baseColumns) {
       case 1: return 'grid-cols-1';
       case 2: return 'grid-cols-1 md:grid-cols-2';
       case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
       case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+      case 5: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
+      case 6: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6';
       default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
     }
   };
+
+  // Get font sizes based on screen optimization
+  const getFontSizes = () => {
+    if (settings?.large_screen_optimization) {
+      return {
+        header: `${settings.header_font_size || 32}px`,
+        body: `${settings.body_font_size || 16}px`,
+        title: `${(settings.body_font_size || 16) + 4}px`
+      };
+    }
+    return {
+      header: `${settings?.header_font_size || 32}px`,
+      body: `${settings?.body_font_size || 16}px`,
+      title: `${(settings?.body_font_size || 16) + 2}px`
+    };
+  };
+
+  const fontSizes = getFontSizes();
 
   return (
     <div 
@@ -135,9 +175,10 @@ const SharedDisplay = () => {
 
         {!dateLoading && activePackingDate && sharedDisplayPackingData.length > 0 && (
           <div 
-            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
+            className={`grid ${getCustomerGridClass()} mb-8`}
             style={{ 
-              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px',
+              fontSize: fontSizes.body
             }}
           >
             {sharedDisplayPackingData.map((customerData) => {

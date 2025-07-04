@@ -82,4 +82,8 @@ export interface DisplaySettings {
   product_list_style: 'compact' | 'normal';
   show_line_items_count: boolean;
   customer_sort_order: 'alphabetical' | 'status' | 'progress';
+  // Screen size and layout optimization
+  screen_size_preset: 'standard' | '32inch' | '43inch' | '55inch';
+  force_single_screen: boolean;
+  large_screen_optimization: boolean;
 }

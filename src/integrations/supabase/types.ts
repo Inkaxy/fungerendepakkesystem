@@ -153,9 +153,11 @@ export type Database = {
           enable_animations: boolean | null
           enable_cat_animations: boolean | null
           fade_transitions: boolean | null
+          force_single_screen: boolean | null
           header_font_size: number | null
           header_text_color: string | null
           id: string
+          large_screen_optimization: boolean | null
           main_title: string | null
           max_products_per_card: number | null
           product_1_accent_color: string | null
@@ -176,6 +178,7 @@ export type Database = {
           progress_background_color: string | null
           progress_bar_color: string | null
           progress_height: number | null
+          screen_size_preset: string | null
           show_bouncing_cats: boolean | null
           show_customer_info: boolean | null
           show_customer_numbers: boolean | null
@@ -231,9 +234,11 @@ export type Database = {
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
+          force_single_screen?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          large_screen_optimization?: boolean | null
           main_title?: string | null
           max_products_per_card?: number | null
           product_1_accent_color?: string | null
@@ -254,6 +259,7 @@ export type Database = {
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
+          screen_size_preset?: string | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
@@ -309,9 +315,11 @@ export type Database = {
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
+          force_single_screen?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           id?: string
+          large_screen_optimization?: boolean | null
           main_title?: string | null
           max_products_per_card?: number | null
           product_1_accent_color?: string | null
@@ -332,6 +340,7 @@ export type Database = {
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
+          screen_size_preset?: string | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null

@@ -49,6 +49,10 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     product_list_style: data.product_list_style || 'normal',
     show_line_items_count: data.show_line_items_count ?? true,
     customer_sort_order: data.customer_sort_order || 'alphabetical',
+    // Screen size and layout optimization
+    screen_size_preset: data.screen_size_preset || 'standard',
+    force_single_screen: data.force_single_screen ?? false,
+    large_screen_optimization: data.large_screen_optimization ?? false,
   } as DisplaySettings;
 };
 
