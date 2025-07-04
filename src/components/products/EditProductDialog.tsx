@@ -35,6 +35,7 @@ const productSchema = z.object({
   category: z.string().min(1, 'Kategori er påkrevd'),
   price: z.number().min(0, 'Pris må være 0 eller høyere').optional(),
   unit: z.string().min(1, 'Enhet er påkrevd'),
+  basket_quantity: z.number().min(1, 'Kurvstørrelse må være minst 1').optional(),
   is_active: z.boolean(),
 });
 
@@ -57,6 +58,7 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
       category: 'Ingen kategori',
       price: 0,
       unit: 'stk',
+      basket_quantity: undefined,
       is_active: true,
     },
   });
@@ -69,6 +71,7 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
         category: product.category || 'Ingen kategori',
         price: product.price || 0,
         unit: product.unit || 'stk',
+        basket_quantity: product.basket_quantity || undefined,
         is_active: product.is_active,
       });
     }
@@ -83,6 +86,7 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
         ...data,
         product_number: data.product_number || undefined,
         price: data.price || undefined,
+        basket_quantity: data.basket_quantity || undefined,
       });
       onOpenChange(false);
     } catch (error) {
@@ -180,6 +184,25 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
                       <SelectItem value="pakke">Pakke</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="basket_quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Antall per kurv</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="F.eks. 10" 
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

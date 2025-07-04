@@ -77,4 +77,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   screen_size_preset: 'standard' as const,
   force_single_screen: false,
   large_screen_optimization: false,
+  // Basket quantity display settings
+  show_basket_quantity: false,
+  basket_display_format: 'total_first' as const,
 });

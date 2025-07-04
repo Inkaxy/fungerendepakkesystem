@@ -86,4 +86,7 @@ export interface DisplaySettings {
   screen_size_preset: 'standard' | '32inch' | '43inch' | '55inch';
   force_single_screen: boolean;
   large_screen_optimization: boolean;
+  // Basket quantity display settings
+  show_basket_quantity: boolean;
+  basket_display_format: 'total_first' | 'basket_first';
 }

@@ -572,6 +572,7 @@ export type Database = {
       products: {
         Row: {
           bakery_id: string
+          basket_quantity: number | null
           category: string | null
           created_at: string | null
           id: string
@@ -584,6 +585,7 @@ export type Database = {
         }
         Insert: {
           bakery_id: string
+          basket_quantity?: number | null
           category?: string | null
           created_at?: string | null
           id?: string
@@ -596,6 +598,7 @@ export type Database = {
         }
         Update: {
           bakery_id?: string
+          basket_quantity?: number | null
           category?: string | null
           created_at?: string | null
           id?: string

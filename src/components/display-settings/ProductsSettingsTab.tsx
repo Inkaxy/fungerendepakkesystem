@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ColorPicker from './ColorPicker';
 import SliderControl from './SliderControl';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
+import BasketQuantitySettingsCard from './BasketQuantitySettingsCard';
 
 interface ProductsSettingsTabProps {
   settings: DisplaySettings;
@@ -13,6 +14,7 @@ interface ProductsSettingsTabProps {
 const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) => {
   return (
     <div className="space-y-6">
+      <BasketQuantitySettingsCard settings={settings} onUpdate={onUpdate} />
       {/* General Product Card Settings */}
       <Card>
         <CardHeader>

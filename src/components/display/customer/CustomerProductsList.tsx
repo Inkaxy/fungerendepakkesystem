@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
 import { getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { formatQuantityWithBasket } from '@/utils/basketCalculations';
 
 interface CustomerProductsListProps {
   customerPackingData: PackingCustomer;
@@ -51,7 +52,15 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                   className="text-3xl font-bold"
                   style={{ color: getProductAccentColor(settings || {} as any, index) }}
                 >
-                  {product.total_quantity} {product.product_unit}
+                  {settings?.show_basket_quantity && product.basket_quantity
+                    ? formatQuantityWithBasket(
+                        product.total_quantity,
+                        product.basket_quantity,
+                        settings.basket_display_format || 'total_first',
+                        product.product_unit || 'stk'
+                      )
+                    : `${product.total_quantity} ${product.product_unit}`
+                  }
                 </div>
                 <div className="text-right">
                   <span 

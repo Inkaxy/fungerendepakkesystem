@@ -10,6 +10,7 @@ export interface PackingProduct {
   product_name: string;
   product_category: string;
   product_unit: string;
+  basket_quantity?: number;
   total_quantity: number; // Customer-specific quantity sum, not from active_packing_products
   total_line_items: number;
   packed_line_items: number;
@@ -53,7 +54,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             product_id,
             quantity,
             packing_status,
-            product:products(id, name, category, unit)
+            product:products(id, name, category, unit, basket_quantity)
           )
         `)
         .eq('delivery_date', targetDate)
@@ -174,6 +175,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               product_name: op.product.name,
               product_category: op.product.category || 'Ingen kategori',
               product_unit: op.product.unit || 'stk',
+              basket_quantity: op.product.basket_quantity,
               total_quantity: op.quantity, // Start with this order's quantity
               total_line_items: 1,
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,

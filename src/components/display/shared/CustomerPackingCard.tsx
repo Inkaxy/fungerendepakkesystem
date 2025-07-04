@@ -6,6 +6,7 @@ import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
 import { Customer } from '@/types/database';
 import { getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { formatQuantityWithBasket } from '@/utils/basketCalculations';
 
 interface CustomerPackingCardProps {
   customerData: PackingCustomer;
@@ -145,7 +146,15 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                       className="text-xs font-semibold"
                       style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
                     >
-                      {product.total_quantity} {product.product_unit}
+                      {settings?.show_basket_quantity && product.basket_quantity
+                        ? formatQuantityWithBasket(
+                            product.total_quantity,
+                            product.basket_quantity,
+                            settings.basket_display_format || 'total_first',
+                            product.product_unit || 'stk'
+                          )
+                        : `${product.total_quantity} ${product.product_unit}`
+                      }
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
