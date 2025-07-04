@@ -76,38 +76,105 @@ const SharedDisplay = () => {
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
-  // Determine grid columns class based on settings and single screen mode
-  const getCustomerGridClass = () => {
-    const baseColumns = settings?.customer_cards_columns || 3;
+  // Calculate optimal layout based on screen size and customer count
+  const getOptimalLayout = () => {
     const customerCount = sharedDisplayPackingData.length;
+    const baseColumns = settings?.customer_cards_columns || 3;
     
-    // If force_single_screen is enabled, calculate optimal layout
+    if (customerCount === 0) return { columns: baseColumns, maxWidth: 'none' };
+    
+    // TV screen size optimization
+    const screenPreset = settings?.screen_size_preset || 'standard';
+    const isLargeScreen = settings?.large_screen_optimization;
+    
+    let optimalColumns = baseColumns;
+    let maxCardWidth = 'none';
+    
+    // Calculate optimal columns for different scenarios
     if (settings?.force_single_screen && customerCount > 0) {
-      // Calculate optimal columns to fit all customers on screen
-      const optimalColumns = Math.min(Math.ceil(Math.sqrt(customerCount * 1.5)), 6);
-      const columns = Math.max(optimalColumns, baseColumns);
+      // Smart algorithm: balance rows and columns for single screen view
+      const aspectRatio = window.innerWidth / window.innerHeight;
+      const isWideScreen = aspectRatio > 1.6;
       
-      switch (columns) {
-        case 1: return 'grid-cols-1';
-        case 2: return 'grid-cols-1 md:grid-cols-2';
-        case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
-        case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-        case 5: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
-        case 6: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6';
-        default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6';
+      if (customerCount <= 4) {
+        optimalColumns = customerCount <= 2 ? customerCount : 2;
+      } else if (customerCount <= 9) {
+        optimalColumns = isWideScreen ? Math.ceil(customerCount / 2) : 3;
+      } else {
+        // For many customers, use grid that minimizes scrolling
+        optimalColumns = Math.min(
+          Math.ceil(Math.sqrt(customerCount * (isWideScreen ? 1.6 : 1.2))),
+          isWideScreen ? 8 : 6
+        );
+      }
+    } else {
+      // Screen preset optimization
+      switch (screenPreset) {
+        case '32inch':
+          optimalColumns = Math.min(customerCount, 4);
+          maxCardWidth = '380px';
+          break;
+        case '43inch':
+          optimalColumns = Math.min(customerCount, 5);
+          maxCardWidth = '420px';
+          break;
+        case '55inch':
+          optimalColumns = Math.min(customerCount, 6);
+          maxCardWidth = '450px';
+          break;
+        default:
+          optimalColumns = Math.min(customerCount, baseColumns);
+          maxCardWidth = isLargeScreen ? '400px' : '350px';
       }
     }
     
-    // Standard responsive grid
-    switch (baseColumns) {
-      case 1: return 'grid-cols-1';
-      case 2: return 'grid-cols-1 md:grid-cols-2';
-      case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
-      case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-      case 5: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
-      case 6: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6';
-      default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+    return { 
+      columns: Math.max(1, Math.min(optimalColumns, 8)), 
+      maxWidth: maxCardWidth 
+    };
+  };
+
+  const { columns, maxWidth } = getOptimalLayout();
+
+  // Generate responsive grid classes with TV breakpoints
+  const getCustomerGridClass = () => {
+    const cols = columns;
+    
+    // TV-optimized breakpoints
+    const gridClasses = [
+      'grid-cols-1', // Mobile
+      cols >= 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1', // Small tablets
+      cols >= 3 ? 'md:grid-cols-3' : `md:grid-cols-${Math.min(cols, 2)}`, // Tablets
+      cols >= 4 ? 'lg:grid-cols-4' : `lg:grid-cols-${Math.min(cols, 3)}`, // Small laptops
+      cols >= 5 ? 'xl:grid-cols-5' : `xl:grid-cols-${Math.min(cols, 4)}`, // 32" screens
+      cols >= 6 ? '2xl:grid-cols-6' : `2xl:grid-cols-${Math.min(cols, 5)}`, // 43" screens
+      cols >= 7 ? '3xl:grid-cols-7' : `3xl:grid-cols-${Math.min(cols, 6)}`, // 55"+ screens
+      cols >= 8 ? '4xl:grid-cols-8' : `4xl:grid-cols-${Math.min(cols, 7)}` // Ultra-wide
+    ].filter(Boolean);
+    
+    return gridClasses.join(' ');
+  };
+
+  // Dynamic spacing and sizing based on screen and customer count
+  const getDynamicSpacing = () => {
+    const customerCount = sharedDisplayPackingData.length;
+    const isLargeScreen = settings?.large_screen_optimization;
+    const baseGap = settings?.customer_cards_gap || 24;
+    
+    // Reduce gap on screens with many customers to utilize space better
+    let adaptiveGap = baseGap;
+    if (customerCount > 8) {
+      adaptiveGap = Math.max(baseGap * 0.7, 16);
+    } else if (customerCount > 12) {
+      adaptiveGap = Math.max(baseGap * 0.5, 12);
     }
+    
+    // Increase gap on large screens for better visual separation
+    if (isLargeScreen && customerCount <= 6) {
+      adaptiveGap = Math.min(baseGap * 1.3, 40);
+    }
+    
+    return adaptiveGap;
   };
 
   // Get font sizes based on screen optimization
@@ -177,8 +244,10 @@ const SharedDisplay = () => {
           <div 
             className={`grid ${getCustomerGridClass()} mb-8`}
             style={{ 
-              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px',
-              fontSize: fontSizes.body
+              gap: `${getDynamicSpacing()}px`,
+              fontSize: fontSizes.body,
+              maxWidth: maxWidth !== 'none' ? `calc(${columns} * ${maxWidth} + ${columns - 1} * ${getDynamicSpacing()}px)` : undefined,
+              margin: '0 auto'
             }}
           >
             {sharedDisplayPackingData.map((customerData) => {

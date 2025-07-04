@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			screens: {
+				'3xl': '1600px',  // 43" TV screens
+				'4xl': '1920px',  // 55"+ TV screens
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
