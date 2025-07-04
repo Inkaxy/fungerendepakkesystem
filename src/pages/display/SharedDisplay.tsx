@@ -7,7 +7,6 @@ import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
-import { useFullscreen } from '@/hooks/useFullscreen';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
@@ -34,13 +33,6 @@ const SharedDisplay = () => {
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
     interval: (settings?.auto_refresh_interval || 30) * 1000 
-  });
-
-  // Fullscreen functionality
-  const { isFullscreen, isSupported, enterFullscreen, exitFullscreen } = useFullscreen({
-    enabled: settings?.fullscreen_mode || false,
-    onEnter: () => console.log('SharedDisplay entered fullscreen'),
-    onExit: () => console.log('SharedDisplay exited fullscreen')
   });
 
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
