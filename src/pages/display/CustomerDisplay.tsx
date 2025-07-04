@@ -10,6 +10,7 @@ import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
+import { useFullscreen } from '@/hooks/useFullscreen';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
@@ -45,6 +46,13 @@ const CustomerDisplay = () => {
     // Customer displays can still use layout optimizations
     customer_cards_columns: 1, // Single customer view
   } : undefined;
+
+  // Fullscreen functionality
+  const { isFullscreen, isSupported, enterFullscreen, exitFullscreen } = useFullscreen({
+    enabled: customerDisplaySettings?.fullscreen_mode || false,
+    onEnter: () => console.log('Entered fullscreen mode'),
+    onExit: () => console.log('Exited fullscreen mode')
+  });
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
