@@ -148,17 +148,38 @@ const SharedDisplay = () => {
   const getCustomerGridClass = () => {
     const cols = columns;
     
-    // TV-optimized breakpoints
+    // Build grid classes with proper responsive behavior
     const gridClasses = [
-      'grid-cols-1', // Mobile
-      cols >= 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1', // Small tablets
-      cols >= 3 ? 'md:grid-cols-3' : `md:grid-cols-${Math.min(cols, 2)}`, // Tablets
-      cols >= 4 ? 'lg:grid-cols-4' : `lg:grid-cols-${Math.min(cols, 3)}`, // Small laptops
-      cols >= 5 ? 'xl:grid-cols-5' : `xl:grid-cols-${Math.min(cols, 4)}`, // 32" screens
-      cols >= 6 ? '2xl:grid-cols-6' : `2xl:grid-cols-${Math.min(cols, 5)}`, // 43" screens
-      cols >= 7 ? '3xl:grid-cols-7' : `3xl:grid-cols-${Math.min(cols, 6)}`, // 55"+ screens
-      cols >= 8 ? '4xl:grid-cols-8' : `4xl:grid-cols-${Math.min(cols, 7)}` // Ultra-wide
-    ].filter(Boolean);
+      'grid-cols-1', // Mobile default
+      cols >= 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1',
+      cols >= 3 ? 'md:grid-cols-3' : `md:grid-cols-${Math.min(cols, 2)}`,
+      cols >= 4 ? 'lg:grid-cols-4' : `lg:grid-cols-${Math.min(cols, 3)}`,
+    ];
+
+    // For larger screens, use the extended grid classes
+    if (cols >= 5) {
+      gridClasses.push('xl:grid-cols-5');
+    } else {
+      gridClasses.push(`xl:grid-cols-${Math.min(cols, 4)}`);
+    }
+
+    if (cols >= 6) {
+      gridClasses.push('2xl:grid-cols-6');
+    } else {
+      gridClasses.push(`2xl:grid-cols-${Math.min(cols, 5)}`);
+    }
+
+    if (cols >= 7) {
+      gridClasses.push('3xl:grid-cols-7');
+    } else {
+      gridClasses.push(`3xl:grid-cols-${Math.min(cols, 6)}`);
+    }
+
+    if (cols >= 8) {
+      gridClasses.push('4xl:grid-cols-8');
+    } else {
+      gridClasses.push(`4xl:grid-cols-${Math.min(cols, 7)}`);
+    }
     
     return gridClasses.join(' ');
   };
