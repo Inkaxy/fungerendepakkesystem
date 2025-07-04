@@ -37,11 +37,3 @@
   background: linear-gradient(135deg, hsl(var(--bakery-cream)) 0%, rgba(255,255,255,0.9) 100%);
 }
 
-/* Cat-themed gradients */
-.gradient-cat {
-  background: linear-gradient(135deg, #fef7ed 0%, #fed7aa 50%, #fdba74 100%);
-}
-
-.gradient-cat-paws {
-  background: linear-gradient(45deg, #f3f4f6 0%, #fef7ed 50%, #fed7aa 100%);
-}
