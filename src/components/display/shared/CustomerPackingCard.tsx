@@ -97,7 +97,7 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
             </div>
             {settings?.show_progress_bar && (
               <div 
-                className="w-full rounded-full h-2"
+                className="w-full rounded-full h-2 relative"
                 style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
               >
                 <div 
@@ -107,6 +107,20 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                     width: `${customerData.progress_percentage}%`
                   }}
                 />
+                {settings?.show_truck_icon && (
+                  <img 
+                    src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
+                    alt="Varebil"
+                    className="absolute top-1/2 transform -translate-y-1/2" 
+                    style={{ 
+                      left: `${customerData.progress_percentage}%`, 
+                      marginLeft: `-${(settings?.truck_icon_size || 24) / 2}px`,
+                      width: `${settings?.truck_icon_size || 24}px`,
+                      height: `${settings?.truck_icon_size || 24}px`,
+                      objectFit: 'contain'
+                    }}
+                  />
+                )}
               </div>
             )}
             {settings?.show_line_items_count && (

@@ -132,6 +132,8 @@ export type Database = {
         Row: {
           always_show_customer_name: boolean | null
           animation_speed: string | null
+          auto_hide_completed_customers: boolean | null
+          auto_hide_completed_timer: number | null
           auto_refresh_interval: number | null
           background_color: string | null
           background_gradient_end: string | null
@@ -139,6 +141,7 @@ export type Database = {
           background_image_url: string | null
           background_type: string | null
           bakery_id: string
+          basket_display_format: string | null
           body_font_size: number | null
           border_radius: number | null
           card_background_color: string | null
@@ -149,6 +152,7 @@ export type Database = {
           customer_card_height: string | null
           customer_cards_columns: number | null
           customer_cards_gap: number | null
+          customer_priority_mode: string | null
           customer_sort_order: string | null
           enable_animations: boolean | null
           enable_cat_animations: boolean | null
@@ -156,6 +160,7 @@ export type Database = {
           force_single_screen: boolean | null
           header_font_size: number | null
           header_text_color: string | null
+          hide_empty_customers: boolean | null
           id: string
           large_screen_optimization: boolean | null
           main_title: string | null
@@ -179,10 +184,12 @@ export type Database = {
           progress_bar_color: string | null
           progress_height: number | null
           screen_size_preset: string | null
+          show_basket_quantity: boolean | null
           show_bouncing_cats: boolean | null
           show_customer_info: boolean | null
           show_customer_numbers: boolean | null
           show_date_indicator: boolean | null
+          show_delivery_date_indicators: boolean | null
           show_delivery_dates: boolean | null
           show_falling_cats: boolean | null
           show_line_items_count: boolean | null
@@ -213,6 +220,8 @@ export type Database = {
         Insert: {
           always_show_customer_name?: boolean | null
           animation_speed?: string | null
+          auto_hide_completed_customers?: boolean | null
+          auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
           background_color?: string | null
           background_gradient_end?: string | null
@@ -220,6 +229,7 @@ export type Database = {
           background_image_url?: string | null
           background_type?: string | null
           bakery_id: string
+          basket_display_format?: string | null
           body_font_size?: number | null
           border_radius?: number | null
           card_background_color?: string | null
@@ -230,6 +240,7 @@ export type Database = {
           customer_card_height?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
+          customer_priority_mode?: string | null
           customer_sort_order?: string | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
@@ -237,6 +248,7 @@ export type Database = {
           force_single_screen?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
+          hide_empty_customers?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
           main_title?: string | null
@@ -260,10 +272,12 @@ export type Database = {
           progress_bar_color?: string | null
           progress_height?: number | null
           screen_size_preset?: string | null
+          show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
           show_date_indicator?: boolean | null
+          show_delivery_date_indicators?: boolean | null
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
@@ -294,6 +308,8 @@ export type Database = {
         Update: {
           always_show_customer_name?: boolean | null
           animation_speed?: string | null
+          auto_hide_completed_customers?: boolean | null
+          auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
           background_color?: string | null
           background_gradient_end?: string | null
@@ -301,6 +317,7 @@ export type Database = {
           background_image_url?: string | null
           background_type?: string | null
           bakery_id?: string
+          basket_display_format?: string | null
           body_font_size?: number | null
           border_radius?: number | null
           card_background_color?: string | null
@@ -311,6 +328,7 @@ export type Database = {
           customer_card_height?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
+          customer_priority_mode?: string | null
           customer_sort_order?: string | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
@@ -318,6 +336,7 @@ export type Database = {
           force_single_screen?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
+          hide_empty_customers?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
           main_title?: string | null
@@ -341,10 +360,12 @@ export type Database = {
           progress_bar_color?: string | null
           progress_height?: number | null
           screen_size_preset?: string | null
+          show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
           show_date_indicator?: boolean | null
+          show_delivery_date_indicators?: boolean | null
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null

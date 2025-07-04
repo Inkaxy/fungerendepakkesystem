@@ -249,7 +249,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
       return result;
     },
     enabled: !activeOnly || !activeProductsLoading,
-    refetchInterval: 5000, // More frequent updates for better responsiveness
-    staleTime: 1000, // Consider data stale after 1 second for better reactivity
+    refetchInterval: 2000, // Improved responsiveness with 2s intervals
+    staleTime: 500, // Consider data stale after 0.5 seconds for better reactivity
   });
 };

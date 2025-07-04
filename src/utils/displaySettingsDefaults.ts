@@ -80,4 +80,10 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   // Basket quantity display settings
   show_basket_quantity: false,
   basket_display_format: 'total_first' as const,
+  // Enhanced shared display settings
+  hide_empty_customers: false,
+  show_delivery_date_indicators: true,
+  auto_hide_completed_customers: false,
+  auto_hide_completed_timer: 30,
+  customer_priority_mode: 'none' as const,
 });

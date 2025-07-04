@@ -36,9 +36,17 @@ const SharedDisplay = () => {
 
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  let sharedDisplayPackingData = packingData?.filter(data => 
-    sharedDisplayCustomers.some(customer => customer.id === data.id)
-  ) || [];
+  let sharedDisplayPackingData = packingData?.filter(data => {
+    const customer = sharedDisplayCustomers.find(customer => customer.id === data.id);
+    if (!customer) return false;
+    
+    // Hide empty customers if setting is enabled
+    if (settings?.hide_empty_customers && data.products.length === 0) {
+      return false;
+    }
+    
+    return true;
+  }) || [];
 
   // Apply customer sorting based on settings
   if (settings?.customer_sort_order && sharedDisplayPackingData.length > 0) {

@@ -89,4 +89,10 @@ export interface DisplaySettings {
   // Basket quantity display settings
   show_basket_quantity: boolean;
   basket_display_format: 'total_first' | 'basket_first';
+  // Enhanced shared display settings
+  hide_empty_customers: boolean;
+  show_delivery_date_indicators: boolean;
+  auto_hide_completed_customers: boolean;
+  auto_hide_completed_timer: number;
+  customer_priority_mode: 'none' | 'delivery_date' | 'progress' | 'custom';
 }
