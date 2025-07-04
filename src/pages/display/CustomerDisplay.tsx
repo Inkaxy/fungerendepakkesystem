@@ -38,12 +38,24 @@ const CustomerDisplay = () => {
     true
   );
 
+  // Customer displays ignore screen size settings - use standard responsive layout
+  const customerDisplaySettings = settings ? {
+    ...settings,
+    // Override screen size settings for customer displays
+    screen_size_preset: 'standard' as const,
+    force_single_screen: false,
+    large_screen_optimization: false,
+    customer_cards_columns: 1, // Single customer view
+    body_font_size: 16,
+    header_font_size: 32
+  } : undefined;
+
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
   if (customersLoading || dateLoading || packingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-           style={settings ? generateDisplayStyles(settings) : {}}>
+           style={customerDisplaySettings ? generateDisplayStyles(customerDisplaySettings) : {}}>
         <Card className="max-w-md">
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
@@ -59,7 +71,7 @@ const CustomerDisplay = () => {
   if (!customer) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-           style={settings ? generateDisplayStyles(settings) : {}}>
+           style={customerDisplaySettings ? generateDisplayStyles(customerDisplaySettings) : {}}>
         <Card className="max-w-md">
           <CardContent className="text-center p-8">
             <h1 className="text-xl font-bold mb-4">Kunde ikke funnet</h1>
@@ -79,7 +91,7 @@ const CustomerDisplay = () => {
   }
 
   const customerPackingData = packingData?.find(data => data.id === customer.id);
-  const displayStyles = settings ? generateDisplayStyles(settings) : {};
+  const displayStyles = customerDisplaySettings ? generateDisplayStyles(customerDisplaySettings) : {};
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
   // If no active packing date, show message that no products are selected
@@ -95,7 +107,7 @@ const CustomerDisplay = () => {
             customerName={customer.name}
             showRefresh={true}
             onRefresh={triggerRefresh}
-            settings={settings}
+          settings={customerDisplaySettings}
           />
 
           <Card className="max-w-2xl mx-auto">
@@ -132,7 +144,7 @@ const CustomerDisplay = () => {
             customerName={customer.name}
             showRefresh={true}
             onRefresh={triggerRefresh}
-            settings={settings}
+            settings={customerDisplaySettings}
           />
 
           <Card
@@ -199,7 +211,7 @@ const CustomerDisplay = () => {
           customerName={customer.name}
           showRefresh={true}
           onRefresh={triggerRefresh}
-          settings={settings}
+          settings={customerDisplaySettings}
         />
 
         <Card
@@ -228,24 +240,24 @@ const CustomerDisplay = () => {
 
         <CustomerProductsList
           customerPackingData={customerPackingData}
-          settings={settings}
+          settings={customerDisplaySettings}
           statusColors={statusColors}
         />
 
         <CustomerStatusIndicator
           isAllPacked={isAllPacked}
-          settings={settings}
+          settings={customerDisplaySettings}
         />
 
         <CustomerProgressBar
           customerPackingData={customerPackingData}
-          settings={settings}
+          settings={customerDisplaySettings}
         />
 
-        {isAllPacked && settings?.show_status_indicator && (
+        {isAllPacked && customerDisplaySettings?.show_status_indicator && (
           <CustomerStatusIndicator
             isAllPacked={true}
-            settings={settings}
+            settings={customerDisplaySettings}
           />
         )}
 

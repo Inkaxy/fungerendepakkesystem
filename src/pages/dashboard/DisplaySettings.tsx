@@ -11,7 +11,7 @@ import ThemePresetsTab from '@/components/display-settings/ThemePresetsTab';
 import AnimationSettingsTab from '@/components/display-settings/AnimationSettingsTab';
 import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab';
 import SharedDisplaySettingsTab from '@/components/display-settings/SharedDisplaySettingsTab';
-import ScreenSizeSettingsTab from '@/components/display-settings/ScreenSizeSettingsTab';
+
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -98,7 +98,7 @@ const DisplaySettings = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="themes" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-8">
+                <TabsList className="grid w-full grid-cols-7">
                   <TabsTrigger value="themes" className="flex items-center space-x-1">
                     <Sparkles className="h-4 w-4" />
                     <span className="hidden sm:inline">Temaer</span>
@@ -106,10 +106,6 @@ const DisplaySettings = () => {
                   <TabsTrigger value="general" className="flex items-center space-x-1">
                     <Settings className="h-4 w-4" />
                     <span className="hidden sm:inline">Generelt</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="screen" className="flex items-center space-x-1">
-                    <Tv className="h-4 w-4" />
-                    <span className="hidden sm:inline">Skjerm</span>
                   </TabsTrigger>
                   <TabsTrigger value="shared" className="flex items-center space-x-1">
                     <Monitor className="h-4 w-4" />
@@ -147,12 +143,6 @@ const DisplaySettings = () => {
                   />
                 </TabsContent>
 
-                <TabsContent value="screen">
-                  <ScreenSizeSettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
 
                 <TabsContent value="shared">
                   <SharedDisplaySettingsTab 
