@@ -33,7 +33,7 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     progress_animation: data.progress_animation ?? true,
     always_show_customer_name: data.always_show_customer_name ?? true,
     // Shared display settings with proper defaults
-    show_stats_cards: data.show_stats_cards ?? false,
+    show_stats_cards: false, // Force disabled - user requested removal
     stats_columns: data.stats_columns ?? 3,
     stats_icon_color: data.stats_icon_color || '#3b82f6',
     stats_card_height: data.stats_card_height || 'normal',
