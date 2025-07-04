@@ -1,18 +1,10 @@
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, Palette, Layout, Activity, Sparkles, Zap, Settings, Monitor, Tv } from 'lucide-react';
+import { Save, Eye } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
-import LayoutBackgroundTab from '@/components/display-settings/LayoutBackgroundTab';
-import ProductColorsTab from '@/components/display-settings/ProductColorsTab';
-import StatusProgressTab from '@/components/display-settings/StatusProgressTab';
-import ThemePresetsTab from '@/components/display-settings/ThemePresetsTab';
-import AnimationSettingsTab from '@/components/display-settings/AnimationSettingsTab';
-import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab';
-import SharedDisplaySettingsTab from '@/components/display-settings/SharedDisplaySettingsTab';
-import LargeScreenTab from '@/components/display-settings/LargeScreenTab';
-
+import SmallScreenSection from '@/components/display-settings/SmallScreenSection';
+import LargeScreenSection from '@/components/display-settings/LargeScreenSection';
+import CommonSettingsSection from '@/components/display-settings/CommonSettingsSection';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -86,113 +78,24 @@ const DisplaySettings = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Settings Panel */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Palette className="h-5 w-5 mr-2" />
-                Pakkeskjerm Tilpassinger
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                Organisert i logiske kategorier for enkel tilpasning
-              </p>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="themes" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-                  <TabsTrigger value="themes" className="flex items-center space-x-1">
-                    <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">Temaer</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="general" className="flex items-center space-x-1">
-                    <Settings className="h-4 w-4" />
-                    <span className="hidden sm:inline">Generelt</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="shared" className="flex items-center space-x-1">
-                    <Monitor className="h-4 w-4" />
-                    <span className="hidden sm:inline">Felles</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="large-screen" className="flex items-center space-x-1">
-                    <Tv className="h-4 w-4" />
-                    <span className="hidden sm:inline">Stor Skjerm</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="layout" className="flex items-center space-x-1">
-                    <Layout className="h-4 w-4" />
-                    <span className="hidden sm:inline">Layout</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="products" className="flex items-center space-x-1">
-                    <Palette className="h-4 w-4" />
-                    <span className="hidden sm:inline">Produkter</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="status" className="flex items-center space-x-1">
-                    <Activity className="h-4 w-4" />
-                    <span className="hidden sm:inline">Status</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="animations" className="flex items-center space-x-1">
-                    <Zap className="h-4 w-4" />
-                    <span className="hidden sm:inline">Animasjon</span>
-                  </TabsTrigger>
-                </TabsList>
+        <div className="lg:col-span-2 space-y-6">
+          {/* Small Screen Section */}
+          <SmallScreenSection 
+            settings={localSettings} 
+            onUpdate={handleUpdate} 
+          />
 
-                <TabsContent value="themes">
-                  <ThemePresetsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
+          {/* Large Screen Section */}
+          <LargeScreenSection 
+            settings={localSettings} 
+            onUpdate={handleUpdate} 
+          />
 
-                <TabsContent value="general">
-                  <GeneralSettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-
-                <TabsContent value="shared">
-                  <SharedDisplaySettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="large-screen">
-                  <LargeScreenTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="layout">
-                  <LayoutBackgroundTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="products">
-                  <ProductColorsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="status">
-                  <StatusProgressTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="animations">
-                  <AnimationSettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          {/* Common Settings Section */}
+          <CommonSettingsSection 
+            settings={localSettings} 
+            onUpdate={handleUpdate} 
+          />
         </div>
 
         {/* Preview Panel */}
