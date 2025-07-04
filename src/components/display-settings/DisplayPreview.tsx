@@ -67,9 +67,10 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
             } ${settings.text_shadow_enabled ? 'display-text-shadow' : ''}`}
             style={{
               ...styles,
-              fontSize: `${settings.body_font_size}px`,
+              fontSize: settings.large_screen_optimization ? `${settings.body_font_size * 1.2}px` : `${settings.body_font_size}px`,
               fontFamily: settings.font_family,
               lineHeight: settings.line_height,
+              padding: settings.large_screen_optimization ? `${settings.display_padding * 1.2}px` : `${settings.display_padding}px`,
               ...(settings.text_shadow_enabled && {
                 textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
               })
@@ -81,8 +82,11 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                 <h1 
                   className="font-bold mb-2"
                   style={{ 
-                    fontSize: `${Math.min(settings.header_font_size * 0.6, 28)}px`,
-                    color: settings.header_text_color
+                    fontSize: settings.large_screen_optimization ? `${Math.min(settings.header_font_size * 0.8, 32)}px` : `${Math.min(settings.header_font_size * 0.6, 28)}px`,
+                    color: settings.header_text_color,
+                    fontWeight: settings.large_screen_optimization ? '700' : '600',
+                    textShadow: settings.large_screen_optimization && settings.text_shadow_enabled ? 
+                      `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}` : 'none'
                   }}
                 >
                   {mockCustomer.name}
@@ -146,6 +150,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                         borderRadius: `${settings.border_radius}px`,
                         transform: `scale(${(settings.product_card_size || 100) / 100})`,
                         transformOrigin: 'left center',
+                        marginBottom: settings.large_screen_optimization ? `${(settings.spacing || 16) * 1.2}px` : undefined,
                         ...(settings.touch_friendly_sizes && {
                           minHeight: `${settings.touch_target_size}px`
                         })
@@ -156,7 +161,8 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                           className="font-bold mb-1"
                           style={{ 
                             color: getProductTextColor(settings, index),
-                            fontSize: `${Math.max(settings.body_font_size * 1.2, 16)}px`
+                            fontSize: settings.large_screen_optimization ? `${Math.max(settings.body_font_size * 1.4, 18)}px` : `${Math.max(settings.body_font_size * 1.2, 16)}px`,
+                            fontWeight: settings.large_screen_optimization ? '700' : '600'
                           }}
                         >
                           {product.product_name}
@@ -181,7 +187,9 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                             className="text-xs"
                             style={{
                               backgroundColor: product.packing_status === 'completed' ? settings.packing_status_completed_color : settings.packing_status_ongoing_color,
-                              color: 'white'
+                              color: 'white',
+                              padding: settings.status_indicator_padding ? `${settings.status_indicator_padding / 6}px ${settings.status_indicator_padding / 3}px` : undefined,
+                              fontSize: settings.large_screen_optimization ? `${settings.body_font_size * 0.85}px` : undefined
                             }}
                           >
                             {product.packing_status === 'completed' ? 'Ferdig' : 'Pågår'}

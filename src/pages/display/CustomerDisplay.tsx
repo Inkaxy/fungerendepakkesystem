@@ -39,16 +39,11 @@ const CustomerDisplay = () => {
     true
   );
 
-  // Customer displays ignore screen size settings - use standard responsive layout
+  // Apply display settings with customer-specific overrides
   const customerDisplaySettings = settings ? {
     ...settings,
-    // Override screen size settings for customer displays
-    screen_size_preset: 'standard' as const,
-    force_single_screen: false,
-    large_screen_optimization: false,
+    // Customer displays can still use layout optimizations
     customer_cards_columns: 1, // Single customer view
-    body_font_size: 16,
-    header_font_size: 32
   } : undefined;
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
