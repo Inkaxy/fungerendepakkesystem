@@ -53,6 +53,14 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     screen_size_preset: data.screen_size_preset || 'standard',
     force_single_screen: data.force_single_screen ?? false,
     large_screen_optimization: data.large_screen_optimization ?? false,
+    // Enhanced shared display settings
+    hide_empty_customers: data.hide_empty_customers ?? false,
+    show_delivery_date_indicators: data.show_delivery_date_indicators ?? true,
+    auto_hide_completed_customers: data.auto_hide_completed_customers ?? false,
+    auto_hide_completed_timer: data.auto_hide_completed_timer ?? 30,
+    customer_priority_mode: data.customer_priority_mode || 'none',
+    show_basket_quantity: data.show_basket_quantity ?? false,
+    basket_display_format: data.basket_display_format || 'total_first',
   } as DisplaySettings;
 };
 
