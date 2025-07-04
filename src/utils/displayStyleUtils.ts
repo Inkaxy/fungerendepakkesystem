@@ -1,7 +1,17 @@
 
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
+import { isLargeScreen, isSmallScreen } from './screenSizeDetection';
+import { filterSettingsForScreen } from './settingsFilters';
 
-export const generateDisplayStyles = (settings: DisplaySettings) => {
+export const generateDisplayStyles = (settings: DisplaySettings, forceScreenType?: 'small' | 'large') => {
+  // Screen size detection and optimization
+  const screenIsLarge = forceScreenType ? forceScreenType === 'large' : isLargeScreen(settings);
+  const screenIsSmall = forceScreenType ? forceScreenType === 'small' : isSmallScreen(settings);
+  
+  // Filter settings based on screen type - this ensures only relevant settings are applied
+  const screenType = screenIsLarge ? 'large' : 'small';
+  const filteredSettings = filterSettingsForScreen(settings, screenType);
+  const effectiveSettings = { ...settings, ...filteredSettings };
   const backgroundStyle = (() => {
     switch (settings.background_type) {
       case 'solid':
@@ -36,13 +46,16 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
   // Touch-friendly sizes
   const minTouchSize = settings.touch_friendly_sizes ? `${settings.touch_target_size}px` : 'auto';
 
-  // Large screen optimization multipliers
-  const largeScreenMultiplier = settings.large_screen_optimization ? 1.2 : 1;
-  const contrastMultiplier = settings.large_screen_optimization ? 1.1 : 1;
+  // Apply screen-specific multipliers
+  const largeScreenMultiplier = screenIsLarge ? 1.2 : 1;
+  const contrastMultiplier = screenIsLarge ? 1.1 : 1;
+  
+  // Small screen optimizations (reduce sizes for better fit)
+  const smallScreenMultiplier = screenIsSmall ? 0.9 : 1;
 
   return {
-    '--header-font-size': `${Math.round(settings.header_font_size * largeScreenMultiplier)}px`,
-    '--body-font-size': `${Math.round(settings.body_font_size * largeScreenMultiplier)}px`,
+    '--header-font-size': `${Math.round(settings.header_font_size * (screenIsLarge ? largeScreenMultiplier : smallScreenMultiplier))}px`,
+    '--body-font-size': `${Math.round(settings.body_font_size * (screenIsLarge ? largeScreenMultiplier : smallScreenMultiplier))}px`,
     '--text-color': settings.text_color,
     '--header-text-color': settings.header_text_color,
     '--card-bg-color': settings.card_background_color,

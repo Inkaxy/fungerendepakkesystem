@@ -8,6 +8,7 @@ import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings'
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
+import { isLargeScreen } from '@/utils/screenSizeDetection';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
@@ -82,6 +83,9 @@ const SharedDisplay = () => {
     completed: '#10b981',
     delivered: '#059669'
   };
+  
+  // Screen size detection for responsive behavior
+  const screenIsLarge = settings ? isLargeScreen(settings) : false;
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 

@@ -11,6 +11,7 @@ import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings'
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
+import { isLargeScreen } from '@/utils/screenSizeDetection';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
@@ -45,6 +46,9 @@ const CustomerDisplay = () => {
     // Customer displays can still use layout optimizations
     customer_cards_columns: 1, // Single customer view
   } : undefined;
+  
+  // Screen size detection for responsive behavior
+  const screenIsLarge = settings ? isLargeScreen(settings) : false;
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
