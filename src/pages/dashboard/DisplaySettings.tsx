@@ -18,6 +18,7 @@ const DisplaySettings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [localSettings, setLocalSettings] = React.useState(settings);
+  const [displayType, setDisplayType] = React.useState<'shared' | 'customer'>('shared');
 
   React.useEffect(() => {
     if (settings) {
@@ -190,6 +191,30 @@ const DisplaySettings = () => {
         {/* Settings Panel */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Skjermtype velger */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Velg Skjermtype</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Forskjellige innstillinger for felles skjerm vs singel kundesjermer
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Select 
+                value={displayType} 
+                onValueChange={(value: 'shared' | 'customer') => setDisplayType(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="shared">Felles Skjerm (alle kunder)</SelectItem>
+                  <SelectItem value="customer">Singel Kunde Skjermer</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+          
           {/* Skjermstørrelse */}
           <Card>
             <CardHeader>
@@ -203,7 +228,7 @@ const DisplaySettings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-3">
-                <Label>Skjermstørrelse</Label>
+                <Label>Skjermstørrelse for {displayType === 'shared' ? 'Felles Skjerm' : 'Singel Skjermer'}</Label>
                 <Select 
                   value={localSettings.screen_size_preset} 
                   onValueChange={handlePresetChange}
@@ -212,11 +237,16 @@ const DisplaySettings = () => {
                     <SelectValue placeholder="Velg skjermstørrelse" />
                   </SelectTrigger>
                   <SelectContent>
-                    {screenPresets.map((preset) => (
-                      <SelectItem key={preset.value} value={preset.value}>
-                        {preset.label}
-                      </SelectItem>
-                    ))}
+                    {screenPresets
+                      .filter(preset => displayType === 'shared' ? 
+                        ['laptop', 'monitor', '32inch', '43inch', '55inch', '65inch'].includes(preset.value) :
+                        ['10inch', 'laptop', 'monitor', '32inch'].includes(preset.value)
+                      )
+                      .map((preset) => (
+                        <SelectItem key={preset.value} value={preset.value}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 {currentPreset && (
