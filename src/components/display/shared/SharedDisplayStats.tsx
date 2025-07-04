@@ -16,9 +16,9 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
   );
 
   const stats = [
-    { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length, desc: 'Har produkter valgt for pakking' },
-    { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0), desc: 'Forskjellige produkter' },
-    { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts, desc: 'Antall produkter som skal pakkes' }
+    { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length },
+    { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0) },
+    { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts }
   ];
 
   // Determine grid columns class based on settings
@@ -73,12 +73,6 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
             >
               {stat.value}
             </div>
-            <p 
-              className="text-xs"
-              style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
-            >
-              {stat.desc}
-            </p>
           </CardContent>
         </Card>
       ))}
