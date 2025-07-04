@@ -11,6 +11,7 @@ import ThemePresetsTab from '@/components/display-settings/ThemePresetsTab';
 import AnimationSettingsTab from '@/components/display-settings/AnimationSettingsTab';
 import GeneralSettingsTab from '@/components/display-settings/GeneralSettingsTab';
 import SharedDisplaySettingsTab from '@/components/display-settings/SharedDisplaySettingsTab';
+import LargeScreenTab from '@/components/display-settings/LargeScreenTab';
 
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
@@ -98,7 +99,7 @@ const DisplaySettings = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="themes" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-7">
+                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
                   <TabsTrigger value="themes" className="flex items-center space-x-1">
                     <Sparkles className="h-4 w-4" />
                     <span className="hidden sm:inline">Temaer</span>
@@ -110,6 +111,10 @@ const DisplaySettings = () => {
                   <TabsTrigger value="shared" className="flex items-center space-x-1">
                     <Monitor className="h-4 w-4" />
                     <span className="hidden sm:inline">Felles</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="large-screen" className="flex items-center space-x-1">
+                    <Tv className="h-4 w-4" />
+                    <span className="hidden sm:inline">Stor Skjerm</span>
                   </TabsTrigger>
                   <TabsTrigger value="layout" className="flex items-center space-x-1">
                     <Layout className="h-4 w-4" />
@@ -146,6 +151,13 @@ const DisplaySettings = () => {
 
                 <TabsContent value="shared">
                   <SharedDisplaySettingsTab 
+                    settings={localSettings} 
+                    onUpdate={handleUpdate} 
+                  />
+                </TabsContent>
+
+                <TabsContent value="large-screen">
+                  <LargeScreenTab 
                     settings={localSettings} 
                     onUpdate={handleUpdate} 
                   />
