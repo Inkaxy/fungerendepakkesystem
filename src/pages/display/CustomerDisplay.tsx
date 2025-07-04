@@ -9,6 +9,7 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import { isLargeScreen } from '@/utils/screenSizeDetection';
@@ -18,6 +19,7 @@ import CustomerProductsList from '@/components/display/customer/CustomerProducts
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
 import InteractiveControls from '@/components/display/InteractiveControls';
+import ProductTransitionAnimation from '@/components/display/ProductTransitionAnimation';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -27,6 +29,7 @@ const CustomerDisplay = () => {
   const { data: settings } = useDisplaySettings();
   
   const { connectionStatus } = useRealTimeDisplay();
+  const { productChangeActive, completeProductChangeAnimation } = useRealTimeActivePackingProducts();
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
@@ -186,6 +189,12 @@ const CustomerDisplay = () => {
       <InteractiveControls 
         settings={customerDisplaySettings || {} as DisplaySettings} 
         onRefresh={triggerRefresh}
+      />
+      
+      <ProductTransitionAnimation
+        settings={customerDisplaySettings || {} as DisplaySettings}
+        isActive={productChangeActive}
+        onComplete={completeProductChangeAnimation}
       />
       
       <div className="max-w-4xl mx-auto space-y-8">

@@ -53,6 +53,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   animation_speed: 'normal' as const,
   fade_transitions: true,
   progress_animation: true,
+  product_change_animation: false,
   always_show_customer_name: true,
   packing_status_ongoing_color: '#3b82f6',
   packing_status_completed_color: '#10b981',

@@ -8,6 +8,15 @@ export const useRealTimeActivePackingProducts = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
+  const [productChangeActive, setProductChangeActive] = useState(false);
+
+  const triggerProductChangeAnimation = () => {
+    setProductChangeActive(true);
+  };
+
+  const completeProductChangeAnimation = () => {
+    setProductChangeActive(false);
+  };
 
   useEffect(() => {
     console.log('🔄 Setting up enhanced real-time listener for active packing products');
@@ -45,6 +54,10 @@ export const useRealTimeActivePackingProducts = () => {
           if (payload.eventType === 'INSERT') {
             const product = payload.new as any;
             console.log('➕ Product activated for packing:', product.product_name);
+            
+            // Trigger product change animation
+            triggerProductChangeAnimation();
+            
             toast({
               title: "Produkt aktivert for pakking",
               description: `${product.product_name} er nå valgt for pakking`,
@@ -52,6 +65,10 @@ export const useRealTimeActivePackingProducts = () => {
             });
           } else if (payload.eventType === 'DELETE') {
             console.log('➖ Active packing products cleared');
+            
+            // Trigger product change animation
+            triggerProductChangeAnimation();
+            
             toast({
               title: "Produktvalg oppdatert",
               description: "Aktive produkter for pakking er endret",
@@ -93,5 +110,9 @@ export const useRealTimeActivePackingProducts = () => {
     };
   }, [queryClient, toast]);
 
-  return { connectionStatus };
+  return { 
+    connectionStatus, 
+    productChangeActive, 
+    completeProductChangeAnimation 
+  };
 };

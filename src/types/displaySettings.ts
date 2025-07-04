@@ -63,6 +63,7 @@ export interface DisplaySettings {
   animation_speed: 'slow' | 'normal' | 'fast';
   fade_transitions: boolean;
   progress_animation: boolean;
+  product_change_animation: boolean;
   // Customer name display setting
   always_show_customer_name: boolean;
   // Shared display settings

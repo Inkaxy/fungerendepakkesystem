@@ -6,6 +6,7 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { isLargeScreen } from '@/utils/screenSizeDetection';
@@ -14,6 +15,7 @@ import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import InteractiveControls from '@/components/display/InteractiveControls';
+import ProductTransitionAnimation from '@/components/display/ProductTransitionAnimation';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -30,6 +32,7 @@ const SharedDisplay = () => {
   );
   
   const { connectionStatus } = useRealTimeDisplay();
+  const { productChangeActive, completeProductChangeAnimation } = useRealTimeActivePackingProducts();
   
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
@@ -290,6 +293,12 @@ const SharedDisplay = () => {
       <InteractiveControls 
         settings={settings || {} as DisplaySettings} 
         onRefresh={triggerRefresh}
+      />
+      
+      <ProductTransitionAnimation
+        settings={settings || {} as DisplaySettings}
+        isActive={productChangeActive}
+        onComplete={completeProductChangeAnimation}
       />
       
       <div className={settings?.force_single_screen || settings?.large_screen_optimization ? "w-full" : "max-w-7xl mx-auto"}>
