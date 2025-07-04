@@ -275,8 +275,12 @@ const SharedDisplay = () => {
       className="min-h-screen"
       style={{
         ...displayStyles,
-        padding: `${settings?.display_padding || 32}px`,
-        margin: `${settings?.display_margin || 8}px`,
+        padding: settings?.force_single_screen || settings?.large_screen_optimization 
+          ? `${Math.min(settings?.display_padding || 16, 16)}px`
+          : `${settings?.display_padding || 32}px`,
+        margin: settings?.force_single_screen || settings?.large_screen_optimization 
+          ? '0px' 
+          : `${settings?.display_margin || 8}px`,
       }}
     >
       <InteractiveControls 
@@ -284,7 +288,7 @@ const SharedDisplay = () => {
         onRefresh={triggerRefresh}
       />
       
-      <div className="max-w-7xl mx-auto">
+      <div className={settings?.force_single_screen || settings?.large_screen_optimization ? "w-full" : "max-w-7xl mx-auto"}>
         <SharedDisplayHeader
           settings={settings}
           connectionStatus={connectionStatus}
