@@ -83,7 +83,7 @@ export interface DisplaySettings {
   show_line_items_count: boolean;
   customer_sort_order: 'alphabetical' | 'status' | 'progress';
   // Screen size and layout optimization
-  screen_size_preset: 'standard' | '32inch' | '43inch' | '55inch';
+  screen_size_preset: 'standard' | '10inch' | '13inch' | 'laptop' | 'monitor' | '32inch' | '43inch' | '55inch' | '65inch';
   force_single_screen: boolean;
   large_screen_optimization: boolean;
   // Basket quantity display settings

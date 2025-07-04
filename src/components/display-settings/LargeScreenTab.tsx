@@ -14,10 +14,18 @@ interface LargeScreenTabProps {
 
 const LargeScreenTab = ({ settings, onUpdate }: LargeScreenTabProps) => {
   const screenSizePresets = [
-    { value: 'standard', label: 'Standard (laptop/desktop)', columns: 3, fontSize: 16, headerSize: 32 },
-    { value: '32inch', label: '32-tommer TV/monitor', columns: 4, fontSize: 18, headerSize: 36 },
-    { value: '43inch', label: '43-tommer TV/monitor', columns: 5, fontSize: 20, headerSize: 40 },
-    { value: '55inch', label: '55-tommer TV/monitor', columns: 6, fontSize: 24, headerSize: 48 }
+    // Små skjermer og tablets
+    { value: '10inch', label: '10.1" Tablet', columns: 2, fontSize: 14, headerSize: 24, category: 'small' },
+    { value: '13inch', label: '12.9" Tablet Pro', columns: 2, fontSize: 15, headerSize: 26, category: 'small' },
+    { value: 'laptop', label: '13-17" Laptop', columns: 3, fontSize: 16, headerSize: 28, category: 'small' },
+    { value: 'monitor', label: '19-24" Monitor', columns: 3, fontSize: 16, headerSize: 30, category: 'small' },
+    
+    // Standard og store skjermer
+    { value: 'standard', label: 'Standard (desktop)', columns: 3, fontSize: 16, headerSize: 32, category: 'medium' },
+    { value: '32inch', label: '32" TV/Monitor', columns: 4, fontSize: 18, headerSize: 36, category: 'large' },
+    { value: '43inch', label: '43" TV/Monitor', columns: 5, fontSize: 20, headerSize: 40, category: 'large' },
+    { value: '55inch', label: '55" TV/Monitor', columns: 6, fontSize: 24, headerSize: 48, category: 'large' },
+    { value: '65inch', label: '65"+ Store TV', columns: 7, fontSize: 28, headerSize: 56, category: 'large' }
   ];
 
   const selectedPreset = screenSizePresets.find(p => p.value === settings.screen_size_preset);
@@ -49,23 +57,33 @@ const LargeScreenTab = ({ settings, onUpdate }: LargeScreenTabProps) => {
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="screen-preset">Velg skjermstørrelse</Label>
-            <Select 
-              value={settings.screen_size_preset} 
-              onValueChange={handlePresetChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Velg skjermstørrelse" />
-              </SelectTrigger>
-              <SelectContent>
-                {screenSizePresets.map((preset) => (
-                  <SelectItem key={preset.value} value={preset.value}>
-                    {preset.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+           <div className="space-y-3">
+             <Label htmlFor="screen-preset">Velg skjermstørrelse</Label>
+             <Select 
+               value={settings.screen_size_preset} 
+               onValueChange={handlePresetChange}
+             >
+               <SelectTrigger>
+                 <SelectValue placeholder="Velg skjermstørrelse" />
+               </SelectTrigger>
+               <SelectContent>
+                 <div className="p-2">
+                   <div className="text-xs font-medium text-muted-foreground mb-2">Små skjermer & Tablets</div>
+                   {screenSizePresets.filter(p => p.category === 'small').map((preset) => (
+                     <SelectItem key={preset.value} value={preset.value}>
+                       {preset.label}
+                     </SelectItem>
+                   ))}
+                   
+                   <div className="text-xs font-medium text-muted-foreground mb-2 mt-4">Standard & Store skjermer</div>
+                   {screenSizePresets.filter(p => p.category === 'medium' || p.category === 'large').map((preset) => (
+                     <SelectItem key={preset.value} value={preset.value}>
+                       {preset.label}
+                     </SelectItem>
+                   ))}
+                 </div>
+               </SelectContent>
+             </Select>
             {selectedPreset && (
               <p className="text-sm text-muted-foreground">
                 Optimalisert for {selectedPreset.columns} kolonner, {selectedPreset.fontSize}px tekst og {selectedPreset.headerSize}px overskrifter
