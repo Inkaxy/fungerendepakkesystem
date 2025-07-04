@@ -57,7 +57,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   packing_status_ongoing_color: '#3b82f6',
   packing_status_completed_color: '#10b981',
   // Shared display settings defaults
-  show_stats_cards: true,
+  show_stats_cards: false,
   stats_columns: 3,
   stats_icon_color: '#3b82f6',
   stats_card_height: 'normal' as const,
