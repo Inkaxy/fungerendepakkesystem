@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tablet, Palette, Settings, Layout, Activity, Zap } from 'lucide-react';
+import { Tablet, Palette, Settings, Layout, Activity, Zap, Monitor } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import SmallScreenThemesTab from './SmallScreenThemesTab';
 import GeneralSettingsTab from './GeneralSettingsTab';
@@ -9,6 +9,7 @@ import LayoutBackgroundTab from './LayoutBackgroundTab';
 import ProductColorsTab from './ProductColorsTab';
 import StatusProgressTab from './StatusProgressTab';
 import AnimationSettingsTab from './AnimationSettingsTab';
+import ResponsivenessTab from './ResponsivenessTab';
 
 interface SmallScreenSectionProps {
   settings: DisplaySettings;
@@ -29,7 +30,7 @@ const SmallScreenSection = ({ settings, onUpdate }: SmallScreenSectionProps) => 
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="themes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
             <TabsTrigger value="themes" className="flex items-center space-x-1">
               <Palette className="h-4 w-4" />
               <span className="hidden sm:inline">Temaer</span>
@@ -41,6 +42,10 @@ const SmallScreenSection = ({ settings, onUpdate }: SmallScreenSectionProps) => 
             <TabsTrigger value="layout" className="flex items-center space-x-1">
               <Layout className="h-4 w-4" />
               <span className="hidden sm:inline">Layout</span>
+            </TabsTrigger>
+            <TabsTrigger value="responsiveness" className="flex items-center space-x-1">
+              <Monitor className="h-4 w-4" />
+              <span className="hidden sm:inline">Responsivitet</span>
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center space-x-1">
               <Palette className="h-4 w-4" />
@@ -72,6 +77,13 @@ const SmallScreenSection = ({ settings, onUpdate }: SmallScreenSectionProps) => 
 
           <TabsContent value="layout">
             <LayoutBackgroundTab 
+              settings={settings} 
+              onUpdate={onUpdate} 
+            />
+          </TabsContent>
+
+          <TabsContent value="responsiveness">
+            <ResponsivenessTab 
               settings={settings} 
               onUpdate={onUpdate} 
             />

@@ -86,4 +86,25 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   auto_hide_completed_customers: false,
   auto_hide_completed_timer: 30,
   customer_priority_mode: 'none' as const,
+  // Typography settings
+  font_family: 'Inter',
+  line_height: 1.5,
+  text_shadow_enabled: false,
+  text_shadow_color: '#00000020',
+  text_shadow_blur: 2,
+  text_shadow_offset_x: 1,
+  text_shadow_offset_y: 1,
+  // Layout and responsiveness settings
+  auto_screen_detection: true,
+  fullscreen_mode: false,
+  minimum_card_width: 200,
+  display_padding: 16,
+  display_margin: 8,
+  responsive_breakpoint: 'medium' as const,
+  // Interactivity settings
+  touch_friendly_sizes: false,
+  touch_target_size: 44,
+  pause_mode_enabled: false,
+  show_manual_refresh_button: false,
+  manual_refresh_button_position: 'top-right' as const,
 });

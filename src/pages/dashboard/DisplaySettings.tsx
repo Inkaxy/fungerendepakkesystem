@@ -1,11 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Eye, Tablet, Tv, Settings } from 'lucide-react';
+import { Save, Eye, Tablet, Tv, Settings, Archive } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
 import SmallScreenSection from '@/components/display-settings/SmallScreenSection';
 import LargeScreenSection from '@/components/display-settings/LargeScreenSection';
 import CommonSettingsSection from '@/components/display-settings/CommonSettingsSection';
+import SavedPresetsSection from '@/components/display-settings/SavedPresetsSection';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -81,18 +82,22 @@ const DisplaySettings = () => {
         {/* Settings Panel */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="small-screens" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="small-screens" className="flex items-center space-x-2">
                 <Tablet className="h-4 w-4" />
-                <span>Små Skjermer (10" - 24")</span>
+                <span>Små Skjermer</span>
               </TabsTrigger>
               <TabsTrigger value="large-screens" className="flex items-center space-x-2">
                 <Tv className="h-4 w-4" />
-                <span>Store Skjermer (32" - 65"+)</span>
+                <span>Store Skjermer</span>
               </TabsTrigger>
               <TabsTrigger value="common-settings" className="flex items-center space-x-2">
                 <Settings className="h-4 w-4" />
                 <span>Felles Innstillinger</span>
+              </TabsTrigger>
+              <TabsTrigger value="saved-presets" className="flex items-center space-x-2">
+                <Archive className="h-4 w-4" />
+                <span>Lagrede Oppsett</span>
               </TabsTrigger>
             </TabsList>
 
@@ -112,6 +117,13 @@ const DisplaySettings = () => {
 
             <TabsContent value="common-settings">
               <CommonSettingsSection 
+                settings={localSettings} 
+                onUpdate={handleUpdate} 
+              />
+            </TabsContent>
+
+            <TabsContent value="saved-presets">
+              <SavedPresetsSection 
                 settings={localSettings} 
                 onUpdate={handleUpdate} 
               />

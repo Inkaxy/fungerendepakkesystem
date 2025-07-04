@@ -95,4 +95,25 @@ export interface DisplaySettings {
   auto_hide_completed_customers: boolean;
   auto_hide_completed_timer: number;
   customer_priority_mode: 'none' | 'delivery_date' | 'progress' | 'custom';
+  // Typography settings
+  font_family: string;
+  line_height: number;
+  text_shadow_enabled: boolean;
+  text_shadow_color: string;
+  text_shadow_blur: number;
+  text_shadow_offset_x: number;
+  text_shadow_offset_y: number;
+  // Layout and responsiveness settings
+  auto_screen_detection: boolean;
+  fullscreen_mode: boolean;
+  minimum_card_width: number;
+  display_padding: number;
+  display_margin: number;
+  responsive_breakpoint: 'small' | 'medium' | 'large';
+  // Interactivity settings
+  touch_friendly_sizes: boolean;
+  touch_target_size: number;
+  pause_mode_enabled: boolean;
+  show_manual_refresh_button: boolean;
+  manual_refresh_button_position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }

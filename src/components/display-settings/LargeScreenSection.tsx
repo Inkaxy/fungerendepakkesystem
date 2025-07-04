@@ -9,6 +9,7 @@ import LayoutBackgroundTab from './LayoutBackgroundTab';
 import ProductColorsTab from './ProductColorsTab';
 import StatusProgressTab from './StatusProgressTab';
 import AnimationSettingsTab from './AnimationSettingsTab';
+import ResponsivenessTab from './ResponsivenessTab';
 
 interface LargeScreenSectionProps {
   settings: DisplaySettings;
@@ -29,7 +30,7 @@ const LargeScreenSection = ({ settings, onUpdate }: LargeScreenSectionProps) => 
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="themes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8">
             <TabsTrigger value="themes" className="flex items-center space-x-1">
               <Palette className="h-4 w-4" />
               <span className="hidden sm:inline">Temaer</span>
@@ -41,6 +42,10 @@ const LargeScreenSection = ({ settings, onUpdate }: LargeScreenSectionProps) => 
             <TabsTrigger value="layout" className="flex items-center space-x-1">
               <Layout className="h-4 w-4" />
               <span className="hidden sm:inline">Layout</span>
+            </TabsTrigger>
+            <TabsTrigger value="responsiveness" className="flex items-center space-x-1">
+              <Tv className="h-4 w-4" />
+              <span className="hidden sm:inline">Responsivitet</span>
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center space-x-1">
               <Palette className="h-4 w-4" />
@@ -72,6 +77,13 @@ const LargeScreenSection = ({ settings, onUpdate }: LargeScreenSectionProps) => 
 
           <TabsContent value="layout">
             <LayoutBackgroundTab 
+              settings={settings} 
+              onUpdate={onUpdate} 
+            />
+          </TabsContent>
+
+          <TabsContent value="responsiveness">
+            <ResponsivenessTab 
               settings={settings} 
               onUpdate={onUpdate} 
             />

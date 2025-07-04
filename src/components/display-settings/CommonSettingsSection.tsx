@@ -1,9 +1,11 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, Monitor } from 'lucide-react';
+import { Settings, Type, Activity } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import SharedDisplaySettingsTab from './SharedDisplaySettingsTab';
+import TypographySettingsTab from './TypographySettingsTab';
+import InteractivitySettingsTab from './InteractivitySettingsTab';
 
 interface CommonSettingsSectionProps {
   settings: DisplaySettings;
@@ -23,10 +25,43 @@ const CommonSettingsSection = ({ settings, onUpdate }: CommonSettingsSectionProp
         </p>
       </CardHeader>
       <CardContent>
-        <SharedDisplaySettingsTab 
-          settings={settings} 
-          onUpdate={onUpdate} 
-        />
+        <Tabs defaultValue="shared" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="shared" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Delte innstillinger</span>
+            </TabsTrigger>
+            <TabsTrigger value="typography" className="flex items-center space-x-2">
+              <Type className="h-4 w-4" />
+              <span>Typografi</span>
+            </TabsTrigger>
+            <TabsTrigger value="interactivity" className="flex items-center space-x-2">
+              <Activity className="h-4 w-4" />
+              <span>Interaktivitet</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="shared">
+            <SharedDisplaySettingsTab 
+              settings={settings} 
+              onUpdate={onUpdate} 
+            />
+          </TabsContent>
+
+          <TabsContent value="typography">
+            <TypographySettingsTab 
+              settings={settings} 
+              onUpdate={onUpdate} 
+            />
+          </TabsContent>
+
+          <TabsContent value="interactivity">
+            <InteractivitySettingsTab 
+              settings={settings} 
+              onUpdate={onUpdate} 
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

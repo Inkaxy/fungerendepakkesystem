@@ -128,6 +128,60 @@ export type Database = {
           },
         ]
       }
+      display_presets: {
+        Row: {
+          bakery_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          preset_type: string | null
+          settings: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          preset_type?: string | null
+          settings: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          preset_type?: string | null
+          settings?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_presets_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "display_presets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       display_settings: {
         Row: {
           always_show_customer_name: boolean | null
@@ -135,6 +189,7 @@ export type Database = {
           auto_hide_completed_customers: boolean | null
           auto_hide_completed_timer: number | null
           auto_refresh_interval: number | null
+          auto_screen_detection: boolean | null
           background_color: string | null
           background_gradient_end: string | null
           background_gradient_start: string | null
@@ -154,17 +209,25 @@ export type Database = {
           customer_cards_gap: number | null
           customer_priority_mode: string | null
           customer_sort_order: string | null
+          display_margin: number | null
+          display_padding: number | null
           enable_animations: boolean | null
           enable_cat_animations: boolean | null
           fade_transitions: boolean | null
+          font_family: string | null
           force_single_screen: boolean | null
+          fullscreen_mode: boolean | null
           header_font_size: number | null
           header_text_color: string | null
           hide_empty_customers: boolean | null
           id: string
           large_screen_optimization: boolean | null
+          line_height: number | null
           main_title: string | null
+          manual_refresh_button_position: string | null
           max_products_per_card: number | null
+          minimum_card_width: number | null
+          pause_mode_enabled: boolean | null
           product_1_accent_color: string | null
           product_1_bg_color: string | null
           product_1_text_color: string | null
@@ -183,6 +246,7 @@ export type Database = {
           progress_background_color: string | null
           progress_bar_color: string | null
           progress_height: number | null
+          responsive_breakpoint: string | null
           screen_size_preset: string | null
           show_basket_quantity: boolean | null
           show_bouncing_cats: boolean | null
@@ -193,6 +257,7 @@ export type Database = {
           show_delivery_dates: boolean | null
           show_falling_cats: boolean | null
           show_line_items_count: boolean | null
+          show_manual_refresh_button: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
           show_progress_bar: boolean | null
@@ -214,6 +279,13 @@ export type Database = {
           status_pending_color: string | null
           subtitle: string | null
           text_color: string | null
+          text_shadow_blur: number | null
+          text_shadow_color: string | null
+          text_shadow_enabled: boolean | null
+          text_shadow_offset_x: number | null
+          text_shadow_offset_y: number | null
+          touch_friendly_sizes: boolean | null
+          touch_target_size: number | null
           truck_icon_size: number | null
           updated_at: string
         }
@@ -223,6 +295,7 @@ export type Database = {
           auto_hide_completed_customers?: boolean | null
           auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
+          auto_screen_detection?: boolean | null
           background_color?: string | null
           background_gradient_end?: string | null
           background_gradient_start?: string | null
@@ -242,17 +315,25 @@ export type Database = {
           customer_cards_gap?: number | null
           customer_priority_mode?: string | null
           customer_sort_order?: string | null
+          display_margin?: number | null
+          display_padding?: number | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
+          font_family?: string | null
           force_single_screen?: boolean | null
+          fullscreen_mode?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           hide_empty_customers?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
+          line_height?: number | null
           main_title?: string | null
+          manual_refresh_button_position?: string | null
           max_products_per_card?: number | null
+          minimum_card_width?: number | null
+          pause_mode_enabled?: boolean | null
           product_1_accent_color?: string | null
           product_1_bg_color?: string | null
           product_1_text_color?: string | null
@@ -271,6 +352,7 @@ export type Database = {
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
+          responsive_breakpoint?: string | null
           screen_size_preset?: string | null
           show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
@@ -281,6 +363,7 @@ export type Database = {
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
+          show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
@@ -302,6 +385,13 @@ export type Database = {
           status_pending_color?: string | null
           subtitle?: string | null
           text_color?: string | null
+          text_shadow_blur?: number | null
+          text_shadow_color?: string | null
+          text_shadow_enabled?: boolean | null
+          text_shadow_offset_x?: number | null
+          text_shadow_offset_y?: number | null
+          touch_friendly_sizes?: boolean | null
+          touch_target_size?: number | null
           truck_icon_size?: number | null
           updated_at?: string
         }
@@ -311,6 +401,7 @@ export type Database = {
           auto_hide_completed_customers?: boolean | null
           auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
+          auto_screen_detection?: boolean | null
           background_color?: string | null
           background_gradient_end?: string | null
           background_gradient_start?: string | null
@@ -330,17 +421,25 @@ export type Database = {
           customer_cards_gap?: number | null
           customer_priority_mode?: string | null
           customer_sort_order?: string | null
+          display_margin?: number | null
+          display_padding?: number | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
+          font_family?: string | null
           force_single_screen?: boolean | null
+          fullscreen_mode?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
           hide_empty_customers?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
+          line_height?: number | null
           main_title?: string | null
+          manual_refresh_button_position?: string | null
           max_products_per_card?: number | null
+          minimum_card_width?: number | null
+          pause_mode_enabled?: boolean | null
           product_1_accent_color?: string | null
           product_1_bg_color?: string | null
           product_1_text_color?: string | null
@@ -359,6 +458,7 @@ export type Database = {
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
+          responsive_breakpoint?: string | null
           screen_size_preset?: string | null
           show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
@@ -369,6 +469,7 @@ export type Database = {
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
+          show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
@@ -390,6 +491,13 @@ export type Database = {
           status_pending_color?: string | null
           subtitle?: string | null
           text_color?: string | null
+          text_shadow_blur?: number | null
+          text_shadow_color?: string | null
+          text_shadow_enabled?: boolean | null
+          text_shadow_offset_x?: number | null
+          text_shadow_offset_y?: number | null
+          touch_friendly_sizes?: boolean | null
+          touch_target_size?: number | null
           truck_icon_size?: number | null
           updated_at?: string
         }
