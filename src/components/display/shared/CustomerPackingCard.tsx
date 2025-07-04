@@ -62,7 +62,9 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
               variant="secondary"
               style={{
                 backgroundColor: customerData.overall_status === 'completed' ? statusColors.completed : statusColors.in_progress,
-                color: 'white'
+                color: 'white',
+                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding / 4}px ${settings.status_indicator_padding / 2}px` : undefined,
+                fontSize: settings?.large_screen_optimization ? `${(settings?.body_font_size || 16) * 1.1}px` : undefined
               }}
             >
               {customerData.overall_status === 'completed' ? 'Ferdig' : 'Pågående'}
@@ -73,7 +75,9 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
               variant="outline"
               style={{
                 backgroundColor: settings?.product_accent_color || '#f3f4f6',
-                color: settings?.card_background_color || '#ffffff'
+                color: settings?.card_background_color || '#ffffff',
+                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding / 4}px ${settings.status_indicator_padding / 2}px` : undefined,
+                fontSize: settings?.large_screen_optimization ? `${(settings?.body_font_size || 16) * 1.1}px` : undefined
               }}
             >
               {customer.customer_number}
@@ -84,7 +88,10 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
           className="text-xl text-center mb-3"
           style={{ 
             color: settings?.header_text_color || '#111827',
-            fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.6, 24)}px` : '1.25rem'
+            fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.6, 24)}px` : '1.25rem',
+            fontWeight: settings?.large_screen_optimization ? '700' : '600',
+            textShadow: settings?.large_screen_optimization && settings?.text_shadow_enabled ? 
+              `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}` : 'none'
           }}
         >
           {customer.name}
@@ -201,7 +208,9 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                         className="text-xs"
                         style={{
                           backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
-                          color: 'white'
+                          color: 'white',
+                          padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding / 6}px ${settings.status_indicator_padding / 3}px` : undefined,
+                          fontSize: settings?.large_screen_optimization ? `${(settings?.body_font_size || 16) * 0.85}px` : undefined
                         }}
                       >
                         {product.packing_status === 'completed' ? 'Ferdig' : 

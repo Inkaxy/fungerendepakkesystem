@@ -36,9 +36,13 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
   // Touch-friendly sizes
   const minTouchSize = settings.touch_friendly_sizes ? `${settings.touch_target_size}px` : 'auto';
 
+  // Large screen optimization multipliers
+  const largeScreenMultiplier = settings.large_screen_optimization ? 1.2 : 1;
+  const contrastMultiplier = settings.large_screen_optimization ? 1.1 : 1;
+
   return {
-    '--header-font-size': `${settings.header_font_size}px`,
-    '--body-font-size': `${settings.body_font_size}px`,
+    '--header-font-size': `${Math.round(settings.header_font_size * largeScreenMultiplier)}px`,
+    '--body-font-size': `${Math.round(settings.body_font_size * largeScreenMultiplier)}px`,
     '--text-color': settings.text_color,
     '--header-text-color': settings.header_text_color,
     '--card-bg-color': settings.card_background_color,
@@ -62,7 +66,7 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--progress-bar-color': settings.progress_bar_color,
     '--progress-bg-color': settings.progress_background_color,
     '--progress-height': `${settings.progress_height}px`,
-    '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
+    '--shadow-intensity': `0 ${Math.round(settings.card_shadow_intensity * contrastMultiplier)}px ${Math.round(settings.card_shadow_intensity * 2 * contrastMultiplier)}px rgba(0,0,0,${0.1 * contrastMultiplier})`,
     '--truck-icon-size': `${settings.truck_icon_size}px`,
     '--animation-duration': animationDuration,
     '--enable-animations': settings.enable_animations ? '1' : '0',
@@ -70,9 +74,12 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--progress-animation': settings.progress_animation ? '1' : '0',
     '--product-card-size': `${settings.product_card_size}%`,
     '--min-touch-size': minTouchSize,
-    '--display-padding': `${settings.display_padding}px`,
-    '--display-margin': `${settings.display_margin}px`,
+    '--display-padding': `${Math.round(settings.display_padding * largeScreenMultiplier)}px`,
+    '--display-margin': `${Math.round(settings.display_margin * largeScreenMultiplier)}px`,
     '--minimum-card-width': `${settings.minimum_card_width}px`,
+    '--status-indicator-padding': `${settings.status_indicator_padding}px`,
+    '--large-screen-optimization': settings.large_screen_optimization ? '1' : '0',
+    '--force-single-screen': settings.force_single_screen ? '1' : '0',
     ...backgroundStyle,
     ...typographyStyles,
   } as React.CSSProperties & { [key: string]: string };

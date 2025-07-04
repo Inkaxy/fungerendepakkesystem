@@ -99,41 +99,62 @@ const SharedDisplay = () => {
     let optimalColumns = baseColumns;
     let maxCardWidth = 'none';
     
-    // Calculate optimal columns for different scenarios
+    // Enhanced force_single_screen algorithm
     if (settings?.force_single_screen && customerCount > 0) {
-      // Smart algorithm: balance rows and columns for single screen view
-      const aspectRatio = window.innerWidth / window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const aspectRatio = viewportWidth / viewportHeight;
       const isWideScreen = aspectRatio > 1.6;
       
+      // Calculate minimum card width considering settings
+      const minCardWidth = Math.max(settings?.minimum_card_width || 200, 250);
+      const maxPossibleColumns = Math.floor(viewportWidth / minCardWidth);
+      
+      // Smart grid calculation for optimal single-screen fit
       if (customerCount <= 4) {
-        optimalColumns = customerCount <= 2 ? customerCount : 2;
-      } else if (customerCount <= 9) {
-        optimalColumns = isWideScreen ? Math.ceil(customerCount / 2) : 3;
+        optimalColumns = Math.min(customerCount, isWideScreen ? 4 : 2);
+      } else if (customerCount <= 12) {
+        // Calculate rows and columns to fit all customers
+        const targetRows = isWideScreen ? 2 : 3;
+        optimalColumns = Math.min(Math.ceil(customerCount / targetRows), maxPossibleColumns);
       } else {
-        // For many customers, use grid that minimizes scrolling
-        optimalColumns = Math.min(
-          Math.ceil(Math.sqrt(customerCount * (isWideScreen ? 1.6 : 1.2))),
-          isWideScreen ? 8 : 6
-        );
+        // For many customers, prioritize fitting all on screen
+        const maxRows = Math.floor((viewportHeight - 200) / 300); // Estimate card height
+        optimalColumns = Math.min(Math.ceil(customerCount / maxRows), maxPossibleColumns);
       }
+      
+      // Ensure we don't exceed screen width
+      maxCardWidth = `${Math.floor(viewportWidth / optimalColumns) - (settings?.spacing || 24)}px`;
     } else {
-      // Screen preset optimization
+      // Screen preset optimization with large screen improvements
       switch (screenPreset) {
+        case '10inch':
+          optimalColumns = Math.min(customerCount, 2);
+          maxCardWidth = isLargeScreen ? '400px' : '350px';
+          break;
+        case '13inch':
+          optimalColumns = Math.min(customerCount, 3);
+          maxCardWidth = isLargeScreen ? '420px' : '380px';
+          break;
         case '32inch':
-          optimalColumns = Math.min(customerCount, 4);
-          maxCardWidth = '380px';
+          optimalColumns = Math.min(customerCount, isLargeScreen ? 5 : 4);
+          maxCardWidth = isLargeScreen ? '450px' : '380px';
           break;
         case '43inch':
-          optimalColumns = Math.min(customerCount, 5);
-          maxCardWidth = '420px';
+          optimalColumns = Math.min(customerCount, isLargeScreen ? 6 : 5);
+          maxCardWidth = isLargeScreen ? '480px' : '420px';
           break;
         case '55inch':
-          optimalColumns = Math.min(customerCount, 6);
-          maxCardWidth = '450px';
+          optimalColumns = Math.min(customerCount, isLargeScreen ? 7 : 6);
+          maxCardWidth = isLargeScreen ? '500px' : '450px';
+          break;
+        case '65inch':
+          optimalColumns = Math.min(customerCount, isLargeScreen ? 8 : 7);
+          maxCardWidth = isLargeScreen ? '520px' : '480px';
           break;
         default:
           optimalColumns = Math.min(customerCount, baseColumns);
-          maxCardWidth = isLargeScreen ? '400px' : '350px';
+          maxCardWidth = isLargeScreen ? '420px' : '350px';
       }
     }
     
@@ -189,37 +210,61 @@ const SharedDisplay = () => {
   const getDynamicSpacing = () => {
     const customerCount = sharedDisplayPackingData.length;
     const isLargeScreen = settings?.large_screen_optimization;
-    const baseGap = settings?.customer_cards_gap || 24;
+    const useCustomSpacing = settings?.spacing !== undefined;
     
-    // Reduce gap on screens with many customers to utilize space better
-    let adaptiveGap = baseGap;
-    if (customerCount > 8) {
-      adaptiveGap = Math.max(baseGap * 0.7, 16);
-    } else if (customerCount > 12) {
-      adaptiveGap = Math.max(baseGap * 0.5, 12);
+    // Use custom spacing setting if available, otherwise use customer_cards_gap
+    const baseGap = useCustomSpacing ? (settings?.spacing || 16) : (settings?.customer_cards_gap || 24);
+    
+    // Force single screen optimization: reduce spacing to fit more
+    if (settings?.force_single_screen && customerCount > 6) {
+      return Math.max(baseGap * 0.6, 12);
     }
     
-    // Increase gap on large screens for better visual separation
-    if (isLargeScreen && customerCount <= 6) {
-      adaptiveGap = Math.min(baseGap * 1.3, 40);
+    // Large screen optimization: increase spacing for better visual separation
+    if (isLargeScreen) {
+      const largeScreenMultiplier = customerCount <= 4 ? 1.5 : customerCount <= 8 ? 1.3 : 1.1;
+      return Math.min(baseGap * largeScreenMultiplier, 48);
     }
     
-    return adaptiveGap;
+    // Standard responsive spacing
+    if (customerCount > 12) {
+      return Math.max(baseGap * 0.7, 16);
+    } else if (customerCount > 8) {
+      return Math.max(baseGap * 0.8, 18);
+    }
+    
+    return baseGap;
   };
 
   // Get font sizes based on screen optimization
   const getFontSizes = () => {
+    const baseHeaderSize = settings?.header_font_size || 32;
+    const baseBodySize = settings?.body_font_size || 16;
+    
     if (settings?.large_screen_optimization) {
+      // Large screen optimization: increase font sizes and improve readability
+      const screenMultiplier = settings?.screen_size_preset === '55inch' || settings?.screen_size_preset === '65inch' ? 1.4 : 1.2;
       return {
-        header: `${settings.header_font_size || 32}px`,
-        body: `${settings.body_font_size || 16}px`,
-        title: `${(settings.body_font_size || 16) + 4}px`
+        header: `${Math.round(baseHeaderSize * screenMultiplier)}px`,
+        body: `${Math.round(baseBodySize * screenMultiplier)}px`, 
+        title: `${Math.round((baseBodySize + 6) * screenMultiplier)}px`,
+        contrast: 'high' // For better readability on large screens
       };
     }
+    
+    // Force single screen: slightly reduce font sizes to fit more content
+    if (settings?.force_single_screen && sharedDisplayPackingData.length > 8) {
+      return {
+        header: `${Math.round(baseHeaderSize * 0.9)}px`,
+        body: `${Math.round(baseBodySize * 0.9)}px`,
+        title: `${Math.round((baseBodySize + 2) * 0.9)}px`
+      };
+    }
+    
     return {
-      header: `${settings?.header_font_size || 32}px`,
-      body: `${settings?.body_font_size || 16}px`,
-      title: `${(settings?.body_font_size || 16) + 2}px`
+      header: `${baseHeaderSize}px`,
+      body: `${baseBodySize}px`,
+      title: `${baseBodySize + 2}px`
     };
   };
 
