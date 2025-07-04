@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Save, Eye, Tablet, Tv, Settings } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
 import SmallScreenSection from '@/components/display-settings/SmallScreenSection';
 import LargeScreenSection from '@/components/display-settings/LargeScreenSection';
@@ -78,24 +79,44 @@ const DisplaySettings = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Settings Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Small Screen Section */}
-          <SmallScreenSection 
-            settings={localSettings} 
-            onUpdate={handleUpdate} 
-          />
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="small-screens" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="small-screens" className="flex items-center space-x-2">
+                <Tablet className="h-4 w-4" />
+                <span>Små Skjermer (10" - 24")</span>
+              </TabsTrigger>
+              <TabsTrigger value="large-screens" className="flex items-center space-x-2">
+                <Tv className="h-4 w-4" />
+                <span>Store Skjermer (32" - 65"+)</span>
+              </TabsTrigger>
+              <TabsTrigger value="common-settings" className="flex items-center space-x-2">
+                <Settings className="h-4 w-4" />
+                <span>Felles Innstillinger</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Large Screen Section */}
-          <LargeScreenSection 
-            settings={localSettings} 
-            onUpdate={handleUpdate} 
-          />
+            <TabsContent value="small-screens">
+              <SmallScreenSection 
+                settings={localSettings} 
+                onUpdate={handleUpdate} 
+              />
+            </TabsContent>
 
-          {/* Common Settings Section */}
-          <CommonSettingsSection 
-            settings={localSettings} 
-            onUpdate={handleUpdate} 
-          />
+            <TabsContent value="large-screens">
+              <LargeScreenSection 
+                settings={localSettings} 
+                onUpdate={handleUpdate} 
+              />
+            </TabsContent>
+
+            <TabsContent value="common-settings">
+              <CommonSettingsSection 
+                settings={localSettings} 
+                onUpdate={handleUpdate} 
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Preview Panel */}
