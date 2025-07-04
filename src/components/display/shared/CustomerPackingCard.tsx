@@ -33,8 +33,8 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
   // Get product item class based on product_list_style
   const getProductItemClass = () => {
     switch (settings?.product_list_style) {
-      case 'compact': return 'text-xs p-1.5';
-      default: return 'text-sm p-2';
+      case 'compact': return 'text-base p-3';
+      default: return 'text-lg p-4';
     }
   };
 
@@ -85,11 +85,11 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
           )}
         </div>
         <CardTitle 
-          className="text-xl text-center mb-3"
+          className="text-2xl text-center mb-3 font-bold"
           style={{ 
             color: settings?.header_text_color || '#111827',
-            fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.6, 24)}px` : '1.25rem',
-            fontWeight: settings?.large_screen_optimization ? '700' : '600',
+            fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.8, 32)}px` : '2rem',
+            fontWeight: '700',
             textShadow: settings?.large_screen_optimization && settings?.text_shadow_enabled ? 
               `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}` : 'none'
           }}
@@ -171,16 +171,19 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                     })
                   }}
                 >
-                  <div className="flex flex-col flex-1">
+                   <div className="flex flex-col flex-1">
                     <span 
-                      className="font-medium"
+                      className="font-bold text-lg"
                       style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
                     >
                       {product.product_name}
                     </span>
                     <span 
-                      className="text-xs font-semibold"
-                      style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
+                      className="text-2xl font-bold mt-1"
+                      style={{ 
+                        color: getProductAccentColor(settings || {} as any, idx % 3),
+                        fontSize: settings?.large_screen_optimization ? '2rem' : '1.5rem'
+                      }}
                     >
                       {settings?.show_basket_quantity && product.basket_quantity
                         ? formatQuantityWithBasket(
@@ -193,29 +196,28 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                       }
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col items-end justify-center space-y-1">
+                    <Badge 
+                      variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                      className="text-sm font-bold px-3 py-1"
+                      style={{
+                        backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
+                        color: 'white',
+                        fontSize: settings?.large_screen_optimization ? '1rem' : '0.875rem',
+                        minWidth: '80px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {product.packing_status === 'completed' ? 'FERDIG' : 
+                       product.packing_status === 'in_progress' ? 'PÅGÅR' : 'VENTER'}
+                    </Badge>
                     {settings?.show_line_items_count && (
                       <span 
-                        className="text-xs"
+                        className="text-xs font-medium"
                         style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
                       >
                         {product.packed_line_items}/{product.total_line_items}
                       </span>
-                    )}
-                    {settings?.show_status_badges && (
-                      <Badge 
-                        variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                        className="text-xs"
-                        style={{
-                          backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
-                          color: 'white',
-                          padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding / 6}px ${settings.status_indicator_padding / 3}px` : undefined,
-                          fontSize: settings?.large_screen_optimization ? `${(settings?.body_font_size || 16) * 0.85}px` : undefined
-                        }}
-                      >
-                        {product.packing_status === 'completed' ? 'Ferdig' : 
-                         product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
-                      </Badge>
                     )}
                   </div>
                 </div>
