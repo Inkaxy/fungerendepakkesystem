@@ -40,12 +40,19 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
 
   return (
     <Card 
-      className="shadow-lg hover:shadow-xl transition-shadow"
+      className={`shadow-lg hover:shadow-xl transition-shadow display-card display-typography ${
+        settings?.enable_animations ? 'animated display-fade-transitions' : ''
+      } ${settings?.text_shadow_enabled ? 'display-text-shadow' : ''}`}
       style={{
         backgroundColor: settings?.card_background_color || '#ffffff',
         borderColor: settings?.card_border_color || '#e5e7eb',
         borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined,
+        fontFamily: settings?.font_family || 'Inter',
+        lineHeight: settings?.line_height || 1.5,
+        ...(settings?.text_shadow_enabled && {
+          textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
+        })
       }}
     >
       <CardHeader className={getCardHeightClass()}>
@@ -101,11 +108,14 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                 style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
               >
                 <div 
-                  className="h-2 rounded-full transition-all duration-300"
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    settings?.progress_animation ? 'display-progress-animated' : ''
+                  } ${settings?.enable_animations ? 'display-progress-fill' : ''}`}
                   style={{ 
                     backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                    width: `${customerData.progress_percentage}%`
-                  }}
+                    width: `${customerData.progress_percentage}%`,
+                    '--progress-width': `${customerData.progress_percentage}%`
+                  } as React.CSSProperties & { [key: string]: string }}
                 />
                 {settings?.show_truck_icon && (
                   <img 
@@ -143,10 +153,15 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
               {displayProducts.map((product, idx) => (
                 <div 
                   key={product.id} 
-                  className={`${getProductItemClass()} rounded flex justify-between items-center`}
+                  className={`${getProductItemClass()} rounded flex justify-between items-center ${
+                    settings?.enable_animations ? 'display-scale-hover display-fade-transitions' : ''
+                  } ${settings?.touch_friendly_sizes ? 'touch-friendly' : ''}`}
                   style={{
                     backgroundColor: getProductBackgroundColor(settings || {} as any, idx % 3),
                     borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
+                    ...(settings?.touch_friendly_sizes && {
+                      minHeight: `${settings.touch_target_size}px`
+                    })
                   }}
                 >
                   <div className="flex flex-col flex-1">

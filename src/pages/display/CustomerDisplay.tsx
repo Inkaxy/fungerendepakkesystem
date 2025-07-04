@@ -7,7 +7,7 @@ import { Package2 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
@@ -16,6 +16,7 @@ import ConnectionStatus from '@/components/display/ConnectionStatus';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
+import InteractiveControls from '@/components/display/InteractiveControls';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -175,7 +176,19 @@ const CustomerDisplay = () => {
   const isAllPacked = customerPackingData.progress_percentage >= 100;
 
   return (
-    <div className="min-h-screen p-8 relative" style={displayStyles}>
+    <div 
+      className="min-h-screen relative" 
+      style={{
+        ...displayStyles,
+        padding: `${customerDisplaySettings?.display_padding || 32}px`,
+        margin: `${customerDisplaySettings?.display_margin || 8}px`,
+      }}
+    >
+      <InteractiveControls 
+        settings={customerDisplaySettings || {} as DisplaySettings} 
+        onRefresh={triggerRefresh}
+      />
+      
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Connection status overlay in bottom right */}
         <div className="fixed bottom-4 right-4 z-10">

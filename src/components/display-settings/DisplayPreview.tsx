@@ -62,10 +62,17 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
         </CardHeader>
         <CardContent className="p-0">
           <div 
-            className="relative h-[700px] overflow-y-auto rounded-b-lg p-4"
+            className={`relative h-[700px] overflow-y-auto rounded-b-lg display-typography ${
+              settings.enable_animations ? 'display-fade-transitions' : ''
+            } ${settings.text_shadow_enabled ? 'display-text-shadow' : ''}`}
             style={{
               ...styles,
               fontSize: `${settings.body_font_size}px`,
+              fontFamily: settings.font_family,
+              lineHeight: settings.line_height,
+              ...(settings.text_shadow_enabled && {
+                textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
+              })
             }}
           >
             {/* Header with refresh button */}
@@ -95,11 +102,12 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
 
             {/* Date indicator */}
             <Card 
-              className="mb-6"
+              className={`mb-6 display-card ${settings.enable_animations ? 'animated' : ''}`}
               style={{
                 backgroundColor: settings.card_background_color,
                 borderColor: settings.card_border_color,
                 borderRadius: `${settings.border_radius}px`,
+                boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
               }}
             >
               <CardContent className="p-3 text-center">
@@ -130,12 +138,17 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                   {mockCustomer.products.map((product, index) => (
                     <div 
                       key={product.id}
-                      className="flex justify-between items-center p-3 rounded-lg"
+                      className={`flex justify-between items-center p-3 rounded-lg ${
+                        settings.enable_animations ? 'display-scale-hover display-fade-transitions' : ''
+                      } ${settings.touch_friendly_sizes ? 'touch-friendly' : ''}`}
                       style={{
                         backgroundColor: getProductBackgroundColor(settings, index),
                         borderRadius: `${settings.border_radius}px`,
                         transform: `scale(${(settings.product_card_size || 100) / 100})`,
-                        transformOrigin: 'left center'
+                        transformOrigin: 'left center',
+                        ...(settings.touch_friendly_sizes && {
+                          minHeight: `${settings.touch_target_size}px`
+                        })
                       }}
                     >
                       <div className="flex-1">
@@ -229,12 +242,15 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                       }}
                     >
                       <div 
-                        className={`rounded-full transition-all duration-300 ${settings.progress_animation ? 'animate-pulse' : ''}`}
+                        className={`rounded-full transition-all duration-300 ${
+                          settings.progress_animation ? 'display-progress-animated' : ''
+                        } ${settings.enable_animations ? 'display-progress-fill' : ''}`}
                         style={{ 
                           backgroundColor: settings.progress_bar_color,
                           height: `${Math.max(settings.progress_height * 2, 16)}px`,
-                          width: `${mockCustomer.progress_percentage}%`
-                        }}
+                          width: `${mockCustomer.progress_percentage}%`,
+                          '--progress-width': `${mockCustomer.progress_percentage}%`
+                        } as React.CSSProperties & { [key: string]: string }}
                       />
                       {settings.show_truck_icon && (
                         <img 

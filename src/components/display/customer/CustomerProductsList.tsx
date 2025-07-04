@@ -16,11 +16,19 @@ interface CustomerProductsListProps {
 const CustomerProductsList = ({ customerPackingData, settings, statusColors }: CustomerProductsListProps) => {
   return (
     <Card
+      className={`display-card display-typography ${
+        settings?.enable_animations ? 'animated display-fade-transitions' : ''
+      } ${settings?.text_shadow_enabled ? 'display-text-shadow' : ''}`}
       style={{
         backgroundColor: settings?.card_background_color || '#ffffff',
         borderColor: settings?.card_border_color || '#e5e7eb',
         borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined,
+        fontFamily: settings?.font_family || 'Inter',
+        lineHeight: settings?.line_height || 1.5,
+        ...(settings?.text_shadow_enabled && {
+          textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
+        })
       }}
     >
       <CardContent className="p-8">
@@ -28,12 +36,17 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
           {customerPackingData.products.map((product, index) => (
             <div 
               key={product.id}
-              className="flex justify-between items-center p-4 rounded-lg"
+              className={`flex justify-between items-center p-4 rounded-lg ${
+                settings?.enable_animations ? 'display-scale-hover display-fade-transitions' : ''
+              } ${settings?.touch_friendly_sizes ? 'touch-friendly' : ''}`}
               style={{
                 backgroundColor: getProductBackgroundColor(settings || {} as any, index),
                 borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
                 transform: `scale(${(settings?.product_card_size || 100) / 100})`,
-                transformOrigin: 'left center'
+                transformOrigin: 'left center',
+                ...(settings?.touch_friendly_sizes && {
+                  minHeight: `${settings.touch_target_size}px`
+                })
               }}
             >
               <div className="flex-1">

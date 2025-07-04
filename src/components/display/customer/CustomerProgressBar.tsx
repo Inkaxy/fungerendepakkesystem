@@ -14,11 +14,19 @@ const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgress
 
   return (
     <Card
+      className={`display-card display-typography ${
+        settings?.enable_animations ? 'animated display-fade-transitions' : ''
+      } ${settings?.text_shadow_enabled ? 'display-text-shadow' : ''}`}
       style={{
         backgroundColor: settings?.card_background_color || '#ffffff',
         borderColor: settings?.card_border_color || '#e5e7eb',
         borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined,
+        fontFamily: settings?.font_family || 'Inter',
+        lineHeight: settings?.line_height || 1.5,
+        ...(settings?.text_shadow_enabled && {
+          textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
+        })
       }}
     >
       <CardContent className="p-8">
@@ -31,12 +39,15 @@ const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgress
             }}
           >
             <div 
-              className={`rounded-full transition-all duration-300 ${settings?.progress_animation ? 'animate-pulse' : ''}`}
+              className={`rounded-full transition-all duration-300 ${
+                settings?.progress_animation ? 'display-progress-animated' : ''
+              } ${settings?.enable_animations ? 'display-progress-fill' : ''}`}
               style={{ 
                 backgroundColor: settings?.progress_bar_color || '#3b82f6',
                 height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
-                width: `${customerPackingData.progress_percentage}%`
-              }}
+                width: `${customerPackingData.progress_percentage}%`,
+                '--progress-width': `${customerPackingData.progress_percentage}%`
+              } as React.CSSProperties & { [key: string]: string }}
             />
             {settings?.show_truck_icon && (
               <img 

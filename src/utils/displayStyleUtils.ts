@@ -24,6 +24,18 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
   const animationDuration = settings.animation_speed === 'slow' ? '2s' : 
                            settings.animation_speed === 'fast' ? '0.5s' : '1s';
 
+  // Typography styles
+  const typographyStyles = {
+    fontFamily: settings.font_family,
+    lineHeight: `${settings.line_height}`,
+    ...(settings.text_shadow_enabled && {
+      textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
+    })
+  };
+
+  // Touch-friendly sizes
+  const minTouchSize = settings.touch_friendly_sizes ? `${settings.touch_target_size}px` : 'auto';
+
   return {
     '--header-font-size': `${settings.header_font_size}px`,
     '--body-font-size': `${settings.body_font_size}px`,
@@ -57,7 +69,12 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--fade-transitions': settings.fade_transitions ? '1' : '0',
     '--progress-animation': settings.progress_animation ? '1' : '0',
     '--product-card-size': `${settings.product_card_size}%`,
+    '--min-touch-size': minTouchSize,
+    '--display-padding': `${settings.display_padding}px`,
+    '--display-margin': `${settings.display_margin}px`,
+    '--minimum-card-width': `${settings.minimum_card_width}px`,
     ...backgroundStyle,
+    ...typographyStyles,
   } as React.CSSProperties & { [key: string]: string };
 };
 

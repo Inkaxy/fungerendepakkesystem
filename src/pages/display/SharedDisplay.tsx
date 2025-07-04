@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
@@ -12,6 +12,7 @@ import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
+import InteractiveControls from '@/components/display/InteractiveControls';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -226,9 +227,18 @@ const SharedDisplay = () => {
 
   return (
     <div 
-      className="min-h-screen p-8"
-      style={displayStyles}
+      className="min-h-screen"
+      style={{
+        ...displayStyles,
+        padding: `${settings?.display_padding || 32}px`,
+        margin: `${settings?.display_margin || 8}px`,
+      }}
     >
+      <InteractiveControls 
+        settings={settings || {} as DisplaySettings} 
+        onRefresh={triggerRefresh}
+      />
+      
       <div className="max-w-7xl mx-auto">
         <SharedDisplayHeader
           settings={settings}
