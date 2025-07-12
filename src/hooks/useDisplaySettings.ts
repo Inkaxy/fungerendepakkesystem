@@ -7,10 +7,11 @@ import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
 import { mapDatabaseToDisplaySettings, mapDisplaySettingsToDatabase } from '@/utils/displaySettingsMappers';
 
 export type { DisplaySettings } from '@/types/displaySettings';
+export type ScreenType = 'small' | 'large' | 'shared';
 
-export const useDisplaySettings = () => {
+export const useDisplaySettings = (screenType: ScreenType = 'shared') => {
   return useQuery({
-    queryKey: ['display-settings'],
+    queryKey: ['display-settings', screenType],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
@@ -35,11 +36,12 @@ export const useDisplaySettings = () => {
 
       console.log('Using bakery_id:', profile.bakery_id);
 
-      // Try to get existing settings using bakery_id
+      // Try to get existing settings using bakery_id and screen_type
       const { data, error } = await supabase
         .from('display_settings')
         .select('*')
         .eq('bakery_id', profile.bakery_id)
+        .eq('screen_type', screenType)
         .maybeSingle();
 
       if (error) {
@@ -49,13 +51,13 @@ export const useDisplaySettings = () => {
       
       // If no settings exist, create default ones
       if (!data) {
-        console.log('No existing settings found, creating defaults');
+        console.log(`No existing ${screenType} settings found, creating defaults`);
         const defaultSettings = getDefaultSettings(profile.bakery_id);
         const dbSettings = mapDisplaySettingsToDatabase(defaultSettings);
         
         const { data: newSettings, error: createError } = await supabase
           .from('display_settings')
-          .insert(dbSettings as any)
+          .insert({...dbSettings, screen_type: screenType} as any)
           .select()
           .single();
 
@@ -76,7 +78,7 @@ export const useDisplaySettings = () => {
   });
 };
 
-export const useUpdateDisplaySettings = () => {
+export const useUpdateDisplaySettings = (screenType: ScreenType = 'shared') => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -115,6 +117,7 @@ export const useUpdateDisplaySettings = () => {
         .from('display_settings')
         .update(dbSettings)
         .eq('bakery_id', profile.bakery_id)
+        .eq('screen_type', screenType)
         .select()
         .maybeSingle();
 
@@ -125,10 +128,10 @@ export const useUpdateDisplaySettings = () => {
 
       // If no rows were affected (no existing settings), create new ones
       if (!updateData) {
-        console.log('No existing settings to update, creating new ones');
+        console.log(`No existing ${screenType} settings to update, creating new ones`);
         const defaultSettings = getDefaultSettings(profile.bakery_id);
         const mappedDefaults = mapDisplaySettingsToDatabase(defaultSettings);
-        const newSettings = { ...mappedDefaults, ...dbSettings };
+        const newSettings = { ...mappedDefaults, ...dbSettings, screen_type: screenType };
         
         const { data: insertData, error: insertError } = await supabase
           .from('display_settings')
@@ -155,7 +158,7 @@ export const useUpdateDisplaySettings = () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       
-      console.log('Display settings updated - cache invalidated');
+      console.log(`${screenType} display settings updated - cache invalidated`);
       
       toast({
         title: "Innstillinger lagret",

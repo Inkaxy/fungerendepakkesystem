@@ -5,7 +5,9 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
+import { useScreenType } from '@/hooks/useScreenType';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
 import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
@@ -21,7 +23,8 @@ import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
   const { data: customers } = useCustomers();
-  const { data: settings } = useDisplaySettings();
+  const screenType = useScreenType();
+  const { data: settings } = useDisplaySettings(screenType);
   
   const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
   
@@ -32,6 +35,7 @@ const SharedDisplay = () => {
   );
   
   const { connectionStatus } = useRealTimeDisplay();
+  useRealTimeDisplaySettings(screenType);
   const { productChangeActive, completeProductChangeAnimation } = useRealTimeActivePackingProducts();
   
   const { triggerRefresh } = useDisplayRefresh({ 

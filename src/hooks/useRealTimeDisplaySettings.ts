@@ -3,8 +3,9 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ScreenType } from '@/hooks/useDisplaySettings';
 
-export const useRealTimeDisplaySettings = () => {
+export const useRealTimeDisplaySettings = (screenType?: ScreenType) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -22,6 +23,12 @@ export const useRealTimeDisplaySettings = () => {
         },
         (payload) => {
           console.log('Display settings changed:', payload);
+          
+          // If we have a specific screen type, check if this update is relevant
+          if (screenType && payload.new && (payload.new as any).screen_type !== screenType) {
+            console.log(`Ignoring settings update for ${(payload.new as any).screen_type}, we're using ${screenType}`);
+            return;
+          }
           
           // Invalidate display settings cache to trigger refresh
           queryClient.invalidateQueries({ queryKey: ['display-settings'] });
@@ -45,5 +52,5 @@ export const useRealTimeDisplaySettings = () => {
       console.log('Cleaning up display settings real-time listener');
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast]);
+  }, [queryClient, toast, screenType]);
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Eye, Tablet, Tv, Settings, Archive } from 'lucide-react';
-import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useDisplaySettings, useUpdateDisplaySettings, ScreenType } from '@/hooks/useDisplaySettings';
 import SmallScreenSection from '@/components/display-settings/SmallScreenSection';
 import LargeScreenSection from '@/components/display-settings/LargeScreenSection';
 import CommonSettingsSection from '@/components/display-settings/CommonSettingsSection';
@@ -12,8 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 const DisplaySettings = () => {
-  const { data: settings, isLoading } = useDisplaySettings();
-  const updateSettings = useUpdateDisplaySettings();
+  const [activeTab, setActiveTab] = React.useState<ScreenType>('small');
+  const { data: settings, isLoading } = useDisplaySettings(activeTab);
+  const updateSettings = useUpdateDisplaySettings(activeTab);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [localSettings, setLocalSettings] = React.useState(settings);
@@ -81,17 +82,17 @@ const DisplaySettings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Settings Panel */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue="small-screens" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ScreenType)} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="small-screens" className="flex items-center space-x-2">
+              <TabsTrigger value="small" className="flex items-center space-x-2">
                 <Tablet className="h-4 w-4" />
                 <span>Små Skjermer</span>
               </TabsTrigger>
-              <TabsTrigger value="large-screens" className="flex items-center space-x-2">
+              <TabsTrigger value="large" className="flex items-center space-x-2">
                 <Tv className="h-4 w-4" />
                 <span>Store Skjermer</span>
               </TabsTrigger>
-              <TabsTrigger value="common-settings" className="flex items-center space-x-2">
+              <TabsTrigger value="shared" className="flex items-center space-x-2">
                 <Settings className="h-4 w-4" />
                 <span>Felles Innstillinger</span>
               </TabsTrigger>
@@ -101,21 +102,21 @@ const DisplaySettings = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="small-screens">
+            <TabsContent value="small">
               <SmallScreenSection 
                 settings={localSettings} 
                 onUpdate={handleUpdate} 
               />
             </TabsContent>
 
-            <TabsContent value="large-screens">
+            <TabsContent value="large">
               <LargeScreenSection 
                 settings={localSettings} 
                 onUpdate={handleUpdate} 
               />
             </TabsContent>
 
-            <TabsContent value="common-settings">
+            <TabsContent value="shared">
               <CommonSettingsSection 
                 settings={localSettings} 
                 onUpdate={handleUpdate} 
