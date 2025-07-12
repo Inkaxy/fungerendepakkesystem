@@ -12,9 +12,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 const DisplaySettings = () => {
-  const [activeTab, setActiveTab] = React.useState<ScreenType>('small');
-  const { data: settings, isLoading } = useDisplaySettings(activeTab);
-  const updateSettings = useUpdateDisplaySettings(activeTab);
+  const [activeTab, setActiveTab] = React.useState<ScreenType | 'saved-presets'>('small');
+  // Only fetch settings for actual screen types, not for saved-presets tab
+  const screenType = activeTab === 'saved-presets' ? 'shared' : activeTab as ScreenType;
+  const { data: settings, isLoading } = useDisplaySettings(screenType);
+  const updateSettings = useUpdateDisplaySettings(screenType);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [localSettings, setLocalSettings] = React.useState(settings);
@@ -82,7 +84,7 @@ const DisplaySettings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Settings Panel */}
         <div className="lg:col-span-2">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ScreenType)} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ScreenType | 'saved-presets')} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="small" className="flex items-center space-x-2">
                 <Tablet className="h-4 w-4" />
