@@ -245,6 +245,7 @@ export type Database = {
           product_accent_color: string | null
           product_card_color: string | null
           product_card_size: number | null
+          product_change_animation: boolean | null
           product_list_style: string | null
           product_text_color: string | null
           progress_animation: boolean | null
@@ -352,6 +353,7 @@ export type Database = {
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
+          product_change_animation?: boolean | null
           product_list_style?: string | null
           product_text_color?: string | null
           progress_animation?: boolean | null
@@ -459,6 +461,7 @@ export type Database = {
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
+          product_change_animation?: boolean | null
           product_list_style?: string | null
           product_text_color?: string | null
           progress_animation?: boolean | null
