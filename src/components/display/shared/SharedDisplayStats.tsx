@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Calendar, Package } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
+import { getOptimalLayoutForScreen } from '@/utils/screenSizeDetection';
 
 interface SharedDisplayStatsProps {
   settings: DisplaySettings | undefined;
@@ -23,7 +24,14 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
 
   // Determine grid columns class based on settings
   const getStatsGridClass = () => {
-    const columns = settings?.stats_columns || 3;
+    let columns = settings?.stats_columns || 3;
+    
+    // Bruk automatisk tilpasning hvis aktivert
+    if (settings?.auto_screen_detection) {
+      const optimalLayout = getOptimalLayoutForScreen();
+      columns = Math.min(optimalLayout.columns, 4); // Maksimum 4 stats-kolonner
+    }
+    
     switch (columns) {
       case 1: return 'grid-cols-1';
       case 2: return 'grid-cols-1 md:grid-cols-2';
