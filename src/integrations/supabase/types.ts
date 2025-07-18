@@ -560,6 +560,122 @@ export type Database = {
           },
         ]
       }
+      file_sync_logs: {
+        Row: {
+          bakery_id: string
+          created_at: string
+          error_message: string | null
+          file_details: Json | null
+          files_failed: number | null
+          files_found: number | null
+          files_processed: number | null
+          id: string
+          status: string
+          sync_completed_at: string | null
+          sync_setting_id: string
+          sync_started_at: string
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string
+          error_message?: string | null
+          file_details?: Json | null
+          files_failed?: number | null
+          files_found?: number | null
+          files_processed?: number | null
+          id?: string
+          status?: string
+          sync_completed_at?: string | null
+          sync_setting_id: string
+          sync_started_at?: string
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string
+          error_message?: string | null
+          file_details?: Json | null
+          files_failed?: number | null
+          files_found?: number | null
+          files_processed?: number | null
+          id?: string
+          status?: string
+          sync_completed_at?: string | null
+          sync_setting_id?: string
+          sync_started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_sync_logs_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_sync_logs_sync_setting_id_fkey"
+            columns: ["sync_setting_id"]
+            isOneToOne: false
+            referencedRelation: "file_sync_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_sync_settings: {
+        Row: {
+          bakery_id: string
+          created_at: string
+          delete_after_sync: boolean | null
+          folder_path: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          last_sync_error: string | null
+          last_sync_status: string | null
+          schedule_cron: string | null
+          service_config: Json
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string
+          delete_after_sync?: boolean | null
+          folder_path?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          schedule_cron?: string | null
+          service_config?: Json
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string
+          delete_after_sync?: boolean | null
+          folder_path?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          schedule_cron?: string | null
+          service_config?: Json
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_sync_settings_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_products: {
         Row: {
           created_at: string | null
