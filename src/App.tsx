@@ -20,6 +20,7 @@ import Customers from "./pages/dashboard/Customers";
 import Reports from "./pages/dashboard/Reports";
 import Admin from "./pages/dashboard/Admin";
 import DisplaySettings from "./pages/dashboard/DisplaySettings";
+import FileSync from "./pages/dashboard/FileSync";
 import NotFound from "./pages/NotFound";
 
 // Display Pages
@@ -106,6 +107,11 @@ function AppContent() {
           <Route path="/dashboard/display-settings" element={
             <AuthLayout>
               <DisplaySettings />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/file-sync" element={
+            <AuthLayout>
+              <FileSync />
             </AuthLayout>
           } />
           <Route path="/dashboard/admin" element={
