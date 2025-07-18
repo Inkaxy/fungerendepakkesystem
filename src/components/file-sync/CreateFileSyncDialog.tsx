@@ -5,9 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { useCreateFileSyncSetting } from '@/hooks/useFileSyncSettings';
-import { Cloud, HardDrive, Server } from 'lucide-react';
+import { useTestConnection } from '@/hooks/useFileSyncSettings';
+import { Cloud, HardDrive, Server, CheckCircle, AlertCircle } from 'lucide-react';
+import { ServiceConfigForm } from './ServiceConfigForm';
+import { FolderPathGuide } from './FolderPathGuide';
+import { toast } from '@/hooks/use-toast';
 
 interface CreateFileSyncDialogProps {
   open: boolean;
@@ -37,24 +40,52 @@ export const CreateFileSyncDialog = ({ open, onOpenChange }: CreateFileSyncDialo
   const [customCron, setCustomCron] = useState('');
   const [deleteAfterSync, setDeleteAfterSync] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  const [serviceConfig, setServiceConfig] = useState('{}');
+  const [serviceConfig, setServiceConfig] = useState<any>({});
+  const [connectionTested, setConnectionTested] = useState(false);
 
   const createSetting = useCreateFileSyncSetting();
+  const testConnection = useTestConnection();
+
+  const handleTestConnection = async () => {
+    if (!serviceType || Object.keys(serviceConfig).length === 0) {
+      toast({
+        title: "Manglende informasjon",
+        description: "Velg tjeneste-type og fyll ut konfigurasjon før testing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await testConnection.mutateAsync({
+        service_type: serviceType,
+        service_config: serviceConfig,
+        folder_path: folderPath,
+      } as any);
+      
+      setConnectionTested(true);
+      toast({
+        title: "Tilkobling vellykket!",
+        description: "Tilkoblingen til tjenesten fungerer som forventet.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Tilkobling feilet",
+        description: error.message || "Kunne ikke koble til tjenesten. Sjekk innstillingene dine.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      let config = {};
-      if (serviceConfig.trim()) {
-        config = JSON.parse(serviceConfig);
-      }
-
       const finalCron = scheduleCron === 'custom' ? customCron : scheduleCron;
 
       await createSetting.mutateAsync({
         service_type: serviceType as any,
-        service_config: config,
+        service_config: serviceConfig,
         folder_path: folderPath || undefined,
         schedule_cron: finalCron,
         delete_after_sync: deleteAfterSync,
@@ -68,54 +99,57 @@ export const CreateFileSyncDialog = ({ open, onOpenChange }: CreateFileSyncDialo
       setCustomCron('');
       setDeleteAfterSync(false);
       setIsActive(true);
-      setServiceConfig('{}');
+      setServiceConfig({});
+      setConnectionTested(false);
       
       onOpenChange(false);
+      toast({
+        title: "Automatisk filhenting opprettet!",
+        description: "Innstillingen er lagret og vil kjøre automatisk i henhold til tidsplanen.",
+      });
     } catch (error: any) {
       console.error('Error creating sync setting:', error);
+      toast({
+        title: "Feil ved oppretting",
+        description: error.message || "Kunne ikke opprette innstillingen. Prøv igjen.",
+        variant: "destructive"
+      });
     }
   };
 
-  const getConfigPlaceholder = () => {
+  const isConfigValid = () => {
+    if (!serviceType) return false;
+    
     switch (serviceType) {
       case 'onedrive':
-        return `{
-  "client_id": "din-client-id",
-  "client_secret": "din-client-secret",
-  "tenant_id": "din-tenant-id"
-}`;
+        return serviceConfig.client_id && serviceConfig.client_secret && serviceConfig.tenant_id;
       case 'google_drive':
-        return `{
-  "client_id": "din-client-id",
-  "client_secret": "din-client-secret",
-  "redirect_uri": "urn:ietf:wg:oauth:2.0:oob"
-}`;
+        return serviceConfig.client_id && serviceConfig.client_secret;
       case 'ftp':
       case 'sftp':
-        return `{
-  "host": "ftp.example.com",
-  "port": 21,
-  "username": "bruker",
-  "password": "passord"
-}`;
+        return serviceConfig.host && serviceConfig.username && serviceConfig.password;
       default:
-        return '{}';
+        return false;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Legg til ny fil-tjeneste</DialogTitle>
+          <DialogTitle>Sett opp automatisk filhenting</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="service-type">Tjeneste-type</Label>
-            <Select value={serviceType} onValueChange={setServiceType} required>
+            <Label htmlFor="service-type">Velg tjeneste</Label>
+            <Select value={serviceType} onValueChange={(value) => {
+              setServiceType(value);
+              setServiceConfig({});
+              setConnectionTested(false);
+            }} required>
               <SelectTrigger>
-                <SelectValue placeholder="Velg tjeneste" />
+                <SelectValue placeholder="Hvor skal filene hentes fra?" />
               </SelectTrigger>
               <SelectContent>
                 {serviceTypes.map((service) => {
@@ -133,18 +167,25 @@ export const CreateFileSyncDialog = ({ open, onOpenChange }: CreateFileSyncDialo
             </Select>
           </div>
 
+          <ServiceConfigForm
+            serviceType={serviceType}
+            config={serviceConfig}
+            onChange={setServiceConfig}
+          />
+
           <div className="space-y-2">
-            <Label htmlFor="folder-path">Mappe-sti</Label>
+            <Label htmlFor="folder-path">Hvilken mappe skal søkes? (valgfritt)</Label>
             <Input
               id="folder-path"
               value={folderPath}
               onChange={(e) => setFolderPath(e.target.value)}
-              placeholder="/path/to/files eller Documents/Files"
+              placeholder="La stå tom for rot-mappen"
             />
+            <FolderPathGuide serviceType={serviceType} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="schedule">Tidsplan</Label>
+            <Label htmlFor="schedule">Hvor ofte skal filene hentes?</Label>
             <Select value={scheduleCron} onValueChange={setScheduleCron}>
               <SelectTrigger>
                 <SelectValue />
@@ -161,31 +202,25 @@ export const CreateFileSyncDialog = ({ open, onOpenChange }: CreateFileSyncDialo
 
           {scheduleCron === 'custom' && (
             <div className="space-y-2">
-              <Label htmlFor="custom-cron">Egendefinert cron</Label>
+              <Label htmlFor="custom-cron">Egendefinert tidsplan (cron-format)</Label>
               <Input
                 id="custom-cron"
                 value={customCron}
                 onChange={(e) => setCustomCron(e.target.value)}
-                placeholder="0 8 * * *"
+                placeholder="f.eks. 0 8 * * * (daglig kl. 08:00)"
                 required
               />
+              <p className="text-sm text-muted-foreground">
+                Format: minutt time dag måned ukedag. <a href="https://crontab.guru/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Bruk crontab.guru for hjelp</a>
+              </p>
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="service-config">Tjeneste-konfigurasjon (JSON)</Label>
-            <Textarea
-              id="service-config"
-              value={serviceConfig}
-              onChange={(e) => setServiceConfig(e.target.value)}
-              placeholder={getConfigPlaceholder()}
-              rows={6}
-              className="font-mono text-sm"
-            />
-          </div>
-
           <div className="flex items-center justify-between">
-            <Label htmlFor="delete-after-sync">Slett filer etter henting</Label>
+            <div>
+              <Label htmlFor="delete-after-sync">Slett filer etter vellykket henting</Label>
+              <p className="text-sm text-muted-foreground">Fjerner filene fra kilden etter at de er hentet</p>
+            </div>
             <Switch
               id="delete-after-sync"
               checked={deleteAfterSync}
@@ -194,7 +229,10 @@ export const CreateFileSyncDialog = ({ open, onOpenChange }: CreateFileSyncDialo
           </div>
 
           <div className="flex items-center justify-between">
-            <Label htmlFor="is-active">Aktiv</Label>
+            <div>
+              <Label htmlFor="is-active">Aktiver automatisk henting</Label>
+              <p className="text-sm text-muted-foreground">Start automatisk filhenting i henhold til tidsplanen</p>
+            </div>
             <Switch
               id="is-active"
               checked={isActive}
@@ -202,12 +240,39 @@ export const CreateFileSyncDialog = ({ open, onOpenChange }: CreateFileSyncDialo
             />
           </div>
 
+          <div className="flex flex-col space-y-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleTestConnection}
+              disabled={!isConfigValid() || testConnection.isPending}
+              className="w-full"
+            >
+              {testConnection.isPending ? (
+                'Tester tilkobling...'
+              ) : connectionTested ? (
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span>Tilkobling testet - OK!</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>Test tilkobling før lagring</span>
+                </div>
+              )}
+            </Button>
+          </div>
+
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Avbryt
             </Button>
-            <Button type="submit" disabled={createSetting.isPending}>
-              {createSetting.isPending ? 'Oppretter...' : 'Opprett'}
+            <Button 
+              type="submit" 
+              disabled={createSetting.isPending || !isConfigValid()}
+            >
+              {createSetting.isPending ? 'Oppretter...' : 'Opprett automatisk filhenting'}
             </Button>
           </div>
         </form>
