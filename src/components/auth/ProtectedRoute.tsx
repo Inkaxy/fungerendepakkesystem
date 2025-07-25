@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles = [], 
   requireAuth = true
 }) => {
-  const { user, profile, isLoading } = useAuthStore();
+  const { user, profile, isLoading, session } = useAuthStore();
   const location = useLocation();
 
   if (isLoading) {
@@ -29,8 +29,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (requireAuth && !user) {
+  // Check for valid authentication - require both user and valid session
+  if (requireAuth && (!user || !session)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Additional session validation - check if session is expired
+  if (requireAuth && session?.expires_at) {
+    const expiresAt = new Date(session.expires_at * 1000);
+    const now = new Date();
+    if (expiresAt <= now) {
+      console.log('Session expired in ProtectedRoute, redirecting to login');
+      return <Navigate to="/login" state={{ from: location }} replace />;
+    }
   }
 
   if (allowedRoles.length > 0 && profile && !allowedRoles.includes(profile.role)) {

@@ -8,7 +8,8 @@ export const useAuthInit = () => {
     setUser, 
     setSession, 
     fetchProfile, 
-    isLoading
+    isLoading,
+    session: storedSession
   } = useAuthStore();
 
   useEffect(() => {
@@ -47,11 +48,44 @@ export const useAuthInit = () => {
       }
     );
 
+    // Validate stored session and refresh if needed
+    const validateAndRefreshSession = async () => {
+      if (storedSession?.expires_at) {
+        const expiresAt = new Date(storedSession.expires_at * 1000);
+        const now = new Date();
+        const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+        
+        // If session expired, try to refresh
+        if (timeUntilExpiry <= 0) {
+          console.log('Stored session expired, attempting refresh...');
+          const { data, error } = await supabase.auth.refreshSession();
+          if (error || !data.session) {
+            console.log('Session refresh failed, clearing stored auth data');
+            setSession(null);
+            setUser(null);
+            return null;
+          }
+          return data.session;
+        }
+        
+        // If session expires soon, refresh preemptively
+        if (timeUntilExpiry < 10 * 60 * 1000) { // 10 minutes
+          console.log('Session expires soon, refreshing preemptively...');
+          supabase.auth.refreshSession();
+        }
+      }
+      return storedSession;
+    };
+
     // Check for existing session
     const initializeAuth = async () => {
       try {
         console.log('Starting auth initialization...');
         
+        // First validate stored session
+        const validStoredSession = await validateAndRefreshSession();
+        
+        // Then get current session from Supabase
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -66,16 +100,19 @@ export const useAuthInit = () => {
 
         if (!mounted) return;
 
-        console.log('Initial session check:', session?.user?.email || 'No session');
+        // Use the most recent valid session
+        const currentSession = session || validStoredSession;
         
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Initial session check:', currentSession?.user?.email || 'No session');
         
-        if (session?.user) {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
           // Use setTimeout to prevent potential auth deadlock
           setTimeout(() => {
             if (mounted) {
-              fetchProfile(session.user.id).catch(error => {
+              fetchProfile(currentSession.user.id).catch(error => {
                 console.error('Error fetching profile during initialization:', error);
               });
             }
