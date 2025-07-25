@@ -9,9 +9,11 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useScreenType } from '@/hooks/useScreenType';
-import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useOptimizedRealTimeActiveProducts } from '@/hooks/useOptimizedRealTimeActiveProducts';
+import { useInstantDisplayUpdates } from '@/hooks/useInstantDisplayUpdates';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
+import InstantUpdateIndicator from '@/components/display/InstantUpdateIndicator';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import { isLargeScreen } from '@/utils/screenSizeDetection';
@@ -31,9 +33,12 @@ const CustomerDisplay = () => {
   const screenType = useScreenType();
   const { data: settings } = useDisplaySettings(screenType);
   
-  const { connectionStatus } = useRealTimeDisplay();
+  const { connectionStatus, lastUpdateTime } = useOptimizedRealTimeActiveProducts();
+  const { metrics } = usePerformanceMonitor();
   useRealTimeDisplaySettings(screenType);
-  const { productChangeActive, completeProductChangeAnimation } = useRealTimeActivePackingProducts();
+  
+  // Use instant display updates with screen type detection
+  useInstantDisplayUpdates(screenType === 'large' ? 'large' : 'small');
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
@@ -106,9 +111,18 @@ const CustomerDisplay = () => {
     return (
       <div className="min-h-screen p-8 relative" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Connection status overlay in bottom right */}
-          <div className="fixed bottom-4 right-4 z-10">
+          {/* Performance and connection status overlay */}
+          <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2">
             <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
+            <InstantUpdateIndicator 
+              connectionStatus={connectionStatus}
+              lastUpdateTime={lastUpdateTime}
+              className="opacity-80 hover:opacity-100 transition-opacity"
+            />
+            <div className="text-xs text-muted-foreground opacity-60">
+              {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
+              {metrics.averageUpdateTime.toFixed(0)}ms
+            </div>
           </div>
 
           <CustomerHeader 
@@ -142,10 +156,19 @@ const CustomerDisplay = () => {
     return (
       <div className="min-h-screen p-8 relative" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Connection status overlay in bottom right */}
-          <div className="fixed bottom-4 right-4 z-10">
-            <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
+        {/* Performance and connection status overlay */}
+        <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2">
+          <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
+          <InstantUpdateIndicator 
+            connectionStatus={connectionStatus}
+            lastUpdateTime={lastUpdateTime}
+            className="opacity-80 hover:opacity-100 transition-opacity"
+          />
+          <div className="text-xs text-muted-foreground opacity-60">
+            {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
+            {metrics.averageUpdateTime.toFixed(0)}ms
           </div>
+        </div>
 
           <CustomerHeader 
             customerName={customer.name}
@@ -190,21 +213,31 @@ const CustomerDisplay = () => {
         margin: `${customerDisplaySettings?.display_margin || 8}px`,
       }}
     >
-      <InteractiveControls 
-        settings={customerDisplaySettings || {} as DisplaySettings} 
-        onRefresh={triggerRefresh}
-      />
-      
-      <ProductTransitionAnimation
-        settings={customerDisplaySettings || {} as DisplaySettings}
-        isActive={productChangeActive}
-        onComplete={completeProductChangeAnimation}
-      />
+      {/* Performance status overlay */}
+      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
+        <InstantUpdateIndicator 
+          connectionStatus={connectionStatus}
+          lastUpdateTime={lastUpdateTime}
+        />
+        <div className="text-xs text-muted-foreground">
+          {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
+          Snitt: {metrics.averageUpdateTime.toFixed(0)}ms
+        </div>
+      </div>
       
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Connection status overlay in bottom right */}
-        <div className="fixed bottom-4 right-4 z-10">
+        {/* Performance and connection status overlay */}
+        <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2">
           <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
+          <InstantUpdateIndicator 
+            connectionStatus={connectionStatus}
+            lastUpdateTime={lastUpdateTime}
+            className="opacity-80 hover:opacity-100 transition-opacity"
+          />
+          <div className="text-xs text-muted-foreground opacity-60">
+            {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
+            {metrics.averageUpdateTime.toFixed(0)}ms
+          </div>
         </div>
 
         <CustomerHeader 

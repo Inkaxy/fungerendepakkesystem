@@ -33,22 +33,27 @@ export const useRealTimeActivePackingProducts = () => {
         (payload) => {
           console.log('🔔 Active packing products changed:', payload);
           
-          // Immediate and comprehensive invalidation
-          const queriesToInvalidate = [
-            'active-packing-products',
-            'active-packing-date', 
-            'packing-data',
-            'orders',
-            'packing-sessions'
-          ];
+          // INSTANT OPTIMISTIC UPDATE - Zero delay
+          const sessionDate = (payload.new as any)?.session_date || (payload.old as any)?.session_date;
+          
+          if (payload.eventType === 'INSERT') {
+            queryClient.setQueryData(['active-packing-products', sessionDate], (old: any) => {
+              return [...(old || []), payload.new];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            queryClient.setQueryData(['active-packing-products', sessionDate], (old: any) => {
+              return (old || []).filter((item: any) => item.id !== payload.old.id);
+            });
+          }
 
-          queriesToInvalidate.forEach(queryKey => {
+          // MINIMAL invalidation for maximum speed
+          const criticalQueries = ['active-packing-products', 'packing-data'];
+          criticalQueries.forEach(queryKey => {
             queryClient.invalidateQueries({ queryKey: [queryKey] });
           });
 
-          // Force immediate refetch of critical queries
-          queryClient.refetchQueries({ queryKey: ['active-packing-date'] });
-          queryClient.refetchQueries({ queryKey: ['packing-data'] });
+          // INSTANT refetch without waiting
+          queryClient.refetchQueries({ queryKey: ['active-packing-products'], exact: false });
 
           // Enhanced notifications for product selection changes
           if (payload.eventType === 'INSERT') {
@@ -59,9 +64,9 @@ export const useRealTimeActivePackingProducts = () => {
             triggerProductChangeAnimation();
             
             toast({
-              title: "Produkt aktivert for pakking",
-              description: `${product.product_name} er nå valgt for pakking`,
-              duration: 3000,
+              title: "⚡ Produkt aktivert øyeblikkelig",
+              description: `${product.product_name} er valgt for pakking`,
+              duration: 1500,
             });
           } else if (payload.eventType === 'DELETE') {
             console.log('➖ Active packing products cleared');
@@ -70,9 +75,9 @@ export const useRealTimeActivePackingProducts = () => {
             triggerProductChangeAnimation();
             
             toast({
-              title: "Produktvalg oppdatert",
-              description: "Aktive produkter for pakking er endret",
-              duration: 2000,
+              title: "⚡ Produktvalg oppdatert øyeblikkelig",
+              description: "Aktive produkter endret",
+              duration: 1000,
             });
           } else if (payload.eventType === 'UPDATE') {
             const product = payload.new as any;
@@ -95,12 +100,12 @@ export const useRealTimeActivePackingProducts = () => {
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Active packing products real-time connection error');
           
-          // Retry connection after a delay
+          // INSTANT RETRY - No delay for critical updates
           setTimeout(() => {
-            console.log('🔄 Retrying active packing products connection...');
+            console.log('⚡ INSTANT retry active packing products connection...');
             channel.unsubscribe();
             // The useEffect will re-run and create a new connection
-          }, 5000);
+          }, 500);
         }
       });
 

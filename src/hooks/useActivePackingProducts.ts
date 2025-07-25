@@ -20,7 +20,7 @@ export const useActivePackingProducts = (sessionDate?: string) => {
     queryFn: async () => {
       if (!sessionDate) return [];
 
-      console.log('🔍 Fetching active packing products for date:', sessionDate);
+      console.log('⚡ INSTANT fetch active packing products for date:', sessionDate);
 
       try {
         const { data, error } = await supabase
@@ -34,7 +34,7 @@ export const useActivePackingProducts = (sessionDate?: string) => {
           throw error;
         }
 
-        console.log('✅ Active packing products fetched:', data?.length || 0, 'products');
+        console.log('✅ Active packing products fetched INSTANTLY:', data?.length || 0, 'products');
         return data as ActivePackingProduct[];
       } catch (error) {
         console.error('❌ Error in useActivePackingProducts:', error);
@@ -42,10 +42,12 @@ export const useActivePackingProducts = (sessionDate?: string) => {
       }
     },
     enabled: !!sessionDate,
-    staleTime: 2000, // Consider data stale after 2 seconds for immediate updates
-    refetchInterval: 5000, // More frequent updates
-    retry: 3,
-    retryDelay: 1000,
+    staleTime: 0, // INSTANT: Always consider data fresh for immediate updates
+    refetchInterval: 2000, // FASTER: More frequent polling as backup
+    retry: 2, // FASTER: Reduce retry attempts for speed
+    retryDelay: 500, // FASTER: Quick retry on failure
+    refetchOnWindowFocus: true, // INSTANT: Refetch on focus
+    refetchOnMount: true, // INSTANT: Always refetch on mount
   });
 };
 
@@ -115,25 +117,31 @@ export const useSetActivePackingProducts = () => {
       }
     },
     onSuccess: (_, variables) => {
-      console.log('🎉 Active packing products mutation successful');
+      console.log('⚡ INSTANT active packing products mutation successful');
       
-      // Comprehensive query invalidation and refetch
-      const queriesToInvalidate = [
+      // OPTIMISTIC IMMEDIATE UPDATE - Set cache directly for instant UI response
+      queryClient.setQueryData(['active-packing-products', variables.sessionDate], variables.products);
+      
+      // MINIMAL invalidation for speed - only critical queries
+      const criticalQueries = [
         ['active-packing-products', variables.sessionDate],
-        ['active-packing-date'],
-        ['packing-data'],
-        ['orders'],
-        ['packing-sessions']
+        ['packing-data']
       ];
 
-      queriesToInvalidate.forEach(queryKey => {
+      criticalQueries.forEach(queryKey => {
         queryClient.invalidateQueries({ queryKey });
-        queryClient.refetchQueries({ queryKey });
+      });
+
+      // INSTANT REFETCH of critical data
+      queryClient.refetchQueries({ 
+        queryKey: ['active-packing-products'], 
+        exact: false 
       });
 
       toast({
-        title: "Aktive produkter oppdatert",
-        description: `${variables.products.length} produkter er valgt for pakking`,
+        title: "⚡ Produkter aktivert øyeblikkelig",
+        description: `${variables.products.length} produkter valgt for pakking`,
+        duration: 1500,
       });
     },
     onError: (error) => {

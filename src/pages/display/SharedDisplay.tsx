@@ -6,9 +6,11 @@ import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useScreenType } from '@/hooks/useScreenType';
-import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useOptimizedRealTimeActiveProducts } from '@/hooks/useOptimizedRealTimeActiveProducts';
+import { useInstantDisplayUpdates } from '@/hooks/useInstantDisplayUpdates';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
+import InstantUpdateIndicator from '@/components/display/InstantUpdateIndicator';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { isLargeScreen } from '@/utils/screenSizeDetection';
@@ -34,9 +36,12 @@ const SharedDisplay = () => {
     true
   );
   
-  const { connectionStatus } = useRealTimeDisplay();
+  const { connectionStatus, lastUpdateTime } = useOptimizedRealTimeActiveProducts();
+  const { metrics, recordUpdate } = usePerformanceMonitor();
   useRealTimeDisplaySettings(screenType);
-  const { productChangeActive, completeProductChangeAnimation } = useRealTimeActivePackingProducts();
+  
+  // Use instant display updates for shared screens
+  useInstantDisplayUpdates('shared');
   
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
@@ -294,16 +299,15 @@ const SharedDisplay = () => {
           : `${settings?.display_margin || 8}px`,
       }}
     >
-      <InteractiveControls 
-        settings={settings || {} as DisplaySettings} 
-        onRefresh={triggerRefresh}
-      />
-      
-      <ProductTransitionAnimation
-        settings={settings || {} as DisplaySettings}
-        isActive={productChangeActive}
-        onComplete={completeProductChangeAnimation}
-      />
+      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
+        <InstantUpdateIndicator 
+          connectionStatus={connectionStatus}
+          lastUpdateTime={lastUpdateTime}
+        />
+        <div className="text-xs text-muted-foreground">
+          Snitt: {metrics.averageUpdateTime.toFixed(0)}ms | Status: {metrics.connectionStatus}
+        </div>
+      </div>
       
       <div className={settings?.force_single_screen || settings?.large_screen_optimization ? "w-full" : "max-w-7xl mx-auto"}>
         <SharedDisplayHeader
