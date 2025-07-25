@@ -933,6 +933,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      extend_user_session: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_display_url: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -944,6 +948,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      should_extend_session: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
