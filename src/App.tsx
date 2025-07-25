@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthInit } from "@/hooks/useAuthInit";
 import { useAuthStore } from "@/stores/authStore";
-import { useSessionRefresh } from "@/hooks/useSessionRefresh";
 
 // Pages
 import Index from "./pages/Index";
@@ -31,7 +30,6 @@ import CustomerDisplay from "./pages/display/CustomerDisplay";
 // Components
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthLayout from "@/components/layouts/AuthLayout";
-import { SessionManager } from "@/components/auth/SessionManager";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient({
@@ -46,9 +44,6 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { isLoading } = useAuthInit();
   const { user } = useAuthStore();
-  
-  // Initialize session refresh for authenticated users
-  useSessionRefresh();
 
   if (isLoading) {
     return (
@@ -62,9 +57,8 @@ function AppContent() {
   }
 
   return (
-    <SessionManager>
-      <BrowserRouter>
-        <Routes>
+    <BrowserRouter>
+      <Routes>
         {/* Public routes */}
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
@@ -131,7 +125,6 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-    </SessionManager>
   );
 }
 

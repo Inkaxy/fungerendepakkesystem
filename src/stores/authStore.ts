@@ -51,21 +51,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticating: false,
 
       setUser: (user) => set({ user }),
-      setSession: (session) => {
-        set({ session });
-        // Auto-refresh token when session is updated and valid
-        if (session?.expires_at) {
-          const expiresAt = new Date(session.expires_at * 1000);
-          const now = new Date();
-          const timeUntilExpiry = expiresAt.getTime() - now.getTime();
-          
-          // If token expires in less than 5 minutes, refresh it now
-          if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
-            console.log('Token expires soon, refreshing...');
-            supabase.auth.refreshSession();
-          }
-        }
-      },
+      setSession: (session) => set({ session }),
       setProfile: (profile) => set({ profile }),
 
       // Email/Password Registration
@@ -210,8 +196,8 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        user: state.user,
-        session: state.session,
+        user: null,
+        session: null,
         profile: state.profile,
       }),
     }
