@@ -38,12 +38,22 @@ export const useFileSyncSettings = () => {
   return useQuery({
     queryKey: ["file-sync-settings"],
     queryFn: async () => {
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session. Please log in to access file sync settings.');
+      }
+
       const { data, error } = await supabase
         .from("file_sync_settings")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching file sync settings:', error);
+        throw error;
+      }
+
       return data as FileSyncSetting[];
     },
   });
@@ -170,11 +180,21 @@ export const useTestConnection = () => {
 
   return useMutation({
     mutationFn: async (setting: FileSyncSetting) => {
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session. Please log in to test connection.');
+      }
+
       const { data, error } = await supabase.functions.invoke('test-file-sync-connection', {
         body: { setting },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error testing connection:', error);
+        throw error;
+      }
+
       return data;
     },
     onSuccess: (data) => {
