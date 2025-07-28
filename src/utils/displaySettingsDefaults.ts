@@ -3,6 +3,7 @@ import { DisplaySettings } from '@/types/displaySettings';
 
 export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id'> => ({
   bakery_id,
+  screen_type: 'shared' as const,
   background_type: 'gradient' as const,
   background_color: '#ffffff',
   background_gradient_start: '#f3f4f6',

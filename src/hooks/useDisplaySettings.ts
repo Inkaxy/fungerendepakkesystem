@@ -35,11 +35,12 @@ export const useDisplaySettings = () => {
 
       console.log('Using bakery_id:', profile.bakery_id);
 
-      // Try to get existing settings using bakery_id
+      // Try to get existing settings using bakery_id for shared screen type
       const { data, error } = await supabase
         .from('display_settings')
         .select('*')
         .eq('bakery_id', profile.bakery_id)
+        .eq('screen_type', 'shared')
         .maybeSingle();
 
       if (error) {
@@ -109,11 +110,12 @@ export const useUpdateDisplaySettings = () => {
 
       console.log('Cleaned settings for database:', dbSettings);
 
-      // Try to update existing settings first
+      // Try to update existing settings first for shared screen type
       const { data: updateData, error: updateError } = await supabase
         .from('display_settings')
         .update(dbSettings)
         .eq('bakery_id', profile.bakery_id)
+        .eq('screen_type', 'shared')
         .select()
         .maybeSingle();
 

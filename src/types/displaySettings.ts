@@ -2,6 +2,7 @@
 export interface DisplaySettings {
   id: string;
   bakery_id: string;
+  screen_type: string;
   background_type: 'solid' | 'gradient' | 'image';
   background_color: string;
   background_gradient_start: string;

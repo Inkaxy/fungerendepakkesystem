@@ -4,6 +4,7 @@ import { DisplaySettings } from '@/types/displaySettings';
 export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
   return {
     ...data,
+    screen_type: data.screen_type || 'shared',
     packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
     packing_status_completed_color: data.status_completed_color || '#10b981',
     // Set defaults for missing properties
