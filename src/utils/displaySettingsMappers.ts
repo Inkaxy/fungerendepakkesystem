@@ -1,7 +1,7 @@
 
-import { DisplaySettings } from '@/types/displaySettings';
+import type { DisplaySettings } from '@/types/displaySettings';
 
-export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
+export const mapDatabaseToDisplaySettings = (data: Record<string, any>): DisplaySettings => {
   return {
     ...data,
     screen_type: data.screen_type || 'shared',

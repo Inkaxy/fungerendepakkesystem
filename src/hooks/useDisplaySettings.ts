@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DisplaySettings } from '@/types/displaySettings';
 import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
-import { mapDatabaseToDisplaySettings, mapDisplaySettingsToDatabase } from '@/utils/displaySettingsMappers';
 
 export type { DisplaySettings } from '@/types/displaySettings';
 
@@ -36,12 +35,14 @@ export const useDisplaySettings = () => {
       console.log('Using bakery_id:', profile.bakery_id);
 
       // Try to get existing settings using bakery_id for shared screen type
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('display_settings')
         .select('*')
         .eq('bakery_id', profile.bakery_id)
         .eq('screen_type', 'shared')
-        .maybeSingle();
+        .limit(1);
+
+      const { data, error } = result;
 
       if (error) {
         console.error('Error fetching display settings:', error);
@@ -49,7 +50,7 @@ export const useDisplaySettings = () => {
       }
       
       // If no settings exist, create default ones
-      if (!data) {
+      if (!data || data.length === 0) {
         console.log('No existing settings found, creating defaults');
         const defaultSettings = getDefaultSettings(profile.bakery_id);
         
@@ -64,12 +65,25 @@ export const useDisplaySettings = () => {
           throw createError;
         }
         
-        console.log('Created new settings:', newSettings);
-        return mapDatabaseToDisplaySettings(newSettings);
+        const mappedSettings: DisplaySettings = {
+          ...newSettings,
+          screen_type: (newSettings as any).screen_type || 'shared',
+          packing_status_ongoing_color: (newSettings as any).status_in_progress_color || '#3b82f6',
+          packing_status_completed_color: (newSettings as any).status_completed_color || '#10b981'
+        } as DisplaySettings;
+        console.log('Created new settings:', mappedSettings);
+        return mappedSettings;
       }
       
-      console.log('Found existing settings:', data);
-      return mapDatabaseToDisplaySettings(data);
+      const existingData = data[0] as any;
+      const mappedData: DisplaySettings = {
+        ...existingData,
+        screen_type: existingData.screen_type || 'shared',
+        packing_status_ongoing_color: existingData.status_in_progress_color || '#3b82f6',
+        packing_status_completed_color: existingData.status_completed_color || '#10b981'
+      } as DisplaySettings;
+      console.log('Found existing settings:', mappedData);
+      return mappedData;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes - longer stale time since we have real-time updates
     refetchOnWindowFocus: false, // Disable since we have real-time
@@ -105,19 +119,34 @@ export const useUpdateDisplaySettings = () => {
 
       console.log('Using bakery_id for update:', profile.bakery_id);
 
-      // Map interface properties back to database column names
-      const dbSettings = mapDisplaySettingsToDatabase(settings);
+      // Map interface properties back to database column names manually
+      const dbSettings: any = { ...settings };
+      
+      // Map packing status colors back to legacy database column names
+      if (settings.packing_status_ongoing_color) {
+        dbSettings.status_in_progress_color = settings.packing_status_ongoing_color;
+        delete dbSettings.packing_status_ongoing_color;
+      }
+      
+      if (settings.packing_status_completed_color) {
+        dbSettings.status_completed_color = settings.packing_status_completed_color;
+        delete dbSettings.packing_status_completed_color;
+      }
+
+      // Remove id and any undefined values
+      delete dbSettings.id;
 
       console.log('Cleaned settings for database:', dbSettings);
 
       // Try to update existing settings first for shared screen type
-      const { data: updateData, error: updateError } = await supabase
+      const updateResult = await (supabase as any)
         .from('display_settings')
         .update(dbSettings)
         .eq('bakery_id', profile.bakery_id)
         .eq('screen_type', 'shared')
-        .select()
-        .maybeSingle();
+        .select();
+
+      const { data: updateData, error: updateError } = updateResult;
 
       if (updateError) {
         console.error('Update error:', updateError);
@@ -125,7 +154,7 @@ export const useUpdateDisplaySettings = () => {
       }
 
       // If no rows were affected (no existing settings), create new ones
-      if (!updateData) {
+      if (!updateData || updateData.length === 0) {
         console.log('No existing settings to update, creating new ones');
         const defaultSettings = getDefaultSettings(profile.bakery_id);
         const newSettings = { ...defaultSettings, ...dbSettings };
@@ -145,8 +174,8 @@ export const useUpdateDisplaySettings = () => {
         return insertData;
       }
 
-      console.log('Updated settings:', updateData);
-      return updateData;
+      console.log('Updated settings:', updateData[0]);
+      return updateData[0];
     },
     onSuccess: () => {
       // Immediately invalidate all relevant queries to trigger updates
