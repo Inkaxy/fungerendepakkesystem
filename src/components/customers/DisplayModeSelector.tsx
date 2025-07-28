@@ -51,7 +51,7 @@ const DisplayModeSelector = ({
         <Switch
           checked={hasDedicatedDisplay}
           onCheckedChange={(checked) => onToggleDisplay(customer, checked)}
-          variant="success"
+          className="data-[state=checked]:bg-green-500"
         />
       </div>
 

@@ -67,47 +67,19 @@ export const useUpdateCustomer = () => {
       if (error) throw error;
       return data;
     },
-    onMutate: async ({ id, ...updates }) => {
-      // Cancel any outgoing refetches so they don't overwrite our optimistic update
-      await queryClient.cancelQueries({ queryKey: ['customers'] });
-
-      // Snapshot the previous value
-      const previousCustomers = queryClient.getQueryData<Customer[]>(['customers']);
-
-      // Optimistically update to the new value
-      if (previousCustomers) {
-        queryClient.setQueryData<Customer[]>(['customers'], (old) =>
-          old?.map((customer) =>
-            customer.id === id
-              ? { ...customer, ...updates, updated_at: new Date().toISOString() }
-              : customer
-          ) || []
-        );
-      }
-
-      // Return a context object with the snapshotted value
-      return { previousCustomers };
-    },
-    onError: (err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousCustomers) {
-        queryClient.setQueryData(['customers'], context.previousCustomers);
-      }
-      toast({
-        title: "Feil",
-        description: `Kunne ikke oppdatere kunde: ${err.message}`,
-        variant: "destructive",
-      });
-    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast({
         title: "Suksess",
         description: "Kunde oppdatert",
       });
     },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+    onError: (error) => {
+      toast({
+        title: "Feil",
+        description: `Kunne ikke oppdatere kunde: ${error.message}`,
+        variant: "destructive",
+      });
     },
   });
 };

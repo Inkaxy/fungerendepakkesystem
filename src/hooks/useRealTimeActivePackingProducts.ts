@@ -8,15 +8,6 @@ export const useRealTimeActivePackingProducts = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
-  const [productChangeActive, setProductChangeActive] = useState(false);
-
-  const triggerProductChangeAnimation = () => {
-    setProductChangeActive(true);
-  };
-
-  const completeProductChangeAnimation = () => {
-    setProductChangeActive(false);
-  };
 
   useEffect(() => {
     console.log('🔄 Setting up enhanced real-time listener for active packing products');
@@ -33,51 +24,38 @@ export const useRealTimeActivePackingProducts = () => {
         (payload) => {
           console.log('🔔 Active packing products changed:', payload);
           
-          // INSTANT OPTIMISTIC UPDATE - Zero delay
-          const sessionDate = (payload.new as any)?.session_date || (payload.old as any)?.session_date;
-          
-          if (payload.eventType === 'INSERT') {
-            queryClient.setQueryData(['active-packing-products', sessionDate], (old: any) => {
-              return [...(old || []), payload.new];
-            });
-          } else if (payload.eventType === 'DELETE') {
-            queryClient.setQueryData(['active-packing-products', sessionDate], (old: any) => {
-              return (old || []).filter((item: any) => item.id !== payload.old.id);
-            });
-          }
+          // Immediate and comprehensive invalidation
+          const queriesToInvalidate = [
+            'active-packing-products',
+            'active-packing-date', 
+            'packing-data',
+            'orders',
+            'packing-sessions'
+          ];
 
-          // MINIMAL invalidation for maximum speed
-          const criticalQueries = ['active-packing-products', 'packing-data'];
-          criticalQueries.forEach(queryKey => {
+          queriesToInvalidate.forEach(queryKey => {
             queryClient.invalidateQueries({ queryKey: [queryKey] });
           });
 
-          // INSTANT refetch without waiting
-          queryClient.refetchQueries({ queryKey: ['active-packing-products'], exact: false });
+          // Force immediate refetch of critical queries
+          queryClient.refetchQueries({ queryKey: ['active-packing-date'] });
+          queryClient.refetchQueries({ queryKey: ['packing-data'] });
 
           // Enhanced notifications for product selection changes
           if (payload.eventType === 'INSERT') {
             const product = payload.new as any;
             console.log('➕ Product activated for packing:', product.product_name);
-            
-            // Trigger product change animation
-            triggerProductChangeAnimation();
-            
             toast({
-              title: "⚡ Produkt aktivert øyeblikkelig",
-              description: `${product.product_name} er valgt for pakking`,
-              duration: 1500,
+              title: "Produkt aktivert for pakking",
+              description: `${product.product_name} er nå valgt for pakking`,
+              duration: 3000,
             });
           } else if (payload.eventType === 'DELETE') {
             console.log('➖ Active packing products cleared');
-            
-            // Trigger product change animation
-            triggerProductChangeAnimation();
-            
             toast({
-              title: "⚡ Produktvalg oppdatert øyeblikkelig",
-              description: "Aktive produkter endret",
-              duration: 1000,
+              title: "Produktvalg oppdatert",
+              description: "Aktive produkter for pakking er endret",
+              duration: 2000,
             });
           } else if (payload.eventType === 'UPDATE') {
             const product = payload.new as any;
@@ -100,12 +78,12 @@ export const useRealTimeActivePackingProducts = () => {
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Active packing products real-time connection error');
           
-          // INSTANT RETRY - No delay for critical updates
+          // Retry connection after a delay
           setTimeout(() => {
-            console.log('⚡ INSTANT retry active packing products connection...');
+            console.log('🔄 Retrying active packing products connection...');
             channel.unsubscribe();
             // The useEffect will re-run and create a new connection
-          }, 500);
+          }, 5000);
         }
       });
 
@@ -115,9 +93,5 @@ export const useRealTimeActivePackingProducts = () => {
     };
   }, [queryClient, toast]);
 
-  return { 
-    connectionStatus, 
-    productChangeActive, 
-    completeProductChangeAnimation 
-  };
+  return { connectionStatus };
 };

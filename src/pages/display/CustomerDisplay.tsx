@@ -3,42 +3,28 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package2 } from 'lucide-react';
+import { Package2, Clock } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
-import { useScreenType } from '@/hooks/useScreenType';
-import { useOptimizedRealTimeActiveProducts } from '@/hooks/useOptimizedRealTimeActiveProducts';
-import { useInstantDisplayUpdates } from '@/hooks/useInstantDisplayUpdates';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
-import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
-import InstantUpdateIndicator from '@/components/display/InstantUpdateIndicator';
+import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
-import { isLargeScreen } from '@/utils/screenSizeDetection';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
-import InteractiveControls from '@/components/display/InteractiveControls';
-import ProductTransitionAnimation from '@/components/display/ProductTransitionAnimation';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
   const { data: customers, isLoading: customersLoading } = useCustomers();
-  const screenType = useScreenType();
-  const { data: settings } = useDisplaySettings(screenType);
+  const { data: settings } = useDisplaySettings();
   
-  const { connectionStatus, lastUpdateTime } = useOptimizedRealTimeActiveProducts();
-  const { metrics } = usePerformanceMonitor();
-  useRealTimeDisplaySettings(screenType);
-  
-  // Use instant display updates with screen type detection
-  useInstantDisplayUpdates(screenType === 'large' ? 'large' : 'small');
+  const { connectionStatus } = useRealTimeDisplay();
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
@@ -52,22 +38,12 @@ const CustomerDisplay = () => {
     true
   );
 
-  // Apply display settings with customer-specific overrides
-  const customerDisplaySettings = settings ? {
-    ...settings,
-    // Customer displays can still use layout optimizations
-    customer_cards_columns: 1, // Single customer view
-  } : undefined;
-  
-  // Screen size detection for responsive behavior
-  const screenIsLarge = settings ? isLargeScreen(settings) : false;
-
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
   if (customersLoading || dateLoading || packingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-           style={customerDisplaySettings ? generateDisplayStyles(customerDisplaySettings) : {}}>
+           style={settings ? generateDisplayStyles(settings) : {}}>
         <Card className="max-w-md">
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
@@ -83,7 +59,7 @@ const CustomerDisplay = () => {
   if (!customer) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-           style={customerDisplaySettings ? generateDisplayStyles(customerDisplaySettings) : {}}>
+           style={settings ? generateDisplayStyles(settings) : {}}>
         <Card className="max-w-md">
           <CardContent className="text-center p-8">
             <h1 className="text-xl font-bold mb-4">Kunde ikke funnet</h1>
@@ -103,31 +79,23 @@ const CustomerDisplay = () => {
   }
 
   const customerPackingData = packingData?.find(data => data.id === customer.id);
-  const displayStyles = customerDisplaySettings ? generateDisplayStyles(customerDisplaySettings) : {};
+  const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
   // If no active packing date, show message that no products are selected
   if (!activePackingDate) {
     return (
-      <div className="min-h-screen p-8 relative" style={displayStyles}>
+      <div className="min-h-screen p-8" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Performance and connection status overlay */}
-          <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2">
-            <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
-            <InstantUpdateIndicator 
-              connectionStatus={connectionStatus}
-              lastUpdateTime={lastUpdateTime}
-              className="opacity-80 hover:opacity-100 transition-opacity"
-            />
-            <div className="text-xs text-muted-foreground opacity-60">
-              {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
-              {metrics.averageUpdateTime.toFixed(0)}ms
-            </div>
+          <div className="flex justify-end">
+            <ConnectionStatus status={connectionStatus} />
           </div>
 
           <CustomerHeader 
             customerName={customer.name}
-            settings={customerDisplaySettings}
+            showRefresh={true}
+            onRefresh={triggerRefresh}
+            settings={settings}
           />
 
           <Card className="max-w-2xl mx-auto">
@@ -154,26 +122,42 @@ const CustomerDisplay = () => {
 
   if (!customerPackingData || customerPackingData.products.length === 0) {
     return (
-      <div className="min-h-screen p-8 relative" style={displayStyles}>
+      <div className="min-h-screen p-8" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-        {/* Performance and connection status overlay */}
-        <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2">
-          <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
-          <InstantUpdateIndicator 
-            connectionStatus={connectionStatus}
-            lastUpdateTime={lastUpdateTime}
-            className="opacity-80 hover:opacity-100 transition-opacity"
-          />
-          <div className="text-xs text-muted-foreground opacity-60">
-            {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
-            {metrics.averageUpdateTime.toFixed(0)}ms
+          <div className="flex justify-end">
+            <ConnectionStatus status={connectionStatus} />
           </div>
-        </div>
 
           <CustomerHeader 
             customerName={customer.name}
-            settings={customerDisplaySettings}
+            showRefresh={true}
+            onRefresh={triggerRefresh}
+            settings={settings}
           />
+
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+                <span 
+                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                  style={{ 
+                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                  }}
+                >
+                  {!isToday && 'PAKKING FOR: '}
+                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  {!isToday && ' (ikke i dag)'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
@@ -205,66 +189,63 @@ const CustomerDisplay = () => {
   const isAllPacked = customerPackingData.progress_percentage >= 100;
 
   return (
-    <div 
-      className="min-h-screen relative" 
-      style={{
-        ...displayStyles,
-        padding: `${customerDisplaySettings?.display_padding || 32}px`,
-        margin: `${customerDisplaySettings?.display_margin || 8}px`,
-      }}
-    >
-      {/* Performance status overlay */}
-      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
-        <InstantUpdateIndicator 
-          connectionStatus={connectionStatus}
-          lastUpdateTime={lastUpdateTime}
-        />
-        <div className="text-xs text-muted-foreground">
-          {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
-          Snitt: {metrics.averageUpdateTime.toFixed(0)}ms
-        </div>
-      </div>
-      
+    <div className="min-h-screen p-8" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Performance and connection status overlay */}
-        <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2">
-          <ConnectionStatus status={connectionStatus} className="opacity-80 hover:opacity-100 transition-opacity" />
-          <InstantUpdateIndicator 
-            connectionStatus={connectionStatus}
-            lastUpdateTime={lastUpdateTime}
-            className="opacity-80 hover:opacity-100 transition-opacity"
-          />
-          <div className="text-xs text-muted-foreground opacity-60">
-            {screenType === 'large' ? 'Stor skjerm' : 'Liten skjerm'} | 
-            {metrics.averageUpdateTime.toFixed(0)}ms
-          </div>
+        <div className="flex justify-end">
+          <ConnectionStatus status={connectionStatus} />
         </div>
 
         <CustomerHeader 
           customerName={customer.name}
-          settings={customerDisplaySettings}
+          showRefresh={true}
+          onRefresh={triggerRefresh}
+          settings={settings}
         />
+
+        <Card
+          style={{
+            backgroundColor: settings?.card_background_color || '#ffffff',
+            borderColor: settings?.card_border_color || '#e5e7eb',
+            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+          }}
+        >
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+              <span 
+                className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                style={{ 
+                  color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                }}
+              >
+                {!isToday && 'PAKKING FOR: '}
+                {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                {!isToday && ' (ikke i dag)'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
         <CustomerProductsList
           customerPackingData={customerPackingData}
-          settings={customerDisplaySettings}
+          settings={settings}
           statusColors={statusColors}
         />
 
         <CustomerStatusIndicator
           isAllPacked={isAllPacked}
-          settings={customerDisplaySettings}
+          settings={settings}
         />
 
         <CustomerProgressBar
           customerPackingData={customerPackingData}
-          settings={customerDisplaySettings}
+          settings={settings}
         />
 
-        {isAllPacked && customerDisplaySettings?.show_status_indicator && (
+        {isAllPacked && settings?.show_status_indicator && (
           <CustomerStatusIndicator
             isAllPacked={true}
-            settings={customerDisplaySettings}
+            settings={settings}
           />
         )}
 

@@ -18,16 +18,6 @@ export default {
 			}
 		},
 		extend: {
-			screens: {
-				'3xl': '1600px',  // 43" TV screens
-				'4xl': '1920px',  // 55"+ TV screens
-			},
-			gridTemplateColumns: {
-				'5': 'repeat(5, minmax(0, 1fr))',
-				'6': 'repeat(6, minmax(0, 1fr))',
-				'7': 'repeat(7, minmax(0, 1fr))',
-				'8': 'repeat(8, minmax(0, 1fr))',
-			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

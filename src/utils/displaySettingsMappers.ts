@@ -33,7 +33,7 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     progress_animation: data.progress_animation ?? true,
     always_show_customer_name: data.always_show_customer_name ?? true,
     // Shared display settings with proper defaults
-    show_stats_cards: false, // Force disabled - user requested removal
+    show_stats_cards: data.show_stats_cards ?? true,
     stats_columns: data.stats_columns ?? 3,
     stats_icon_color: data.stats_icon_color || '#3b82f6',
     stats_card_height: data.stats_card_height || 'normal',
@@ -49,18 +49,6 @@ export const mapDatabaseToDisplaySettings = (data: any): DisplaySettings => {
     product_list_style: data.product_list_style || 'normal',
     show_line_items_count: data.show_line_items_count ?? true,
     customer_sort_order: data.customer_sort_order || 'alphabetical',
-    // Screen size and layout optimization
-    screen_size_preset: data.screen_size_preset || 'standard',
-    force_single_screen: data.force_single_screen ?? false,
-    large_screen_optimization: data.large_screen_optimization ?? false,
-    // Enhanced shared display settings
-    hide_empty_customers: data.hide_empty_customers ?? false,
-    show_delivery_date_indicators: data.show_delivery_date_indicators ?? true,
-    auto_hide_completed_customers: data.auto_hide_completed_customers ?? false,
-    auto_hide_completed_timer: data.auto_hide_completed_timer ?? 30,
-    customer_priority_mode: data.customer_priority_mode || 'none',
-    show_basket_quantity: data.show_basket_quantity ?? false,
-    basket_display_format: data.basket_display_format || 'total_first',
   } as DisplaySettings;
 };
 

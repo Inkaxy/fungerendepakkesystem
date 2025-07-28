@@ -63,7 +63,6 @@ export interface DisplaySettings {
   animation_speed: 'slow' | 'normal' | 'fast';
   fade_transitions: boolean;
   progress_animation: boolean;
-  product_change_animation: boolean;
   // Customer name display setting
   always_show_customer_name: boolean;
   // Shared display settings
@@ -83,38 +82,4 @@ export interface DisplaySettings {
   product_list_style: 'compact' | 'normal';
   show_line_items_count: boolean;
   customer_sort_order: 'alphabetical' | 'status' | 'progress';
-  // Screen size and layout optimization
-  screen_size_preset: 'standard' | '10inch' | '13inch' | 'laptop' | 'monitor' | '32inch' | '43inch' | '55inch' | '65inch';
-  force_single_screen: boolean;
-  large_screen_optimization: boolean;
-  // Basket quantity display settings
-  show_basket_quantity: boolean;
-  basket_display_format: 'total_first' | 'basket_first';
-  // Enhanced shared display settings
-  hide_empty_customers: boolean;
-  show_delivery_date_indicators: boolean;
-  auto_hide_completed_customers: boolean;
-  auto_hide_completed_timer: number;
-  customer_priority_mode: 'none' | 'delivery_date' | 'progress' | 'custom';
-  // Typography settings
-  font_family: string;
-  line_height: number;
-  text_shadow_enabled: boolean;
-  text_shadow_color: string;
-  text_shadow_blur: number;
-  text_shadow_offset_x: number;
-  text_shadow_offset_y: number;
-  // Layout and responsiveness settings
-  auto_screen_detection: boolean;
-  fullscreen_mode: boolean;
-  minimum_card_width: number;
-  display_padding: number;
-  display_margin: number;
-  responsive_breakpoint: 'small' | 'medium' | 'large';
-  // Interactivity settings
-  touch_friendly_sizes: boolean;
-  touch_target_size: number;
-  pause_mode_enabled: boolean;
-  show_manual_refresh_button: boolean;
-  manual_refresh_button_position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }

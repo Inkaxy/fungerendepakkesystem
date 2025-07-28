@@ -93,19 +93,6 @@ const AnimationSettingsTab = ({ settings, onUpdate }: AnimationSettingsTabProps)
                     onCheckedChange={(checked) => onUpdate({ progress_animation: checked })}
                   />
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Produktendring-animasjon</Label>
-                    <p className="text-sm text-gray-600">
-                      Visuell effekt når produkter endres - produkter beveger seg mot lastebilen
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.product_change_animation || false}
-                    onCheckedChange={(checked) => onUpdate({ product_change_animation: checked })}
-                  />
-                </div>
               </div>
             </>
           )}

@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
-  }
   public: {
     Tables: {
       active_packing_products: {
@@ -133,75 +128,17 @@ export type Database = {
           },
         ]
       }
-      display_presets: {
-        Row: {
-          bakery_id: string
-          created_at: string | null
-          description: string | null
-          id: string
-          is_public: boolean | null
-          name: string
-          preset_type: string | null
-          settings: Json
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_public?: boolean | null
-          name: string
-          preset_type?: string | null
-          settings: Json
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_public?: boolean | null
-          name?: string
-          preset_type?: string | null
-          settings?: Json
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "display_presets_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: false
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "display_presets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       display_settings: {
         Row: {
           always_show_customer_name: boolean | null
           animation_speed: string | null
-          auto_hide_completed_customers: boolean | null
-          auto_hide_completed_timer: number | null
           auto_refresh_interval: number | null
-          auto_screen_detection: boolean | null
           background_color: string | null
           background_gradient_end: string | null
           background_gradient_start: string | null
           background_image_url: string | null
           background_type: string | null
           bakery_id: string
-          basket_display_format: string | null
           body_font_size: number | null
           border_radius: number | null
           card_background_color: string | null
@@ -212,27 +149,15 @@ export type Database = {
           customer_card_height: string | null
           customer_cards_columns: number | null
           customer_cards_gap: number | null
-          customer_priority_mode: string | null
           customer_sort_order: string | null
-          display_margin: number | null
-          display_padding: number | null
           enable_animations: boolean | null
           enable_cat_animations: boolean | null
           fade_transitions: boolean | null
-          font_family: string | null
-          force_single_screen: boolean | null
-          fullscreen_mode: boolean | null
           header_font_size: number | null
           header_text_color: string | null
-          hide_empty_customers: boolean | null
           id: string
-          large_screen_optimization: boolean | null
-          line_height: number | null
           main_title: string | null
-          manual_refresh_button_position: string | null
           max_products_per_card: number | null
-          minimum_card_width: number | null
-          pause_mode_enabled: boolean | null
           product_1_accent_color: string | null
           product_1_bg_color: string | null
           product_1_text_color: string | null
@@ -245,26 +170,19 @@ export type Database = {
           product_accent_color: string | null
           product_card_color: string | null
           product_card_size: number | null
-          product_change_animation: boolean | null
           product_list_style: string | null
           product_text_color: string | null
           progress_animation: boolean | null
           progress_background_color: string | null
           progress_bar_color: string | null
           progress_height: number | null
-          responsive_breakpoint: string | null
-          screen_size_preset: string | null
-          screen_type: string
-          show_basket_quantity: boolean | null
           show_bouncing_cats: boolean | null
           show_customer_info: boolean | null
           show_customer_numbers: boolean | null
           show_date_indicator: boolean | null
-          show_delivery_date_indicators: boolean | null
           show_delivery_dates: boolean | null
           show_falling_cats: boolean | null
           show_line_items_count: boolean | null
-          show_manual_refresh_button: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
           show_progress_bar: boolean | null
@@ -286,30 +204,19 @@ export type Database = {
           status_pending_color: string | null
           subtitle: string | null
           text_color: string | null
-          text_shadow_blur: number | null
-          text_shadow_color: string | null
-          text_shadow_enabled: boolean | null
-          text_shadow_offset_x: number | null
-          text_shadow_offset_y: number | null
-          touch_friendly_sizes: boolean | null
-          touch_target_size: number | null
           truck_icon_size: number | null
           updated_at: string
         }
         Insert: {
           always_show_customer_name?: boolean | null
           animation_speed?: string | null
-          auto_hide_completed_customers?: boolean | null
-          auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
-          auto_screen_detection?: boolean | null
           background_color?: string | null
           background_gradient_end?: string | null
           background_gradient_start?: string | null
           background_image_url?: string | null
           background_type?: string | null
           bakery_id: string
-          basket_display_format?: string | null
           body_font_size?: number | null
           border_radius?: number | null
           card_background_color?: string | null
@@ -320,27 +227,15 @@ export type Database = {
           customer_card_height?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
-          customer_priority_mode?: string | null
           customer_sort_order?: string | null
-          display_margin?: number | null
-          display_padding?: number | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
-          font_family?: string | null
-          force_single_screen?: boolean | null
-          fullscreen_mode?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
-          hide_empty_customers?: boolean | null
           id?: string
-          large_screen_optimization?: boolean | null
-          line_height?: number | null
           main_title?: string | null
-          manual_refresh_button_position?: string | null
           max_products_per_card?: number | null
-          minimum_card_width?: number | null
-          pause_mode_enabled?: boolean | null
           product_1_accent_color?: string | null
           product_1_bg_color?: string | null
           product_1_text_color?: string | null
@@ -353,26 +248,19 @@ export type Database = {
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
-          product_change_animation?: boolean | null
           product_list_style?: string | null
           product_text_color?: string | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
-          responsive_breakpoint?: string | null
-          screen_size_preset?: string | null
-          screen_type?: string
-          show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
           show_date_indicator?: boolean | null
-          show_delivery_date_indicators?: boolean | null
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
-          show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
@@ -394,30 +282,19 @@ export type Database = {
           status_pending_color?: string | null
           subtitle?: string | null
           text_color?: string | null
-          text_shadow_blur?: number | null
-          text_shadow_color?: string | null
-          text_shadow_enabled?: boolean | null
-          text_shadow_offset_x?: number | null
-          text_shadow_offset_y?: number | null
-          touch_friendly_sizes?: boolean | null
-          touch_target_size?: number | null
           truck_icon_size?: number | null
           updated_at?: string
         }
         Update: {
           always_show_customer_name?: boolean | null
           animation_speed?: string | null
-          auto_hide_completed_customers?: boolean | null
-          auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
-          auto_screen_detection?: boolean | null
           background_color?: string | null
           background_gradient_end?: string | null
           background_gradient_start?: string | null
           background_image_url?: string | null
           background_type?: string | null
           bakery_id?: string
-          basket_display_format?: string | null
           body_font_size?: number | null
           border_radius?: number | null
           card_background_color?: string | null
@@ -428,27 +305,15 @@ export type Database = {
           customer_card_height?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
-          customer_priority_mode?: string | null
           customer_sort_order?: string | null
-          display_margin?: number | null
-          display_padding?: number | null
           enable_animations?: boolean | null
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
-          font_family?: string | null
-          force_single_screen?: boolean | null
-          fullscreen_mode?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
-          hide_empty_customers?: boolean | null
           id?: string
-          large_screen_optimization?: boolean | null
-          line_height?: number | null
           main_title?: string | null
-          manual_refresh_button_position?: string | null
           max_products_per_card?: number | null
-          minimum_card_width?: number | null
-          pause_mode_enabled?: boolean | null
           product_1_accent_color?: string | null
           product_1_bg_color?: string | null
           product_1_text_color?: string | null
@@ -461,26 +326,19 @@ export type Database = {
           product_accent_color?: string | null
           product_card_color?: string | null
           product_card_size?: number | null
-          product_change_animation?: boolean | null
           product_list_style?: string | null
           product_text_color?: string | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
           progress_height?: number | null
-          responsive_breakpoint?: string | null
-          screen_size_preset?: string | null
-          screen_type?: string
-          show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
           show_date_indicator?: boolean | null
-          show_delivery_date_indicators?: boolean | null
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
-          show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
           show_progress_bar?: boolean | null
@@ -502,13 +360,6 @@ export type Database = {
           status_pending_color?: string | null
           subtitle?: string | null
           text_color?: string | null
-          text_shadow_blur?: number | null
-          text_shadow_color?: string | null
-          text_shadow_enabled?: boolean | null
-          text_shadow_offset_x?: number | null
-          text_shadow_offset_y?: number | null
-          touch_friendly_sizes?: boolean | null
-          touch_target_size?: number | null
           truck_icon_size?: number | null
           updated_at?: string
         }
@@ -553,122 +404,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "display_stations_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: false
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      file_sync_logs: {
-        Row: {
-          bakery_id: string
-          created_at: string
-          error_message: string | null
-          file_details: Json | null
-          files_failed: number | null
-          files_found: number | null
-          files_processed: number | null
-          id: string
-          status: string
-          sync_completed_at: string | null
-          sync_setting_id: string
-          sync_started_at: string
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string
-          error_message?: string | null
-          file_details?: Json | null
-          files_failed?: number | null
-          files_found?: number | null
-          files_processed?: number | null
-          id?: string
-          status?: string
-          sync_completed_at?: string | null
-          sync_setting_id: string
-          sync_started_at?: string
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string
-          error_message?: string | null
-          file_details?: Json | null
-          files_failed?: number | null
-          files_found?: number | null
-          files_processed?: number | null
-          id?: string
-          status?: string
-          sync_completed_at?: string | null
-          sync_setting_id?: string
-          sync_started_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "file_sync_logs_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: false
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "file_sync_logs_sync_setting_id_fkey"
-            columns: ["sync_setting_id"]
-            isOneToOne: false
-            referencedRelation: "file_sync_settings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      file_sync_settings: {
-        Row: {
-          bakery_id: string
-          created_at: string
-          delete_after_sync: boolean | null
-          folder_path: string | null
-          id: string
-          is_active: boolean | null
-          last_sync_at: string | null
-          last_sync_error: string | null
-          last_sync_status: string | null
-          schedule_cron: string | null
-          service_config: Json
-          service_type: string
-          updated_at: string
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string
-          delete_after_sync?: boolean | null
-          folder_path?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_sync_at?: string | null
-          last_sync_error?: string | null
-          last_sync_status?: string | null
-          schedule_cron?: string | null
-          service_config?: Json
-          service_type: string
-          updated_at?: string
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string
-          delete_after_sync?: boolean | null
-          folder_path?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_sync_at?: string | null
-          last_sync_error?: string | null
-          last_sync_status?: string | null
-          schedule_cron?: string | null
-          service_config?: Json
-          service_type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "file_sync_settings_bakery_id_fkey"
             columns: ["bakery_id"]
             isOneToOne: false
             referencedRelation: "bakeries"
@@ -828,7 +563,6 @@ export type Database = {
       products: {
         Row: {
           bakery_id: string
-          basket_quantity: number | null
           category: string | null
           created_at: string | null
           id: string
@@ -841,7 +575,6 @@ export type Database = {
         }
         Insert: {
           bakery_id: string
-          basket_quantity?: number | null
           category?: string | null
           created_at?: string | null
           id?: string
@@ -854,7 +587,6 @@ export type Database = {
         }
         Update: {
           bakery_id?: string
-          basket_quantity?: number | null
           category?: string | null
           created_at?: string | null
           id?: string
@@ -955,25 +687,21 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -991,16 +719,14 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1016,16 +742,14 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1041,16 +765,14 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1058,16 +780,14 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof Database
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

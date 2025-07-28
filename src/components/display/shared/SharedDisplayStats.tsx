@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Calendar, Package } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
-import { getOptimalLayoutForScreen } from '@/utils/screenSizeDetection';
 
 interface SharedDisplayStatsProps {
   settings: DisplaySettings | undefined;
@@ -17,21 +16,14 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
   );
 
   const stats = [
-    { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length },
-    { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0) },
-    { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts }
+    { icon: Users, label: 'Kunder med Aktive Produkter', value: sharedDisplayPackingData.length, desc: 'Har produkter valgt for pakking' },
+    { icon: Package, label: 'Aktive Produkttyper', value: sharedDisplayPackingData.reduce((sum, customer) => sum + customer.products.length, 0), desc: 'Forskjellige produkter' },
+    { icon: Calendar, label: 'Totale Produkter', value: totalActiveProducts, desc: 'Antall produkter som skal pakkes' }
   ];
 
   // Determine grid columns class based on settings
   const getStatsGridClass = () => {
-    let columns = settings?.stats_columns || 3;
-    
-    // Bruk automatisk tilpasning hvis aktivert
-    if (settings?.auto_screen_detection) {
-      const optimalLayout = getOptimalLayoutForScreen();
-      columns = Math.min(optimalLayout.columns, 4); // Maksimum 4 stats-kolonner
-    }
-    
+    const columns = settings?.stats_columns || 3;
     switch (columns) {
       case 1: return 'grid-cols-1';
       case 2: return 'grid-cols-1 md:grid-cols-2';
@@ -81,6 +73,12 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
             >
               {stat.value}
             </div>
+            <p 
+              className="text-xs"
+              style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+            >
+              {stat.desc}
+            </p>
           </CardContent>
         </Card>
       ))}

@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, CloudDownload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Upload } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { UploadStatus, IdMapping, UploadResults } from './upload/types';
 import DebugInfo from './upload/DebugInfo';
@@ -20,7 +19,6 @@ interface DataUploadModalProps {
 }
 
 const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
-  const navigate = useNavigate();
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     products: 'idle',
     customers: 'idle',
@@ -62,11 +60,6 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
     setUploadResults
   );
 
-  const handleNavigateToFileSync = () => {
-    onClose();
-    navigate('/dashboard/file-sync');
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -95,21 +88,10 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
           hasBakeryAccess={hasBakeryAccess}
         />
 
-        <div className="flex justify-between items-center mt-6">
-          <Button 
-            variant="secondary" 
-            onClick={handleNavigateToFileSync}
-            className="flex items-center"
-          >
-            <CloudDownload className="w-4 h-4 mr-2" />
-            Sett opp automatisk filhenting
+        <div className="flex justify-end space-x-2 mt-6">
+          <Button variant="outline" onClick={onClose}>
+            Lukk
           </Button>
-          
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={onClose}>
-              Lukk
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

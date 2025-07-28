@@ -23,7 +23,6 @@ export interface Product {
   category?: string;
   price?: number;
   unit?: string;
-  basket_quantity?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;

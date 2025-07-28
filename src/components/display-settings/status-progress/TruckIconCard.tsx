@@ -31,11 +31,8 @@ const TruckIconCard = ({ settings, onUpdate }: TruckIconCardProps) => {
             checked={settings.show_truck_icon}
             onCheckedChange={(checked) => onUpdate({ show_truck_icon: checked })}
           />
-          <Label htmlFor="show-truck-icon">Vis varebil på progressbar (alle skjermer)</Label>
+          <Label htmlFor="show-truck-icon">Vis varebil på progressbar</Label>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Varebil-ikonet vises på progressbaren både på dedikerte kundeskjermer og felles skjerm
-        </p>
 
         {settings.show_truck_icon && (
           <SliderControl

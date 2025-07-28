@@ -61,7 +61,6 @@ const productSchema = z.object({
   category: z.string().min(1, 'Kategori er påkrevd'),
   price: z.number().min(0, 'Pris må være 0 eller høyere'),
   unit: z.string().min(1, 'Enhet er påkrevd'),
-  basket_quantity: z.number().min(1, 'Kurvstørrelse må være minst 1').optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -86,7 +85,6 @@ const Products = () => {
       category: 'Ingen kategori',
       price: 0,
       unit: 'stk',
-      basket_quantity: undefined,
     },
   });
 
@@ -102,7 +100,6 @@ const Products = () => {
         category: data.category,
         price: data.price,
         unit: data.unit,
-        basket_quantity: data.basket_quantity,
         bakery_id: profile.bakery_id,
         is_active: true,
       });
@@ -249,51 +246,32 @@ const Products = () => {
                       </FormItem>
                     )}
                   />
-                   <FormField
-                     control={form.control}
-                     name="unit"
-                     render={({ field }) => (
-                       <FormItem>
-                         <FormLabel>Enhet</FormLabel>
-                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                           <FormControl>
-                             <SelectTrigger>
-                               <SelectValue placeholder="Velg enhet" />
-                             </SelectTrigger>
-                           </FormControl>
-                           <SelectContent>
-                             <SelectItem value="stk">Stykk</SelectItem>
-                             <SelectItem value="kg">Kilogram</SelectItem>
-                             <SelectItem value="g">Gram</SelectItem>
-                             <SelectItem value="l">Liter</SelectItem>
-                             <SelectItem value="dl">Desiliter</SelectItem>
-                             <SelectItem value="pakke">Pakke</SelectItem>
-                           </SelectContent>
-                         </Select>
-                         <FormMessage />
-                       </FormItem>
-                     )}
-                   />
-                   <FormField
-                     control={form.control}
-                     name="basket_quantity"
-                     render={({ field }) => (
-                       <FormItem>
-                         <FormLabel>Antall per kurv</FormLabel>
-                         <FormControl>
-                           <Input 
-                             type="number" 
-                             placeholder="F.eks. 10" 
-                             {...field}
-                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                             value={field.value || ''}
-                           />
-                         </FormControl>
-                         <FormMessage />
-                       </FormItem>
-                     )}
-                   />
-                   <div className="flex justify-end space-x-2">
+                  <FormField
+                    control={form.control}
+                    name="unit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Enhet</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Velg enhet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="stk">Stykk</SelectItem>
+                            <SelectItem value="kg">Kilogram</SelectItem>
+                            <SelectItem value="g">Gram</SelectItem>
+                            <SelectItem value="l">Liter</SelectItem>
+                            <SelectItem value="dl">Desiliter</SelectItem>
+                            <SelectItem value="pakke">Pakke</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end space-x-2">
                     <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                       Avbryt
                     </Button>
@@ -402,14 +380,13 @@ const Products = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                   <TableHead>Varenummer</TableHead>
-                   <TableHead>Navn</TableHead>
-                   <TableHead>Kategori</TableHead>
-                   <TableHead>Pris</TableHead>
-                   <TableHead>Enhet</TableHead>
-                   <TableHead>Kurv</TableHead>
-                   <TableHead>Status</TableHead>
-                   <TableHead>Opprettet</TableHead>
+                  <TableHead>Varenummer</TableHead>
+                  <TableHead>Navn</TableHead>
+                  <TableHead>Kategori</TableHead>
+                  <TableHead>Pris</TableHead>
+                  <TableHead>Enhet</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Opprettet</TableHead>
                   <TableHead className="text-right">Handlinger</TableHead>
                 </TableRow>
               </TableHeader>
@@ -421,14 +398,11 @@ const Products = () => {
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.category}</TableCell>
-                     <TableCell>
-                       {product.price ? `${product.price} kr` : 'Ikke satt'}
-                     </TableCell>
-                     <TableCell>{product.unit}</TableCell>
-                     <TableCell>
-                       {product.basket_quantity ? `${product.basket_quantity} stk` : '-'}
-                     </TableCell>
-                     <TableCell>
+                    <TableCell>
+                      {product.price ? `${product.price} kr` : 'Ikke satt'}
+                    </TableCell>
+                    <TableCell>{product.unit}</TableCell>
+                    <TableCell>
                       <Badge variant={product.is_active ? "default" : "secondary"}>
                         {product.is_active ? "Aktiv" : "Inaktiv"}
                       </Badge>

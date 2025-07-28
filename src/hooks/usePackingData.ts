@@ -10,7 +10,6 @@ export interface PackingProduct {
   product_name: string;
   product_category: string;
   product_unit: string;
-  basket_quantity?: number;
   total_quantity: number; // Customer-specific quantity sum, not from active_packing_products
   total_line_items: number;
   packed_line_items: number;
@@ -54,7 +53,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             product_id,
             quantity,
             packing_status,
-            product:products(id, name, category, unit, basket_quantity)
+            product:products(id, name, category, unit)
           )
         `)
         .eq('delivery_date', targetDate)
@@ -175,7 +174,6 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               product_name: op.product.name,
               product_category: op.product.category || 'Ingen kategori',
               product_unit: op.product.unit || 'stk',
-              basket_quantity: op.product.basket_quantity,
               total_quantity: op.quantity, // Start with this order's quantity
               total_line_items: 1,
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
@@ -249,7 +247,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
       return result;
     },
     enabled: !activeOnly || !activeProductsLoading,
-    refetchInterval: 2000, // Improved responsiveness with 2s intervals
-    staleTime: 500, // Consider data stale after 0.5 seconds for better reactivity
+    refetchInterval: 5000, // More frequent updates for better responsiveness
+    staleTime: 1000, // Consider data stale after 1 second for better reactivity
   });
 };

@@ -1,20 +1,7 @@
-import { DisplaySettings } from '@/hooks/useDisplaySettings';
-import { isLargeScreen, isSmallScreen, getOptimalLayoutForScreen } from './screenSizeDetection';
-import { filterSettingsForScreen } from './settingsFilters';
 
-export const generateDisplayStyles = (settings: DisplaySettings, forceScreenType?: 'small' | 'large') => {
-  // Screen size detection and optimization
-  const screenIsLarge = forceScreenType ? forceScreenType === 'large' : isLargeScreen(settings);
-  const screenIsSmall = forceScreenType ? forceScreenType === 'small' : isSmallScreen(settings);
-  
-  // Få optimal layout for gjeldende skjerm
-  const optimalLayout = getOptimalLayoutForScreen();
-  
-  // Filter settings based on screen type - this ensures only relevant settings are applied
-  const screenType = screenIsLarge ? 'large' : 'small';
-  const filteredSettings = filterSettingsForScreen(settings, screenType);
-  const effectiveSettings = { ...settings, ...filteredSettings };
-  
+import { DisplaySettings } from '@/hooks/useDisplaySettings';
+
+export const generateDisplayStyles = (settings: DisplaySettings) => {
   const backgroundStyle = (() => {
     switch (settings.background_type) {
       case 'solid':
@@ -37,46 +24,15 @@ export const generateDisplayStyles = (settings: DisplaySettings, forceScreenType
   const animationDuration = settings.animation_speed === 'slow' ? '2s' : 
                            settings.animation_speed === 'fast' ? '0.5s' : '1s';
 
-  // Typography styles med skjerm-optimalisering
-  const typographyStyles = {
-    fontFamily: settings.font_family,
-    lineHeight: `${settings.line_height}`,
-    ...(settings.text_shadow_enabled && {
-      textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
-    })
-  };
-
-  // Touch-friendly sizes
-  const minTouchSize = settings.touch_friendly_sizes ? `${settings.touch_target_size}px` : 'auto';
-
-  // Beregn skjerm-spesifikke multiplikatorer basert på kategori
-  const sizeMultiplier = (() => {
-    switch (optimalLayout.category) {
-      case 'small': return 0.8;
-      case 'medium': return 1.0;
-      case 'large': return 1.3;
-      case 'extra-large': return 1.6;
-      default: return 1.0;
-    }
-  })();
-  
-  const contrastMultiplier = screenIsLarge ? 1.2 : 1.0;
-
-  // Bruk optimal layout hvis auto-screen-detection er aktivert
-  const finalColumns = settings.auto_screen_detection ? optimalLayout.columns : settings.customer_cards_columns;
-  const finalFontSize = settings.auto_screen_detection ? optimalLayout.fontSize : Math.round(settings.body_font_size * sizeMultiplier);
-  const finalHeaderSize = settings.auto_screen_detection ? optimalLayout.headerSize : Math.round(settings.header_font_size * sizeMultiplier);
-  const finalSpacing = settings.auto_screen_detection ? optimalLayout.spacing : Math.round(settings.spacing * sizeMultiplier);
-
   return {
-    '--header-font-size': `${finalHeaderSize}px`,
-    '--body-font-size': `${finalFontSize}px`,
+    '--header-font-size': `${settings.header_font_size}px`,
+    '--body-font-size': `${settings.body_font_size}px`,
     '--text-color': settings.text_color,
     '--header-text-color': settings.header_text_color,
     '--card-bg-color': settings.card_background_color,
     '--card-border-color': settings.card_border_color,
     '--border-radius': `${settings.border_radius}px`,
-    '--spacing': `${finalSpacing}px`,
+    '--spacing': `${settings.spacing}px`,
     '--product-card-color': settings.product_card_color,
     '--product-text-color': settings.product_text_color,
     '--product-accent-color': settings.product_accent_color,
@@ -94,25 +50,14 @@ export const generateDisplayStyles = (settings: DisplaySettings, forceScreenType
     '--progress-bar-color': settings.progress_bar_color,
     '--progress-bg-color': settings.progress_background_color,
     '--progress-height': `${settings.progress_height}px`,
-    '--shadow-intensity': `0 ${Math.round(settings.card_shadow_intensity * contrastMultiplier)}px ${Math.round(settings.card_shadow_intensity * 2 * contrastMultiplier)}px rgba(0,0,0,${0.1 * contrastMultiplier})`,
-    '--truck-icon-size': `${Math.round(settings.truck_icon_size * sizeMultiplier)}px`,
+    '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
+    '--truck-icon-size': `${settings.truck_icon_size}px`,
     '--animation-duration': animationDuration,
     '--enable-animations': settings.enable_animations ? '1' : '0',
     '--fade-transitions': settings.fade_transitions ? '1' : '0',
     '--progress-animation': settings.progress_animation ? '1' : '0',
     '--product-card-size': `${settings.product_card_size}%`,
-    '--min-touch-size': minTouchSize,
-    '--display-padding': `${Math.round(settings.display_padding * sizeMultiplier)}px`,
-    '--display-margin': `${Math.round(settings.display_margin * sizeMultiplier)}px`,
-    '--minimum-card-width': `${Math.max(settings.minimum_card_width, 250)}px`,
-    '--status-indicator-padding': `${Math.round(settings.status_indicator_padding * sizeMultiplier)}px`,
-    '--large-screen-optimization': settings.large_screen_optimization ? '1' : '0',
-    '--force-single-screen': settings.force_single_screen ? '1' : '0',
-    '--optimal-columns': finalColumns.toString(),
-    '--screen-category': optimalLayout.category,
-    '--size-multiplier': sizeMultiplier.toString(),
     ...backgroundStyle,
-    ...typographyStyles,
   } as React.CSSProperties & { [key: string]: string };
 };
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,7 @@ import { Package, Users, Clock, ShoppingCart } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { Order } from '@/types/database';
-import { usePackingSessionByDate, useCreateOrUpdatePackingSession, useActivePackingSessions } from '@/hooks/usePackingSessions';
-import ActiveSessionConfirmDialog from './ActiveSessionConfirmDialog';
+import { usePackingSessionByDate, useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
 
 interface PackingDateDetailsProps {
   selectedDate: Date;
@@ -20,9 +19,7 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
   const navigate = useNavigate();
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
   const { data: packingSession } = usePackingSessionByDate(dateStr);
-  const { data: activeSessions } = useActivePackingSessions();
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Calculate statistics
   const totalOrders = orders.length;
@@ -65,35 +62,15 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
       return;
     }
 
-    // Check if there are other active sessions for different dates
-    const otherActiveSessions = activeSessions?.filter(session => 
-      session.session_date !== dateStr && 
-      (session.status === 'in_progress' || session.status === 'ready')
-    );
-
-    if (otherActiveSessions && otherActiveSessions.length > 0) {
-      // Show confirmation dialog
-      setShowConfirmDialog(true);
-      return;
-    }
-
-    // No conflicts, proceed directly
-    await startNewSession(false);
-  };
-
-  const startNewSession = async (completeOtherActive: boolean = false) => {
     try {
       await createOrUpdateSession.mutateAsync({
-        session: {
-          bakery_id: orders[0]?.bakery_id || '',
-          session_date: dateStr,
-          total_orders: totalOrders,
-          unique_customers: uniqueCustomers,
-          product_types: productTypes,
-          files_uploaded: 0,
-          status: 'ready'
-        },
-        completeOtherActive
+        bakery_id: orders[0]?.bakery_id || '',
+        session_date: dateStr,
+        total_orders: totalOrders,
+        unique_customers: uniqueCustomers,
+        product_types: productTypes,
+        files_uploaded: 0,
+        status: 'ready'
       });
 
       // Navigate to product overview
@@ -102,27 +79,6 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
       console.error('Failed to start packing session:', error);
     }
   };
-
-  const handleContinueExisting = () => {
-    const existingActiveSession = activeSessions?.find(session => 
-      session.status === 'in_progress' || session.status === 'ready'
-    );
-    
-    if (existingActiveSession) {
-      navigate(`/dashboard/orders/packing/${existingActiveSession.session_date}`);
-    }
-    setShowConfirmDialog(false);
-  };
-
-  const handleStartNewWithCompletion = async () => {
-    setShowConfirmDialog(false);
-    await startNewSession(true);
-  };
-
-  const activeSessionForDialog = activeSessions?.find(session => 
-    session.session_date !== dateStr && 
-    (session.status === 'in_progress' || session.status === 'ready')
-  );
 
   const statusInfo = getStatusInfo();
 
@@ -189,18 +145,6 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
             <p className="text-sm">Ingen ordrer for denne dagen</p>
           </div>
         )}
-
-        {/* Confirmation Dialog */}
-        <ActiveSessionConfirmDialog
-          open={showConfirmDialog}
-          onOpenChange={setShowConfirmDialog}
-          activeSession={activeSessionForDialog || null}
-          newSessionDate={dateStr}
-          onCancel={() => setShowConfirmDialog(false)}
-          onContinueExisting={handleContinueExisting}
-          onStartNew={handleStartNewWithCompletion}
-          isLoading={createOrUpdateSession.isPending}
-        />
       </CardContent>
     </Card>
   );

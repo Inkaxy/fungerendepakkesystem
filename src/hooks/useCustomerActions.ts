@@ -47,11 +47,29 @@ export const useCustomerActions = () => {
     }
   };
 
-  const handleToggleDisplay = (customer: Customer, hasDedicatedDisplay: boolean) => {
-    updateCustomer.mutate({
-      id: customer.id,
-      has_dedicated_display: hasDedicatedDisplay,
-    });
+  const handleToggleDisplay = async (customer: Customer, hasDedicatedDisplay: boolean) => {
+    try {
+      await updateCustomer.mutateAsync({
+        id: customer.id,
+        has_dedicated_display: hasDedicatedDisplay,
+      });
+      
+      const displayType = hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert";
+      const description = hasDedicatedDisplay 
+        ? `${customer.name} har nå sitt eget private display med automatisk generert URL`
+        : `${customer.name} vises nå på felles display`;
+        
+      toast({
+        title: displayType,
+        description: description,
+      });
+    } catch (error) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke oppdatere display-innstilling",
+        variant: "destructive",
+      });
+    }
   };
 
   const copyDisplayUrl = (displayPath: string) => {

@@ -1,7 +1,1 @@
 project_id = "sxggxcaanwsrufxfjbqb"
-
-[functions.test-file-sync-connection]
-verify_jwt = true
-
-[functions.trigger-file-sync]
-verify_jwt = true

@@ -46,7 +46,7 @@ export const useActivePackingDate = () => {
           return activeProducts[0].session_date;
         }
 
-        // If no active products, check for the most recent active packing session
+        // If no active products, check for recent packing sessions
         const { data: sessions, error: sessionsError } = await supabase
           .from('packing_sessions')
           .select('session_date')

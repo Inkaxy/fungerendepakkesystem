@@ -4,29 +4,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useDisplaySettings, DisplaySettings } from '@/hooks/useDisplaySettings';
-import { useScreenType } from '@/hooks/useScreenType';
-import { useOptimizedRealTimeActiveProducts } from '@/hooks/useOptimizedRealTimeActiveProducts';
-import { useInstantDisplayUpdates } from '@/hooks/useInstantDisplayUpdates';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
-import { useRealTimeDisplaySettings } from '@/hooks/useRealTimeDisplaySettings';
-import InstantUpdateIndicator from '@/components/display/InstantUpdateIndicator';
+import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
-import { isLargeScreen } from '@/utils/screenSizeDetection';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
-import InteractiveControls from '@/components/display/InteractiveControls';
-import ProductTransitionAnimation from '@/components/display/ProductTransitionAnimation';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
   const { data: customers } = useCustomers();
-  const screenType = useScreenType();
-  const { data: settings } = useDisplaySettings(screenType);
+  const { data: settings } = useDisplaySettings();
   
   const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
   
@@ -36,12 +27,7 @@ const SharedDisplay = () => {
     true
   );
   
-  const { connectionStatus, lastUpdateTime } = useOptimizedRealTimeActiveProducts();
-  const { metrics, recordUpdate } = usePerformanceMonitor();
-  useRealTimeDisplaySettings(screenType);
-  
-  // Use instant display updates for shared screens
-  useInstantDisplayUpdates('shared');
+  const { connectionStatus } = useRealTimeDisplay();
   
   const { triggerRefresh } = useDisplayRefresh({ 
     enabled: true, 
@@ -50,17 +36,9 @@ const SharedDisplay = () => {
 
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  let sharedDisplayPackingData = packingData?.filter(data => {
-    const customer = sharedDisplayCustomers.find(customer => customer.id === data.id);
-    if (!customer) return false;
-    
-    // Hide empty customers if setting is enabled
-    if (settings?.hide_empty_customers && data.products.length === 0) {
-      return false;
-    }
-    
-    return true;
-  }) || [];
+  let sharedDisplayPackingData = packingData?.filter(data => 
+    sharedDisplayCustomers.some(customer => customer.id === data.id)
+  ) || [];
 
   // Apply customer sorting based on settings
   if (settings?.customer_sort_order && sharedDisplayPackingData.length > 0) {
@@ -95,224 +73,32 @@ const SharedDisplay = () => {
     completed: '#10b981',
     delivered: '#059669'
   };
-  
-  // Screen size detection for responsive behavior
-  const screenIsLarge = settings ? isLargeScreen(settings) : false;
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
-  // Calculate optimal layout based on screen size and customer count
-  const getOptimalLayout = () => {
-    const customerCount = sharedDisplayPackingData.length;
-    const baseColumns = settings?.customer_cards_columns || 3;
-    
-    if (customerCount === 0) return { columns: baseColumns, maxWidth: 'none' };
-    
-    // TV screen size optimization
-    const screenPreset = settings?.screen_size_preset || 'standard';
-    const isLargeScreen = settings?.large_screen_optimization;
-    
-    let optimalColumns = baseColumns;
-    let maxCardWidth = 'none';
-    
-    // Enhanced force_single_screen algorithm
-    if (settings?.force_single_screen && customerCount > 0) {
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const aspectRatio = viewportWidth / viewportHeight;
-      const isWideScreen = aspectRatio > 1.6;
-      
-      // Calculate minimum card width considering settings
-      const minCardWidth = Math.max(settings?.minimum_card_width || 200, 250);
-      const maxPossibleColumns = Math.floor(viewportWidth / minCardWidth);
-      
-      // Smart grid calculation for optimal single-screen fit
-      if (customerCount <= 4) {
-        optimalColumns = Math.min(customerCount, isWideScreen ? 4 : 2);
-      } else if (customerCount <= 12) {
-        // Calculate rows and columns to fit all customers
-        const targetRows = isWideScreen ? 2 : 3;
-        optimalColumns = Math.min(Math.ceil(customerCount / targetRows), maxPossibleColumns);
-      } else {
-        // For many customers, prioritize fitting all on screen
-        const maxRows = Math.floor((viewportHeight - 200) / 300); // Estimate card height
-        optimalColumns = Math.min(Math.ceil(customerCount / maxRows), maxPossibleColumns);
-      }
-      
-      // Ensure we don't exceed screen width
-      maxCardWidth = `${Math.floor(viewportWidth / optimalColumns) - (settings?.spacing || 24)}px`;
-    } else {
-      // Screen preset optimization with large screen improvements
-      switch (screenPreset) {
-        case '10inch':
-          optimalColumns = Math.min(customerCount, 2);
-          maxCardWidth = isLargeScreen ? '400px' : '350px';
-          break;
-        case '13inch':
-          optimalColumns = Math.min(customerCount, 3);
-          maxCardWidth = isLargeScreen ? '420px' : '380px';
-          break;
-        case '32inch':
-          optimalColumns = Math.min(customerCount, isLargeScreen ? 5 : 4);
-          maxCardWidth = isLargeScreen ? '450px' : '380px';
-          break;
-        case '43inch':
-          optimalColumns = Math.min(customerCount, isLargeScreen ? 6 : 5);
-          maxCardWidth = isLargeScreen ? '480px' : '420px';
-          break;
-        case '55inch':
-          optimalColumns = Math.min(customerCount, isLargeScreen ? 7 : 6);
-          maxCardWidth = isLargeScreen ? '500px' : '450px';
-          break;
-        case '65inch':
-          optimalColumns = Math.min(customerCount, isLargeScreen ? 8 : 7);
-          maxCardWidth = isLargeScreen ? '520px' : '480px';
-          break;
-        default:
-          optimalColumns = Math.min(customerCount, baseColumns);
-          maxCardWidth = isLargeScreen ? '420px' : '350px';
-      }
-    }
-    
-    return { 
-      columns: Math.max(1, Math.min(optimalColumns, 8)), 
-      maxWidth: maxCardWidth 
-    };
-  };
-
-  const { columns, maxWidth } = getOptimalLayout();
-
-  // Generate responsive grid classes with TV breakpoints
+  // Determine grid columns class based on settings
   const getCustomerGridClass = () => {
-    const cols = columns;
-    
-    // Build grid classes with proper responsive behavior
-    const gridClasses = [
-      'grid-cols-1', // Mobile default
-      cols >= 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1',
-      cols >= 3 ? 'md:grid-cols-3' : `md:grid-cols-${Math.min(cols, 2)}`,
-      cols >= 4 ? 'lg:grid-cols-4' : `lg:grid-cols-${Math.min(cols, 3)}`,
-    ];
-
-    // For larger screens, use the extended grid classes
-    if (cols >= 5) {
-      gridClasses.push('xl:grid-cols-5');
-    } else {
-      gridClasses.push(`xl:grid-cols-${Math.min(cols, 4)}`);
+    const columns = settings?.customer_cards_columns || 3;
+    switch (columns) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-1 md:grid-cols-2';
+      case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+      case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+      default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
     }
-
-    if (cols >= 6) {
-      gridClasses.push('2xl:grid-cols-6');
-    } else {
-      gridClasses.push(`2xl:grid-cols-${Math.min(cols, 5)}`);
-    }
-
-    if (cols >= 7) {
-      gridClasses.push('3xl:grid-cols-7');
-    } else {
-      gridClasses.push(`3xl:grid-cols-${Math.min(cols, 6)}`);
-    }
-
-    if (cols >= 8) {
-      gridClasses.push('4xl:grid-cols-8');
-    } else {
-      gridClasses.push(`4xl:grid-cols-${Math.min(cols, 7)}`);
-    }
-    
-    return gridClasses.join(' ');
   };
-
-  // Dynamic spacing and sizing based on screen and customer count
-  const getDynamicSpacing = () => {
-    const customerCount = sharedDisplayPackingData.length;
-    const isLargeScreen = settings?.large_screen_optimization;
-    const useCustomSpacing = settings?.spacing !== undefined;
-    
-    // Use custom spacing setting if available, otherwise use customer_cards_gap
-    const baseGap = useCustomSpacing ? (settings?.spacing || 16) : (settings?.customer_cards_gap || 24);
-    
-    // Force single screen optimization: reduce spacing to fit more
-    if (settings?.force_single_screen && customerCount > 6) {
-      return Math.max(baseGap * 0.6, 12);
-    }
-    
-    // Large screen optimization: increase spacing for better visual separation
-    if (isLargeScreen) {
-      const largeScreenMultiplier = customerCount <= 4 ? 1.5 : customerCount <= 8 ? 1.3 : 1.1;
-      return Math.min(baseGap * largeScreenMultiplier, 48);
-    }
-    
-    // Standard responsive spacing
-    if (customerCount > 12) {
-      return Math.max(baseGap * 0.7, 16);
-    } else if (customerCount > 8) {
-      return Math.max(baseGap * 0.8, 18);
-    }
-    
-    return baseGap;
-  };
-
-  // Get font sizes based on screen optimization
-  const getFontSizes = () => {
-    const baseHeaderSize = settings?.header_font_size || 32;
-    const baseBodySize = settings?.body_font_size || 16;
-    
-    if (settings?.large_screen_optimization) {
-      // Large screen optimization: increase font sizes and improve readability
-      const screenMultiplier = settings?.screen_size_preset === '55inch' || settings?.screen_size_preset === '65inch' ? 1.4 : 1.2;
-      return {
-        header: `${Math.round(baseHeaderSize * screenMultiplier)}px`,
-        body: `${Math.round(baseBodySize * screenMultiplier)}px`, 
-        title: `${Math.round((baseBodySize + 6) * screenMultiplier)}px`,
-        contrast: 'high' // For better readability on large screens
-      };
-    }
-    
-    // Force single screen: slightly reduce font sizes to fit more content
-    if (settings?.force_single_screen && sharedDisplayPackingData.length > 8) {
-      return {
-        header: `${Math.round(baseHeaderSize * 0.9)}px`,
-        body: `${Math.round(baseBodySize * 0.9)}px`,
-        title: `${Math.round((baseBodySize + 2) * 0.9)}px`
-      };
-    }
-    
-    return {
-      header: `${baseHeaderSize}px`,
-      body: `${baseBodySize}px`,
-      title: `${baseBodySize + 2}px`
-    };
-  };
-
-  const fontSizes = getFontSizes();
 
   return (
     <div 
-      className="min-h-screen"
-      style={{
-        ...displayStyles,
-        padding: settings?.force_single_screen || settings?.large_screen_optimization 
-          ? `${Math.min(settings?.display_padding || 16, 16)}px`
-          : `${settings?.display_padding || 32}px`,
-        margin: settings?.force_single_screen || settings?.large_screen_optimization 
-          ? '0px' 
-          : `${settings?.display_margin || 8}px`,
-      }}
+      className="min-h-screen p-8"
+      style={displayStyles}
     >
-      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
-        <InstantUpdateIndicator 
-          connectionStatus={connectionStatus}
-          lastUpdateTime={lastUpdateTime}
-        />
-        <div className="text-xs text-muted-foreground">
-          Snitt: {metrics.averageUpdateTime.toFixed(0)}ms | Status: {metrics.connectionStatus}
-        </div>
-      </div>
-      
-      <div className={settings?.force_single_screen || settings?.large_screen_optimization ? "w-full" : "max-w-7xl mx-auto"}>
+      <div className="max-w-7xl mx-auto">
         <SharedDisplayHeader
           settings={settings}
           connectionStatus={connectionStatus}
+          onRefresh={triggerRefresh}
+          activePackingDate={activePackingDate}
         />
 
         {dateLoading && (
@@ -349,12 +135,9 @@ const SharedDisplay = () => {
 
         {!dateLoading && activePackingDate && sharedDisplayPackingData.length > 0 && (
           <div 
-            className={`grid ${getCustomerGridClass()} mb-8`}
+            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
-              gap: `${getDynamicSpacing()}px`,
-              fontSize: fontSizes.body,
-              maxWidth: maxWidth !== 'none' ? `calc(${columns} * ${maxWidth} + ${columns - 1} * ${getDynamicSpacing()}px)` : undefined,
-              margin: '0 auto'
+              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
             }}
           >
             {sharedDisplayPackingData.map((customerData) => {

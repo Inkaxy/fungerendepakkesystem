@@ -53,12 +53,11 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   animation_speed: 'normal' as const,
   fade_transitions: true,
   progress_animation: true,
-  product_change_animation: false,
   always_show_customer_name: true,
   packing_status_ongoing_color: '#3b82f6',
   packing_status_completed_color: '#10b981',
   // Shared display settings defaults
-  show_stats_cards: false,
+  show_stats_cards: true,
   stats_columns: 3,
   stats_icon_color: '#3b82f6',
   stats_card_height: 'normal' as const,
@@ -74,38 +73,4 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   product_list_style: 'normal' as const,
   show_line_items_count: true,
   customer_sort_order: 'alphabetical' as const,
-  // Screen size and layout optimization
-  screen_size_preset: 'standard' as const,
-  force_single_screen: false,
-  large_screen_optimization: false,
-  // Basket quantity display settings
-  show_basket_quantity: false,
-  basket_display_format: 'total_first' as const,
-  // Enhanced shared display settings
-  hide_empty_customers: false,
-  show_delivery_date_indicators: true,
-  auto_hide_completed_customers: false,
-  auto_hide_completed_timer: 30,
-  customer_priority_mode: 'none' as const,
-  // Typography settings
-  font_family: 'Inter',
-  line_height: 1.5,
-  text_shadow_enabled: false,
-  text_shadow_color: '#00000020',
-  text_shadow_blur: 2,
-  text_shadow_offset_x: 1,
-  text_shadow_offset_y: 1,
-  // Layout and responsiveness settings
-  auto_screen_detection: true,
-  fullscreen_mode: false,
-  minimum_card_width: 200,
-  display_padding: 16,
-  display_margin: 8,
-  responsive_breakpoint: 'medium' as const,
-  // Interactivity settings
-  touch_friendly_sizes: false,
-  touch_target_size: 44,
-  pause_mode_enabled: false,
-  show_manual_refresh_button: false,
-  manual_refresh_button_position: 'top-right' as const,
 });

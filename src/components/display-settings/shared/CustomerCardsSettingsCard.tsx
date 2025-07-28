@@ -28,7 +28,7 @@ const CustomerCardsSettingsCard = ({ settings, onUpdate }: CustomerCardsSettings
           value={settings.customer_cards_columns}
           onChange={(value) => onUpdate({ customer_cards_columns: value })}
           min={1}
-          max={8}
+          max={4}
           step={1}
         />
 

@@ -134,16 +134,13 @@ const PackingProductOverview = () => {
       
       // Create packing session
       await createOrUpdateSession.mutateAsync({
-        session: {
-          bakery_id: orders?.[0]?.bakery_id || '',
-          session_date: date || '',
-          total_orders: orders?.length || 0,
-          unique_customers: new Set(orders?.map(o => o.customer_id)).size,
-          product_types: productList.length,
-          files_uploaded: 0,
-          status: 'in_progress'
-        },
-        completeOtherActive: true
+        bakery_id: orders?.[0]?.bakery_id || '',
+        session_date: date || '',
+        total_orders: orders?.length || 0,
+        unique_customers: new Set(orders?.map(o => o.customer_id)).size,
+        product_types: productList.length,
+        files_uploaded: 0,
+        status: 'in_progress'
       });
 
       // Save selected products as active packing products

@@ -62,18 +62,10 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
         </CardHeader>
         <CardContent className="p-0">
           <div 
-            className={`relative h-[700px] overflow-y-auto rounded-b-lg display-typography ${
-              settings.enable_animations ? 'display-fade-transitions' : ''
-            } ${settings.text_shadow_enabled ? 'display-text-shadow' : ''}`}
+            className="relative h-[700px] overflow-y-auto rounded-b-lg p-4"
             style={{
               ...styles,
-              fontSize: settings.large_screen_optimization ? `${settings.body_font_size * 1.2}px` : `${settings.body_font_size}px`,
-              fontFamily: settings.font_family,
-              lineHeight: settings.line_height,
-              padding: settings.large_screen_optimization ? `${settings.display_padding * 1.2}px` : `${settings.display_padding}px`,
-              ...(settings.text_shadow_enabled && {
-                textShadow: `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}`
-              })
+              fontSize: `${settings.body_font_size}px`,
             }}
           >
             {/* Header with refresh button */}
@@ -82,11 +74,8 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                 <h1 
                   className="font-bold mb-2"
                   style={{ 
-                    fontSize: settings.large_screen_optimization ? `${Math.min(settings.header_font_size * 0.8, 32)}px` : `${Math.min(settings.header_font_size * 0.6, 28)}px`,
-                    color: settings.header_text_color,
-                    fontWeight: settings.large_screen_optimization ? '700' : '600',
-                    textShadow: settings.large_screen_optimization && settings.text_shadow_enabled ? 
-                      `${settings.text_shadow_offset_x}px ${settings.text_shadow_offset_y}px ${settings.text_shadow_blur}px ${settings.text_shadow_color}` : 'none'
+                    fontSize: `${Math.min(settings.header_font_size * 0.6, 28)}px`,
+                    color: settings.header_text_color
                   }}
                 >
                   {mockCustomer.name}
@@ -106,12 +95,11 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
 
             {/* Date indicator */}
             <Card 
-              className={`mb-6 display-card ${settings.enable_animations ? 'animated' : ''}`}
+              className="mb-6"
               style={{
                 backgroundColor: settings.card_background_color,
                 borderColor: settings.card_border_color,
                 borderRadius: `${settings.border_radius}px`,
-                boxShadow: `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
               }}
             >
               <CardContent className="p-3 text-center">
@@ -142,18 +130,12 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                   {mockCustomer.products.map((product, index) => (
                     <div 
                       key={product.id}
-                      className={`flex justify-between items-center p-3 rounded-lg ${
-                        settings.enable_animations ? 'display-scale-hover display-fade-transitions' : ''
-                      } ${settings.touch_friendly_sizes ? 'touch-friendly' : ''}`}
+                      className="flex justify-between items-center p-3 rounded-lg"
                       style={{
                         backgroundColor: getProductBackgroundColor(settings, index),
                         borderRadius: `${settings.border_radius}px`,
                         transform: `scale(${(settings.product_card_size || 100) / 100})`,
-                        transformOrigin: 'left center',
-                        marginBottom: settings.large_screen_optimization ? `${(settings.spacing || 16) * 1.2}px` : undefined,
-                        ...(settings.touch_friendly_sizes && {
-                          minHeight: `${settings.touch_target_size}px`
-                        })
+                        transformOrigin: 'left center'
                       }}
                     >
                       <div className="flex-1">
@@ -161,8 +143,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                           className="font-bold mb-1"
                           style={{ 
                             color: getProductTextColor(settings, index),
-                            fontSize: settings.large_screen_optimization ? `${Math.max(settings.body_font_size * 1.4, 18)}px` : `${Math.max(settings.body_font_size * 1.2, 16)}px`,
-                            fontWeight: settings.large_screen_optimization ? '700' : '600'
+                            fontSize: `${Math.max(settings.body_font_size * 1.2, 16)}px`
                           }}
                         >
                           {product.product_name}
@@ -187,9 +168,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                             className="text-xs"
                             style={{
                               backgroundColor: product.packing_status === 'completed' ? settings.packing_status_completed_color : settings.packing_status_ongoing_color,
-                              color: 'white',
-                              padding: settings.status_indicator_padding ? `${settings.status_indicator_padding / 6}px ${settings.status_indicator_padding / 3}px` : undefined,
-                              fontSize: settings.large_screen_optimization ? `${settings.body_font_size * 0.85}px` : undefined
+                              color: 'white'
                             }}
                           >
                             {product.packing_status === 'completed' ? 'Ferdig' : 'Pågår'}
@@ -250,15 +229,12 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
                       }}
                     >
                       <div 
-                        className={`rounded-full transition-all duration-300 ${
-                          settings.progress_animation ? 'display-progress-animated' : ''
-                        } ${settings.enable_animations ? 'display-progress-fill' : ''}`}
+                        className={`rounded-full transition-all duration-300 ${settings.progress_animation ? 'animate-pulse' : ''}`}
                         style={{ 
                           backgroundColor: settings.progress_bar_color,
                           height: `${Math.max(settings.progress_height * 2, 16)}px`,
-                          width: `${mockCustomer.progress_percentage}%`,
-                          '--progress-width': `${mockCustomer.progress_percentage}%`
-                        } as React.CSSProperties & { [key: string]: string }}
+                          width: `${mockCustomer.progress_percentage}%`
+                        }}
                       />
                       {settings.show_truck_icon && (
                         <img 
