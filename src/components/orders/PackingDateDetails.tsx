@@ -69,6 +69,15 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
       return;
     }
 
+    // Additional session validation
+    const { user, session } = useAuthStore.getState();
+    if (!user || !session) {
+      console.error('No valid authentication session found');
+      return;
+    }
+
+    console.log('Starting packing session with user:', user.id, 'bakery:', profile.bakery_id);
+
     try {
       await createOrUpdateSession.mutateAsync({
         bakery_id: profile.bakery_id,
@@ -84,6 +93,11 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
       navigate(`/dashboard/orders/packing/${dateStr}`);
     } catch (error) {
       console.error('Failed to start packing session:', error);
+      
+      // If it's an RLS error, provide more helpful feedback
+      if (error instanceof Error && error.message.includes('row-level security')) {
+        console.error('RLS Error - User:', user.id, 'Bakery:', profile.bakery_id);
+      }
     }
   };
 

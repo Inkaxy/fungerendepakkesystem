@@ -41,13 +41,31 @@ export const useCreateOrUpdatePackingSession = () => {
 
   return useMutation({
     mutationFn: async (session: Omit<PackingSession, 'id' | 'created_at' | 'updated_at'>) => {
+      // Ensure we have a valid session before making the request
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication session expired. Please log in again.');
+      }
+      
+      if (!currentSession?.user) {
+        throw new Error('No authenticated user found. Please log in again.');
+      }
+
+      console.log('Authenticated user ID:', currentSession.user.id);
+      console.log('Attempting to create packing session with bakery_id:', session.bakery_id);
+
       const { data, error } = await supabase
         .from('packing_sessions')
         .upsert(session, { onConflict: 'bakery_id,session_date' })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Packing session upsert error:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
