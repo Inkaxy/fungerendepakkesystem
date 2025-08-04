@@ -275,7 +275,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId && !!activeProducts,
+    enabled: !!customerId && !!bakeryId,
     refetchInterval: 5000,
     staleTime: 1000,
   });
