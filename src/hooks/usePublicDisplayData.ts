@@ -81,22 +81,41 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
 
       console.log('Fetching public active packing date for bakery:', bakeryId);
 
-      const { data, error } = await supabase
+      // First try to get the latest session_date from active_packing_products
+      const { data: activeData, error: activeError } = await supabase
         .from('active_packing_products')
         .select('session_date')
         .eq('bakery_id', bakeryId)
-        .limit(1)
-        .single();
+        .order('session_date', { ascending: false })
+        .limit(1);
 
-      if (error) {
-        console.log('No active packing date found:', error);
+      if (!activeError && activeData && activeData.length > 0) {
+        console.log('Found active packing date from active_packing_products:', activeData[0].session_date);
+        return activeData[0].session_date;
+      }
+
+      console.log('No active packing products found, checking packing_sessions...');
+
+      // If no active products, fallback to packing_sessions
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('packing_sessions')
+        .select('session_date')
+        .eq('bakery_id', bakeryId)
+        .in('status', ['ready', 'in_progress'])
+        .order('session_date', { ascending: false })
+        .limit(1);
+
+      if (sessionError || !sessionData || sessionData.length === 0) {
+        console.log('No active packing session found');
         return null;
       }
 
-      console.log('Found active packing date:', data.session_date);
-      return data.session_date;
+      console.log('Found active packing date from packing_sessions:', sessionData[0].session_date);
+      return sessionData[0].session_date;
     },
     enabled: !!bakeryId,
+    staleTime: 1000, // Reduced to ensure fresh data
+    refetchInterval: 5000,
   });
 };
 
