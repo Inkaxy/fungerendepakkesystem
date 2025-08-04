@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { Order } from '@/types/database';
 import { usePackingSessionByDate, useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
+import { useAuthStore } from '@/stores/authStore';
 
 interface PackingDateDetailsProps {
   selectedDate: Date;
@@ -20,6 +21,7 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
   const { data: packingSession } = usePackingSessionByDate(dateStr);
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
+  const { profile } = useAuthStore();
 
   // Calculate statistics
   const totalOrders = orders.length;
@@ -62,9 +64,14 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
       return;
     }
 
+    if (!profile?.bakery_id) {
+      console.error('No bakery_id found in user profile');
+      return;
+    }
+
     try {
       await createOrUpdateSession.mutateAsync({
-        bakery_id: orders[0]?.bakery_id || '',
+        bakery_id: profile.bakery_id,
         session_date: dateStr,
         total_orders: totalOrders,
         unique_customers: uniqueCustomers,
