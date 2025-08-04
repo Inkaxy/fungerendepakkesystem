@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCustomers } from '@/hooks/useCustomers';
-import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useDisplaySettings } from '@/hooks/useDisplaySettings';
+import { usePackingData } from '@/hooks/usePackingData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
+  // For SharedDisplay, we still use the authenticated hooks since it's not customer-specific
   const { data: customers } = useCustomers();
   const { data: settings } = useDisplaySettings();
   

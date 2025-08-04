@@ -4,43 +4,42 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
-import { useCustomers } from '@/hooks/useCustomers';
-import { usePackingData } from '@/hooks/usePackingData';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
-import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
+import { 
+  usePublicCustomerByDisplayUrl, 
+  usePublicDisplaySettings, 
+  usePublicActivePackingDate, 
+  usePublicPackingData 
+} from '@/hooks/usePublicDisplayData';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
-  const { data: customers, isLoading: customersLoading } = useCustomers();
-  const { data: settings } = useDisplaySettings();
+  
+  // Use public hooks that don't require authentication
+  const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
+  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(displayUrl || '');
+  const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
+  const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
+    customer?.id, 
+    customer?.bakery_id, 
+    activePackingDate || undefined
+  );
   
   const { connectionStatus } = useRealTimeDisplay();
-  
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
-
-  const customer = customers?.find(c => c.display_url === displayUrl);
-  
-  const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
-  
-  const { data: packingData, isLoading: packingLoading } = usePackingData(
-    customer?.id, 
-    activePackingDate || undefined,
-    true
-  );
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
-  if (customersLoading || dateLoading || packingLoading) {
+  if (customerLoading || settingsLoading || dateLoading || packingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
            style={settings ? generateDisplayStyles(settings) : {}}>
