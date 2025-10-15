@@ -129,15 +129,22 @@ export const useDeleteAllCustomers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order-counts'] });
       toast({
         title: "Suksess",
-        description: "Alle kunder slettet",
+        description: "Alle kunder og tilknyttede ordrer er slettet",
       });
     },
     onError: (error) => {
+      console.error('Delete all customers error:', error);
+      const errorMessage = error.message.includes('foreign key')
+        ? 'Kunne ikke slette kunder på grunn av tilknyttede data. Kontakt support.'
+        : `Kunne ikke slette alle kunder: ${error.message}`;
+      
       toast({
         title: "Feil",
-        description: `Kunne ikke slette alle kunder: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
     },
