@@ -14,11 +14,9 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
       console.log('Fetching public customer with display URL:', displayUrl);
       
       const { data, error } = await supabase
-        .from('customers')
+        .from('public_display_customers')
         .select('*')
         .eq('display_url', displayUrl)
-        .eq('has_dedicated_display', true)
-        .eq('status', 'active')
         .single();
 
       if (error) {
@@ -164,22 +162,21 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       });
 
       const { data: orders, error } = await supabase
-        .from('orders')
+        .from('public_display_orders')
         .select(`
           id,
           customer_id,
-          customer:customers(id, name),
-          order_products(
+          customer:public_display_customers(id, name),
+          order_products:public_display_order_products(
             id,
             product_id,
             quantity,
             packing_status,
-            product:products(id, name, category, unit)
+            product:public_display_products(id, name, category, unit)
           )
         `)
         .eq('delivery_date', targetDate)
-        .eq('customer_id', customerId)
-        .in('status', ['pending', 'in_progress', 'packed']);
+        .eq('customer_id', customerId);
 
       if (error) {
         console.error('❌ Error fetching public orders:', error);

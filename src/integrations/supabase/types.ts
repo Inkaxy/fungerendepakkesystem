@@ -716,10 +716,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "order_products_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_orders"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_products_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_products"
             referencedColumns: ["id"]
           },
         ]
@@ -781,6 +795,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "public_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_customers"
             referencedColumns: ["id"]
           },
         ]
@@ -935,6 +956,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       public_customers: {
@@ -972,6 +1017,179 @@ export type Database = {
           },
         ]
       }
+      public_display_customers: {
+        Row: {
+          bakery_id: string | null
+          display_url: string | null
+          has_dedicated_display: boolean | null
+          id: string | null
+          name: string | null
+          status: string | null
+        }
+        Insert: {
+          bakery_id?: string | null
+          display_url?: string | null
+          has_dedicated_display?: boolean | null
+          id?: string | null
+          name?: string | null
+          status?: string | null
+        }
+        Update: {
+          bakery_id?: string | null
+          display_url?: string | null
+          has_dedicated_display?: boolean | null
+          id?: string | null
+          name?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_display_order_products: {
+        Row: {
+          id: string | null
+          order_id: string | null
+          packing_status: string | null
+          product_id: string | null
+          quantity: number | null
+        }
+        Insert: {
+          id?: string | null
+          order_id?: string | null
+          packing_status?: string | null
+          product_id?: string | null
+          quantity?: number | null
+        }
+        Update: {
+          id?: string | null
+          order_id?: string | null
+          packing_status?: string | null
+          product_id?: string | null
+          quantity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_products_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_products_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_display_orders: {
+        Row: {
+          bakery_id: string | null
+          customer_id: string | null
+          delivery_date: string | null
+          id: string | null
+          status: string | null
+        }
+        Insert: {
+          bakery_id?: string | null
+          customer_id?: string | null
+          delivery_date?: string | null
+          id?: string | null
+          status?: string | null
+        }
+        Update: {
+          bakery_id?: string | null
+          customer_id?: string | null
+          delivery_date?: string | null
+          id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_display_products: {
+        Row: {
+          bakery_id: string | null
+          category: string | null
+          id: string | null
+          name: string | null
+          unit: string | null
+        }
+        Insert: {
+          bakery_id?: string | null
+          category?: string | null
+          id?: string | null
+          name?: string | null
+          unit?: string | null
+        }
+        Update: {
+          bakery_id?: string | null
+          category?: string | null
+          id?: string | null
+          name?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       extend_user_session: {
@@ -994,12 +1212,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_primary_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       should_extend_session: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
     Enums: {
+      app_role: "super_admin" | "bakery_admin" | "bakery_user"
       user_role: "super_admin" | "bakery_admin" | "bakery_user"
     }
     CompositeTypes: {
@@ -1128,6 +1358,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["super_admin", "bakery_admin", "bakery_user"],
       user_role: ["super_admin", "bakery_admin", "bakery_user"],
     },
   },

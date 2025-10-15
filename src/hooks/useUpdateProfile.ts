@@ -9,7 +9,8 @@ export const useUpdateProfile = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Profile> & { id: string }) => {
+    mutationFn: async ({ id, role, ...updates }: Partial<Profile> & { id: string }) => {
+      // Update profile data (excluding role)
       const { data, error } = await supabase
         .from('profiles')
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -18,6 +19,28 @@ export const useUpdateProfile = () => {
         .maybeSingle();
 
       if (error) throw error;
+
+      // If role is provided, update it in user_roles table
+      if (role) {
+        // Delete existing roles for this user
+        const { error: deleteError } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', id);
+
+        if (deleteError) throw deleteError;
+
+        // Insert new role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: id,
+            role: role,
+          });
+
+        if (roleError) throw roleError;
+      }
+
       return data;
     },
     onSuccess: () => {

@@ -52,7 +52,6 @@ export const useCreateProfile = () => {
           .from('profiles')
           .update({
             name: profile.name,
-            role: profile.role,
             bakery_id: profile.bakery_id,
             email_confirmed: true,
             updated_at: new Date().toISOString(),
@@ -74,7 +73,6 @@ export const useCreateProfile = () => {
             id: authData.user.id,
             email: normalizedEmail,
             name: profile.name,
-            role: profile.role,
             bakery_id: profile.bakery_id,
             email_confirmed: true,
             provider: 'email',
@@ -88,6 +86,20 @@ export const useCreateProfile = () => {
           throw error;
         }
         profileData = data;
+      }
+
+      // Insert role into user_roles table
+      console.log('Inserting role into user_roles table:', profile.role);
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: authData.user.id,
+          role: profile.role,
+        });
+
+      if (roleError) {
+        console.error('Role insertion error:', roleError);
+        throw roleError;
       }
       
       console.log('Profile operation successful:', profileData);

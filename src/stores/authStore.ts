@@ -120,33 +120,47 @@ export const useAuthStore = create<AuthState>()(
         try {
           console.log('Fetching profile for user:', userId);
           
-          const { data, error } = await supabase
+          // Fetch profile data
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select(`
-              id, email, name, avatar_url, role, bakery_id, provider, email_confirmed, is_active,
+              id, email, name, avatar_url, bakery_id, provider, email_confirmed, is_active,
               bakeries(name)
             `)
             .eq('id', userId)
             .maybeSingle();
 
-          if (error) {
-            console.error('Error fetching profile:', error);
-            // Don't throw, just log the error and continue
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
             return;
           }
 
-          if (data) {
+          // Fetch role from user_roles table
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .order('role', { ascending: true }) // super_admin < bakery_admin < bakery_user alphabetically
+            .limit(1)
+            .maybeSingle();
+
+          if (roleError) {
+            console.error('Error fetching user role:', roleError);
+            // Fallback to role from profiles table for backward compatibility
+          }
+
+          if (profileData) {
             const profile: UserProfile = {
-              id: data.id,
-              email: data.email || '',
-              name: data.name,
-              avatar_url: data.avatar_url,
-              role: data.role as UserRole,
-              bakery_id: data.bakery_id,
-              bakery_name: data.bakeries?.name || null,
-              provider: data.provider as AuthProvider,
-              email_confirmed: data.email_confirmed,
-              is_active: data.is_active,
+              id: profileData.id,
+              email: profileData.email || '',
+              name: profileData.name,
+              avatar_url: profileData.avatar_url,
+              role: (roleData?.role || 'bakery_user') as UserRole, // Use role from user_roles, fallback to bakery_user
+              bakery_id: profileData.bakery_id,
+              bakery_name: profileData.bakeries?.name || null,
+              provider: profileData.provider as AuthProvider,
+              email_confirmed: profileData.email_confirmed,
+              is_active: profileData.is_active,
             };
             set({ profile });
             
