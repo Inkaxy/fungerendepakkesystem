@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Package, Users, FileText } from 'lucide-react';
+import { Package, Users, FileText, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 import FileDropZone from './FileDropZone';
 import UploadProgressIndicator from './UploadProgressIndicator';
+import MultiFileDropZone from './MultiFileDropZone';
+import SelectedFilesList from './SelectedFilesList';
 import { UploadStatus, UploadResults } from './types';
 
 interface SimultaneousFileUploadProps {
@@ -41,6 +44,34 @@ const SimultaneousFileUpload = ({
 
   const handleFileRemove = (type: 'products' | 'customers' | 'orders') => {
     setSelectedFiles(prev => ({ ...prev, [type]: null }));
+  };
+
+  const handleMultipleFiles = (files: File[]) => {
+    // Valider antall filer
+    if (files.length !== 3) {
+      toast.error('Vennligst last opp nøyaktig 3 filer (.PRD, .CUS, .OD0)');
+      return;
+    }
+    
+    // Identifiser hver fil basert på endelse
+    const productFile = files.find(f => f.name.toLowerCase().endsWith('.prd'));
+    const customerFile = files.find(f => f.name.toLowerCase().endsWith('.cus'));
+    const orderFile = files.find(f => f.name.toLowerCase().endsWith('.od0'));
+    
+    // Valider at alle filtyper er til stede
+    if (!productFile || !customerFile || !orderFile) {
+      toast.error('Mangler en eller flere påkrevde filtyper (.PRD, .CUS, .OD0)');
+      return;
+    }
+    
+    // Sett alle filene på en gang
+    setSelectedFiles({
+      products: productFile,
+      customers: customerFile,
+      orders: orderFile
+    });
+    
+    toast.success('Alle 3 filer valgt! Klar for opplasting.');
   };
 
   const handleBatchUpload = async () => {
@@ -86,7 +117,7 @@ const SimultaneousFileUpload = ({
         <div>
           <h3 className="text-lg font-semibold mb-1">Last opp datafiler</h3>
           <p className="text-sm text-muted-foreground">
-            Velg alle tre filene nedenfor, deretter klikk "Last opp alle filer" for å starte importen.
+            Dra alle tre filene samtidig eller velg filer individuelt.
           </p>
         </div>
 
@@ -100,43 +131,64 @@ const SimultaneousFileUpload = ({
         </div>
       </div>
 
-      <div className="grid gap-4">
-        <FileDropZone
-          fileType="products"
-          label="Produktfil"
-          icon={<Package className="w-5 h-5 text-primary" />}
-          acceptedExtensions=".prd"
-          selectedFile={selectedFiles.products}
-          onFileSelect={(file) => handleFileSelect('products', file)}
-          onFileRemove={() => handleFileRemove('products')}
-          status={uploadStatus.products}
-          disabled={!hasBakeryAccess || isUploading}
-        />
+      {/* Felles drop zone for alle 3 filer */}
+      <MultiFileDropZone
+        onFilesSelected={handleMultipleFiles}
+        disabled={!hasBakeryAccess || isUploading}
+      />
 
-        <FileDropZone
-          fileType="customers"
-          label="Kundefil"
-          icon={<Users className="w-5 h-5 text-primary" />}
-          acceptedExtensions=".cus"
-          selectedFile={selectedFiles.customers}
-          onFileSelect={(file) => handleFileSelect('customers', file)}
-          onFileRemove={() => handleFileRemove('customers')}
-          status={uploadStatus.customers}
-          disabled={!hasBakeryAccess || isUploading}
-        />
+      {/* Kompakt liste over valgte filer */}
+      <SelectedFilesList
+        files={selectedFiles}
+        onRemove={handleFileRemove}
+        uploadStatus={uploadStatus}
+      />
 
-        <FileDropZone
-          fileType="orders"
-          label="Ordrefil"
-          icon={<FileText className="w-5 h-5 text-primary" />}
-          acceptedExtensions=".od0"
-          selectedFile={selectedFiles.orders}
-          onFileSelect={(file) => handleFileSelect('orders', file)}
-          onFileRemove={() => handleFileRemove('orders')}
-          status={uploadStatus.orders}
-          disabled={!hasBakeryAccess || isUploading}
-        />
-      </div>
+      {/* Alternativ: Individuelle drop zones */}
+      {!allFilesSelected && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground text-center">
+            Eller velg filer individuelt:
+          </p>
+          <div className="grid gap-3">
+            <FileDropZone
+              fileType="products"
+              label="Produktfil"
+              icon={<Package className="w-5 h-5 text-primary" />}
+              acceptedExtensions=".prd"
+              selectedFile={selectedFiles.products}
+              onFileSelect={(file) => handleFileSelect('products', file)}
+              onFileRemove={() => handleFileRemove('products')}
+              status={uploadStatus.products}
+              disabled={!hasBakeryAccess || isUploading}
+            />
+
+            <FileDropZone
+              fileType="customers"
+              label="Kundefil"
+              icon={<Users className="w-5 h-5 text-primary" />}
+              acceptedExtensions=".cus"
+              selectedFile={selectedFiles.customers}
+              onFileSelect={(file) => handleFileSelect('customers', file)}
+              onFileRemove={() => handleFileRemove('customers')}
+              status={uploadStatus.customers}
+              disabled={!hasBakeryAccess || isUploading}
+            />
+
+            <FileDropZone
+              fileType="orders"
+              label="Ordrefil"
+              icon={<FileText className="w-5 h-5 text-primary" />}
+              acceptedExtensions=".od0"
+              selectedFile={selectedFiles.orders}
+              onFileSelect={(file) => handleFileSelect('orders', file)}
+              onFileRemove={() => handleFileRemove('orders')}
+              status={uploadStatus.orders}
+              disabled={!hasBakeryAccess || isUploading}
+            />
+          </div>
+        </div>
+      )}
 
       <Button 
         onClick={handleBatchUpload}
@@ -144,6 +196,7 @@ const SimultaneousFileUpload = ({
         className="w-full"
         size="lg"
       >
+        <Upload className="w-4 h-4 mr-2" />
         Last opp alle filer
       </Button>
 
