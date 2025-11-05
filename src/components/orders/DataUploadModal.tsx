@@ -8,7 +8,7 @@ import { UploadStatus, IdMapping, UploadResults } from './upload/types';
 import DebugInfo from './upload/DebugInfo';
 import AccessWarning from './upload/AccessWarning';
 import UploadInstructions from './upload/UploadInstructions';
-import UploadTabs from './upload/UploadTabs';
+import SimultaneousFileUpload from './upload/SimultaneousFileUpload';
 import { useProductUpload } from './upload/useProductUpload';
 import { useCustomerUpload } from './upload/useCustomerUpload';
 import { useOrderUpload } from './upload/useOrderUpload';
@@ -78,10 +78,9 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
 
         <AccessWarning profile={profile} />
 
-        <UploadInstructions />
-
-        <UploadTabs
+        <SimultaneousFileUpload
           uploadStatus={uploadStatus}
+          uploadResults={uploadResults}
           onProductUpload={handleProductUpload}
           onCustomerUpload={handleCustomerUpload}
           onOrderUpload={handleOrderUpload}
