@@ -77,59 +77,6 @@ export type Database = {
         }
         Relationships: []
       }
-      bakery_credentials: {
-        Row: {
-          bakery_id: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          last_tested_at: string | null
-          microsoft_client_id_encrypted: string | null
-          microsoft_client_secret_encrypted: string | null
-          microsoft_tenant_id_encrypted: string | null
-          resend_api_key_encrypted: string | null
-          test_error: string | null
-          test_status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          last_tested_at?: string | null
-          microsoft_client_id_encrypted?: string | null
-          microsoft_client_secret_encrypted?: string | null
-          microsoft_tenant_id_encrypted?: string | null
-          resend_api_key_encrypted?: string | null
-          test_error?: string | null
-          test_status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          last_tested_at?: string | null
-          microsoft_client_id_encrypted?: string | null
-          microsoft_client_secret_encrypted?: string | null
-          microsoft_tenant_id_encrypted?: string | null
-          resend_api_key_encrypted?: string | null
-          test_error?: string | null
-          test_status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bakery_credentials_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: true
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customers: {
         Row: {
           address: string | null
@@ -678,16 +625,13 @@ export type Database = {
           bakery_id: string
           created_at: string
           delete_after_sync: boolean | null
-          delete_old_files_after_days: number | null
           folder_path: string | null
           id: string
           is_active: boolean | null
           last_sync_at: string | null
           last_sync_error: string | null
           last_sync_status: string | null
-          notification_email: string | null
           schedule_cron: string | null
-          send_failure_notifications: boolean | null
           service_config: Json
           service_type: string
           updated_at: string
@@ -696,16 +640,13 @@ export type Database = {
           bakery_id: string
           created_at?: string
           delete_after_sync?: boolean | null
-          delete_old_files_after_days?: number | null
           folder_path?: string | null
           id?: string
           is_active?: boolean | null
           last_sync_at?: string | null
           last_sync_error?: string | null
           last_sync_status?: string | null
-          notification_email?: string | null
           schedule_cron?: string | null
-          send_failure_notifications?: boolean | null
           service_config?: Json
           service_type: string
           updated_at?: string
@@ -714,16 +655,13 @@ export type Database = {
           bakery_id?: string
           created_at?: string
           delete_after_sync?: boolean | null
-          delete_old_files_after_days?: number | null
           folder_path?: string | null
           id?: string
           is_active?: boolean | null
           last_sync_at?: string | null
           last_sync_error?: string | null
           last_sync_status?: string | null
-          notification_email?: string | null
           schedule_cron?: string | null
-          send_failure_notifications?: boolean | null
           service_config?: Json
           service_type?: string
           updated_at?: string
@@ -1254,22 +1192,26 @@ export type Database = {
       }
     }
     Functions: {
-      decrypt_credential: {
-        Args: { encrypted_text: string; key: string }
+      extend_user_session: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_display_url: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
-      encrypt_credential: {
-        Args: { key: string; plain_text: string }
-        Returns: string
-      }
-      extend_user_session: { Args: never; Returns: undefined }
-      generate_display_url: { Args: never; Returns: string }
       get_bakery_id_from_display_url: {
         Args: { display_url_param: string }
         Returns: string
       }
-      get_current_user_bakery_id: { Args: never; Returns: string }
-      get_current_user_role: { Args: never; Returns: string }
+      get_current_user_bakery_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_primary_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1281,8 +1223,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      should_extend_session: { Args: never; Returns: boolean }
-      update_sync_cron_jobs: { Args: never; Returns: undefined }
+      should_extend_session: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "super_admin" | "bakery_admin" | "bakery_user"
