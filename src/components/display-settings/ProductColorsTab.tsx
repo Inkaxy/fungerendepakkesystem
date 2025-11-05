@@ -144,6 +144,61 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
         </CardContent>
       </Card>
 
+      {/* Font Size Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">📝 Tekststørrelser</CardTitle>
+          <p className="text-sm text-gray-600">
+            Kontroller størrelsen på tekstelementer i produktvisningen
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <SliderControl
+            label="Størrelse på produktnavn"
+            value={settings.product_name_font_size}
+            onChange={(value) => onUpdate({ product_name_font_size: value })}
+            min={14}
+            max={48}
+            step={2}
+            unit="px"
+            description="Størrelsen på teksten som viser produktnavnet"
+          />
+          
+          <SliderControl
+            label="Størrelse på antall"
+            value={settings.product_quantity_font_size}
+            onChange={(value) => onUpdate({ product_quantity_font_size: value })}
+            min={24}
+            max={96}
+            step={4}
+            unit="px"
+            description="Størrelsen på tallet som viser antall produkter"
+          />
+          
+          <SliderControl
+            label="Størrelse på enhet (stk, kg)"
+            value={settings.product_unit_font_size}
+            onChange={(value) => onUpdate({ product_unit_font_size: value })}
+            min={12}
+            max={48}
+            step={2}
+            unit="px"
+            description="Størrelsen på enhets-teksten ved siden av antallet"
+          />
+          
+          <SliderControl
+            label="Størrelse på varelinjer-telling (3/5)"
+            value={settings.line_items_count_font_size}
+            onChange={(value) => onUpdate({ line_items_count_font_size: value })}
+            min={12}
+            max={32}
+            step={2}
+            unit="px"
+            description="Størrelsen på tellingen som viser antall varelinjer"
+          />
+        </CardContent>
+      </Card>
+
       {/* Product Preview */}
       <Card>
         <CardHeader>
@@ -153,22 +208,34 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4" style={{ gap: `${settings.product_spacing}px` }}>
             {[
               { 
-                name: 'Produktlinje 1', 
+                name: 'Rugbrød', 
+                quantity: 45,
+                unit: 'stk',
+                completed: 3,
+                total: 5,
                 bgColor: settings.product_1_bg_color,
                 textColor: settings.product_1_text_color,
                 accentColor: settings.product_1_accent_color
               },
               { 
-                name: 'Produktlinje 2', 
+                name: 'Grovbrød', 
+                quantity: 28,
+                unit: 'stk',
+                completed: 2,
+                total: 4,
                 bgColor: settings.product_2_bg_color,
                 textColor: settings.product_2_text_color,
                 accentColor: settings.product_2_accent_color
               },
               { 
-                name: 'Produktlinje 3', 
+                name: 'Kringle', 
+                quantity: 12,
+                unit: 'kg',
+                completed: 1,
+                total: 3,
                 bgColor: settings.product_3_bg_color,
                 textColor: settings.product_3_text_color,
                 accentColor: settings.product_3_accent_color
@@ -176,52 +243,85 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
             ].map((product, idx) => (
               <div 
                 key={idx}
-                className="p-4 rounded-lg border transition-all duration-300 hover:shadow-md" 
+                className="rounded-lg border transition-all duration-300 hover:shadow-md" 
                 style={{ 
                   backgroundColor: product.bgColor,
                   borderRadius: `${settings.border_radius}px`,
+                  padding: `${settings.product_card_padding}px`,
                   transform: `scale(${settings.product_card_size / 100})`,
                   transformOrigin: 'top left'
                 }}
               >
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: product.accentColor }}
-                      />
-                      <h4 
-                        className="font-medium"
-                        style={{ color: product.textColor }}
-                      >
-                        {product.name}
-                      </h4>
-                    </div>
-                    <span 
-                      className="text-sm font-bold px-2 py-1 rounded"
+                  {/* Product Name and Quantity */}
+                  <div className="flex justify-between items-start gap-4">
+                    <h4 
+                      className="leading-tight"
                       style={{ 
-                        color: product.bgColor,
-                        backgroundColor: product.accentColor
+                        color: product.textColor,
+                        fontSize: `${settings.product_name_font_size}px`,
+                        fontWeight: settings.product_name_font_weight
                       }}
                     >
-                      {idx + 3}
-                    </span>
+                      {product.name}
+                    </h4>
+                    <div className="flex items-baseline gap-1 flex-shrink-0">
+                      <span 
+                        className="font-bold"
+                        style={{ 
+                          color: product.accentColor,
+                          fontSize: `${settings.product_quantity_font_size}px`,
+                          fontWeight: settings.product_quantity_font_weight
+                        }}
+                      >
+                        {product.quantity}
+                      </span>
+                      {settings.show_product_unit && (
+                        <span 
+                          style={{ 
+                            color: product.textColor,
+                            fontSize: `${settings.product_unit_font_size}px`,
+                            opacity: 0.7
+                          }}
+                        >
+                          {product.unit}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
+                  {/* Line Items Count */}
+                  {settings.show_line_items_count && (
+                    <div className="flex items-center gap-2">
+                      <span 
+                        style={{ 
+                          color: product.textColor,
+                          fontSize: `${settings.line_items_count_font_size}px`,
+                          opacity: 0.6
+                        }}
+                      >
+                        {product.completed}/{product.total} varelinjer
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Progress Bar */}
                   {settings.show_progress_bar && (
                     <div className="mt-2">
                       <div 
-                        className="h-2 rounded-full"
-                        style={{ backgroundColor: settings.progress_background_color }}
+                        className="rounded-full overflow-hidden"
+                        style={{ 
+                          backgroundColor: settings.progress_background_color,
+                          height: `${settings.progress_height}px`
+                        }}
                       >
                         <div 
-                          className={`h-full rounded-full transition-all ${
+                          className={`h-full transition-all ${
                             settings.progress_animation ? 'animate-pulse' : ''
                           }`}
                           style={{ 
                             backgroundColor: settings.progress_bar_color,
-                            width: `${(idx + 1) * 25}%`,
+                            width: `${(product.completed / product.total) * 100}%`,
                             transitionDuration: settings.animation_speed === 'slow' ? '2s' : 
                                                settings.animation_speed === 'fast' ? '0.5s' : '1s'
                           }}
@@ -229,12 +329,33 @@ const ProductColorsTab = ({ settings, onUpdate }: ProductColorsTabProps) => {
                       </div>
                       {settings.show_progress_percentage && (
                         <p 
-                          className="text-xs mt-1"
-                          style={{ color: product.textColor, opacity: 0.7 }}
+                          className="mt-1"
+                          style={{ 
+                            color: product.textColor, 
+                            opacity: 0.7,
+                            fontSize: `${settings.line_items_count_font_size}px`
+                          }}
                         >
-                          {(idx + 1) * 25}% ferdig
+                          {Math.round((product.completed / product.total) * 100)}% ferdig
                         </p>
                       )}
+                    </div>
+                  )}
+                  
+                  {/* Status Badge */}
+                  {settings.show_status_badges && (
+                    <div className="flex gap-2 mt-2">
+                      <span 
+                        className="px-2 py-1 rounded"
+                        style={{ 
+                          backgroundColor: settings.packing_status_ongoing_color,
+                          color: product.bgColor,
+                          fontSize: `${settings.status_badge_font_size}px`,
+                          fontWeight: 600
+                        }}
+                      >
+                        Pågår
+                      </span>
                     </div>
                   )}
                 </div>

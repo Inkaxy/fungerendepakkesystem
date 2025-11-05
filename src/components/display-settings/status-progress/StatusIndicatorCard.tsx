@@ -50,6 +50,17 @@ const StatusIndicatorCard = ({ settings, onUpdate }: StatusIndicatorCardProps) =
               onChange={(value) => onUpdate({ status_indicator_padding: value })}
             />
 
+            <SliderControl
+              label="Status badge tekststørrelse"
+              value={settings.status_badge_font_size}
+              min={10}
+              max={24}
+              step={2}
+              unit="px"
+              onChange={(value) => onUpdate({ status_badge_font_size: value })}
+              description="Størrelsen på teksten i status badges (Ferdig, Pågår, Venter)"
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ColorPicker
                 label="Pågående farge"
