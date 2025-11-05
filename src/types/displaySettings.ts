@@ -33,6 +33,8 @@ export interface DisplaySettings {
   product_1_accent_color: string;
   product_2_accent_color: string;
   product_3_accent_color: string;
+  // Product quantity display settings
+  product_quantity_font_size: number;
   // Packing-specific settings
   packing_status_ongoing_color: string;
   packing_status_completed_color: string;

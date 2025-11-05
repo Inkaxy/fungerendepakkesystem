@@ -48,8 +48,13 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
               </div>
               <div className="text-right space-y-2">
                 <div 
-                  className="text-3xl font-bold"
-                  style={{ color: getProductAccentColor(settings || {} as any, index) }}
+                  className="font-bold"
+                  style={{ 
+                    color: getProductAccentColor(settings || {} as any, index),
+                    fontSize: settings?.product_quantity_font_size 
+                      ? `${settings.product_quantity_font_size}px` 
+                      : '48px'
+                  }}
                 >
                   {product.total_quantity} {product.product_unit}
                 </div>

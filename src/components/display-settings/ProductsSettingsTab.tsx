@@ -42,6 +42,15 @@ const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) =
             unit="%"
             description="Justerer størrelsen på produktkortene"
           />
+          <SliderControl
+            label="Størrelse på antall"
+            value={settings.product_quantity_font_size}
+            onChange={(value) => onUpdate({ product_quantity_font_size: value })}
+            min={24}
+            max={96}
+            unit="px"
+            description="Størrelsen på tall som viser antall å levere"
+          />
         </CardContent>
       </Card>
 
@@ -118,10 +127,13 @@ const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) =
                   </p>
                   <div className="flex justify-between items-center">
                     <span 
-                      className="text-sm font-medium"
-                      style={{ color: settings.product_accent_color }}
+                      className="font-bold"
+                      style={{ 
+                        color: settings.product_accent_color,
+                        fontSize: `${settings.product_quantity_font_size}px`
+                      }}
                     >
-                      Antall: {idx + 3}
+                      {idx + 3} stk
                     </span>
                     <span 
                       className="text-xs px-2 py-1 rounded"

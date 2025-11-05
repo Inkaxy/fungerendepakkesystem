@@ -142,8 +142,13 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                       {product.product_name}
                     </span>
                     <span 
-                      className="text-xs font-semibold"
-                      style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
+                      className="font-semibold"
+                      style={{ 
+                        color: getProductAccentColor(settings || {} as any, idx % 3),
+                        fontSize: settings?.product_quantity_font_size 
+                          ? `${settings.product_quantity_font_size * 0.5}px` 
+                          : '24px'
+                      }}
                     >
                       {product.total_quantity} {product.product_unit}
                     </span>

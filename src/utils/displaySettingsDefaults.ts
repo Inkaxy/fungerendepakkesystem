@@ -31,6 +31,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   product_1_accent_color: '#3b82f6',
   product_2_accent_color: '#10b981',
   product_3_accent_color: '#f59e0b',
+  product_quantity_font_size: 48,
   progress_bar_color: '#3b82f6',
   progress_background_color: '#e5e7eb',
   progress_height: 8,
