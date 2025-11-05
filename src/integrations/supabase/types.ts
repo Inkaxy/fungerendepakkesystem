@@ -281,6 +281,7 @@ export type Database = {
           id: string
           large_screen_optimization: boolean | null
           line_height: number | null
+          line_items_count_font_size: number | null
           main_title: string | null
           manual_refresh_button_position: string | null
           max_products_per_card: number | null
@@ -300,8 +301,10 @@ export type Database = {
           product_card_size: number | null
           product_change_animation: boolean | null
           product_list_style: string | null
+          product_name_font_size: number | null
           product_quantity_font_size: number | null
           product_text_color: string | null
+          product_unit_font_size: number | null
           progress_animation: boolean | null
           progress_background_color: string | null
           progress_bar_color: string | null
@@ -390,6 +393,7 @@ export type Database = {
           id?: string
           large_screen_optimization?: boolean | null
           line_height?: number | null
+          line_items_count_font_size?: number | null
           main_title?: string | null
           manual_refresh_button_position?: string | null
           max_products_per_card?: number | null
@@ -409,8 +413,10 @@ export type Database = {
           product_card_size?: number | null
           product_change_animation?: boolean | null
           product_list_style?: string | null
+          product_name_font_size?: number | null
           product_quantity_font_size?: number | null
           product_text_color?: string | null
+          product_unit_font_size?: number | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
@@ -499,6 +505,7 @@ export type Database = {
           id?: string
           large_screen_optimization?: boolean | null
           line_height?: number | null
+          line_items_count_font_size?: number | null
           main_title?: string | null
           manual_refresh_button_position?: string | null
           max_products_per_card?: number | null
@@ -518,8 +525,10 @@ export type Database = {
           product_card_size?: number | null
           product_change_animation?: boolean | null
           product_list_style?: string | null
+          product_name_font_size?: number | null
           product_quantity_font_size?: number | null
           product_text_color?: string | null
+          product_unit_font_size?: number | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null

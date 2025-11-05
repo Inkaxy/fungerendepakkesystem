@@ -13,10 +13,55 @@ interface ProductsSettingsTabProps {
 const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) => {
   return (
     <div className="space-y-6">
-      {/* General Product Card Settings */}
+      {/* Text Sizes Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Generelle Produktkort Innstillinger</CardTitle>
+          <CardTitle className="text-lg">📝 Tekststørrelser</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <SliderControl
+            label="Størrelse på produktnavn"
+            value={settings.product_name_font_size}
+            onChange={(value) => onUpdate({ product_name_font_size: value })}
+            min={14}
+            max={48}
+            unit="px"
+            description="Størrelsen på produktnavnet"
+          />
+          <SliderControl
+            label="Størrelse på antall"
+            value={settings.product_quantity_font_size}
+            onChange={(value) => onUpdate({ product_quantity_font_size: value })}
+            min={24}
+            max={96}
+            unit="px"
+            description="Størrelsen på tall som viser antall å levere"
+          />
+          <SliderControl
+            label="Størrelse på enhet"
+            value={settings.product_unit_font_size}
+            onChange={(value) => onUpdate({ product_unit_font_size: value })}
+            min={12}
+            max={48}
+            unit="px"
+            description="Størrelsen på enhet (stk, kg, etc.)"
+          />
+          <SliderControl
+            label="Størrelse på varelinjer-telling"
+            value={settings.line_items_count_font_size}
+            onChange={(value) => onUpdate({ line_items_count_font_size: value })}
+            min={12}
+            max={32}
+            unit="px"
+            description="Størrelsen på pakket/totalt varelinjer (f.eks. '3/5')"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Colors Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">🎨 Farger</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -33,6 +78,15 @@ const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) =
               description="Farge for ikoner og detaljer"
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Layout Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">📐 Layout</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <SliderControl
             label="Kort størrelse"
             value={settings.product_card_size}
@@ -41,15 +95,6 @@ const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) =
             max={150}
             unit="%"
             description="Justerer størrelsen på produktkortene"
-          />
-          <SliderControl
-            label="Størrelse på antall"
-            value={settings.product_quantity_font_size}
-            onChange={(value) => onUpdate({ product_quantity_font_size: value })}
-            min={24}
-            max={96}
-            unit="px"
-            description="Størrelsen på tall som viser antall å levere"
           />
         </CardContent>
       </Card>

@@ -40,7 +40,9 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                   className="font-bold mb-1"
                   style={{ 
                     color: getProductTextColor(settings || {} as any, index),
-                    fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.5}px` : '1.5rem'
+                    fontSize: settings?.product_name_font_size 
+                      ? `${settings.product_name_font_size}px` 
+                      : '24px'
                   }}
                 >
                   {product.product_name}
@@ -48,20 +50,35 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
               </div>
               <div className="text-right space-y-2">
                 <div 
-                  className="font-bold"
+                  className="font-bold flex items-baseline justify-end gap-1"
                   style={{ 
                     color: getProductAccentColor(settings || {} as any, index),
+                  }}
+                >
+                  <span style={{ 
                     fontSize: settings?.product_quantity_font_size 
                       ? `${settings.product_quantity_font_size}px` 
                       : '48px'
-                  }}
-                >
-                  {product.total_quantity} {product.product_unit}
+                  }}>
+                    {product.total_quantity}
+                  </span>
+                  <span style={{ 
+                    fontSize: settings?.product_unit_font_size 
+                      ? `${settings.product_unit_font_size}px` 
+                      : '24px'
+                  }}>
+                    {product.product_unit}
+                  </span>
                 </div>
                 <div className="text-right">
                   <span 
-                    className="text-lg font-semibold block mb-1"
-                    style={{ color: getProductTextColor(settings || {} as any, index) }}
+                    className="font-semibold block mb-1"
+                    style={{ 
+                      color: getProductTextColor(settings || {} as any, index),
+                      fontSize: settings?.line_items_count_font_size 
+                        ? `${settings.line_items_count_font_size}px` 
+                        : '18px'
+                    }}
                   >
                     {product.packed_line_items}/{product.total_line_items}
                   </span>
