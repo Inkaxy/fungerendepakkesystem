@@ -625,13 +625,16 @@ export type Database = {
           bakery_id: string
           created_at: string
           delete_after_sync: boolean | null
+          delete_old_files_after_days: number | null
           folder_path: string | null
           id: string
           is_active: boolean | null
           last_sync_at: string | null
           last_sync_error: string | null
           last_sync_status: string | null
+          notification_email: string | null
           schedule_cron: string | null
+          send_failure_notifications: boolean | null
           service_config: Json
           service_type: string
           updated_at: string
@@ -640,13 +643,16 @@ export type Database = {
           bakery_id: string
           created_at?: string
           delete_after_sync?: boolean | null
+          delete_old_files_after_days?: number | null
           folder_path?: string | null
           id?: string
           is_active?: boolean | null
           last_sync_at?: string | null
           last_sync_error?: string | null
           last_sync_status?: string | null
+          notification_email?: string | null
           schedule_cron?: string | null
+          send_failure_notifications?: boolean | null
           service_config?: Json
           service_type: string
           updated_at?: string
@@ -655,13 +661,16 @@ export type Database = {
           bakery_id?: string
           created_at?: string
           delete_after_sync?: boolean | null
+          delete_old_files_after_days?: number | null
           folder_path?: string | null
           id?: string
           is_active?: boolean | null
           last_sync_at?: string | null
           last_sync_error?: string | null
           last_sync_status?: string | null
+          notification_email?: string | null
           schedule_cron?: string | null
+          send_failure_notifications?: boolean | null
           service_config?: Json
           service_type?: string
           updated_at?: string
@@ -1192,26 +1201,14 @@ export type Database = {
       }
     }
     Functions: {
-      extend_user_session: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_display_url: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      extend_user_session: { Args: never; Returns: undefined }
+      generate_display_url: { Args: never; Returns: string }
       get_bakery_id_from_display_url: {
         Args: { display_url_param: string }
         Returns: string
       }
-      get_current_user_bakery_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_bakery_id: { Args: never; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
       get_user_primary_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1223,10 +1220,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      should_extend_session: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      should_extend_session: { Args: never; Returns: boolean }
+      update_sync_cron_jobs: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "super_admin" | "bakery_admin" | "bakery_user"
