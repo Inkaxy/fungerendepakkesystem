@@ -26,6 +26,11 @@ export interface DisplaySettings {
   product_unit_font_size: number;
   line_items_count_font_size: number;
   status_badge_font_size: number;
+  product_spacing: number;
+  product_card_padding: number;
+  product_name_font_weight: number;
+  product_quantity_font_weight: number;
+  show_product_unit: boolean;
   // Individual product background colors
   product_1_bg_color: string;
   product_2_bg_color: string;

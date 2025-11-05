@@ -298,11 +298,15 @@ export type Database = {
           product_3_text_color: string | null
           product_accent_color: string | null
           product_card_color: string | null
+          product_card_padding: number | null
           product_card_size: number | null
           product_change_animation: boolean | null
           product_list_style: string | null
           product_name_font_size: number | null
+          product_name_font_weight: number | null
           product_quantity_font_size: number | null
+          product_quantity_font_weight: number | null
+          product_spacing: number | null
           product_text_color: string | null
           product_unit_font_size: number | null
           progress_animation: boolean | null
@@ -324,6 +328,7 @@ export type Database = {
           show_manual_refresh_button: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
+          show_product_unit: boolean | null
           show_progress_bar: boolean | null
           show_progress_percentage: boolean | null
           show_running_cats: boolean | null
@@ -411,11 +416,15 @@ export type Database = {
           product_3_text_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
+          product_card_padding?: number | null
           product_card_size?: number | null
           product_change_animation?: boolean | null
           product_list_style?: string | null
           product_name_font_size?: number | null
+          product_name_font_weight?: number | null
           product_quantity_font_size?: number | null
+          product_quantity_font_weight?: number | null
+          product_spacing?: number | null
           product_text_color?: string | null
           product_unit_font_size?: number | null
           progress_animation?: boolean | null
@@ -437,6 +446,7 @@ export type Database = {
           show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
+          show_product_unit?: boolean | null
           show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
           show_running_cats?: boolean | null
@@ -524,11 +534,15 @@ export type Database = {
           product_3_text_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
+          product_card_padding?: number | null
           product_card_size?: number | null
           product_change_animation?: boolean | null
           product_list_style?: string | null
           product_name_font_size?: number | null
+          product_name_font_weight?: number | null
           product_quantity_font_size?: number | null
+          product_quantity_font_weight?: number | null
+          product_spacing?: number | null
           product_text_color?: string | null
           product_unit_font_size?: number | null
           progress_animation?: boolean | null
@@ -550,6 +564,7 @@ export type Database = {
           show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
+          show_product_unit?: boolean | null
           show_progress_bar?: boolean | null
           show_progress_percentage?: boolean | null
           show_running_cats?: boolean | null

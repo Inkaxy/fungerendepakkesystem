@@ -22,83 +22,94 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
         boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
       }}
     >
-      <CardContent className="p-8">
-        <div className="space-y-4">
-          {customerPackingData.products.map((product, index) => (
-            <div 
-              key={product.id}
-              className="flex justify-between items-center p-4 rounded-lg"
-              style={{
-                backgroundColor: getProductBackgroundColor(settings || {} as any, index),
-                borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-                transform: `scale(${(settings?.product_card_size || 100) / 100})`,
-                transformOrigin: 'left center'
-              }}
-            >
-              <div className="flex-1">
-                <h3 
-                  className="font-bold mb-1"
-                  style={{ 
-                    color: getProductTextColor(settings || {} as any, index),
-                    fontSize: settings?.product_name_font_size 
-                      ? `${settings.product_name_font_size}px` 
-                      : '24px'
-                  }}
-                >
-                  {product.product_name}
-                </h3>
-              </div>
-              <div className="text-right space-y-2">
-                <div 
-                  className="font-bold flex items-baseline justify-end gap-1"
-                  style={{ 
-                    color: getProductAccentColor(settings || {} as any, index),
-                  }}
-                >
-                  <span style={{ 
-                    fontSize: settings?.product_quantity_font_size 
-                      ? `${settings.product_quantity_font_size}px` 
-                      : '48px'
-                  }}>
-                    {product.total_quantity}
-                  </span>
-                  <span style={{ 
-                    fontSize: settings?.product_unit_font_size 
-                      ? `${settings.product_unit_font_size}px` 
-                      : '24px'
-                  }}>
-                    {product.product_unit}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span 
-                    className="font-semibold block mb-1"
+      <CardContent style={{ padding: `${settings?.product_card_padding || 16}px` }}>
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          gap: `${settings?.product_spacing || 16}px`
+        }}>
+          {customerPackingData.products.map((product, index) => {
+            const bgColor = getProductBackgroundColor(settings || {} as any, index);
+            const textColor = getProductTextColor(settings || {} as any, index);
+            const accentColor = getProductAccentColor(settings || {} as any, index);
+            
+            return (
+              <div 
+                key={product.id}
+                className="flex justify-between items-center p-4 rounded-lg"
+                style={{
+                  backgroundColor: bgColor,
+                  borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+                  transform: `scale(${(settings?.product_card_size || 100) / 100})`,
+                  transformOrigin: 'left center'
+                }}
+              >
+                <div className="flex-1">
+                  <h3 
+                    className="font-bold mb-1"
                     style={{ 
-                      color: getProductTextColor(settings || {} as any, index),
-                      fontSize: settings?.line_items_count_font_size 
-                        ? `${settings.line_items_count_font_size}px` 
-                        : '18px'
+                      color: textColor,
+                      fontSize: `${settings?.product_name_font_size || 24}px`,
+                      fontWeight: settings?.product_name_font_weight || 600
                     }}
                   >
-                    {product.packed_line_items}/{product.total_line_items}
-                  </span>
-                <Badge 
-                  variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                  style={{
-                    backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
-                    color: 'white',
-                    fontSize: settings?.status_badge_font_size 
-                      ? `${settings.status_badge_font_size}px` 
-                      : '14px'
-                  }}
-                >
-                  {product.packing_status === 'completed' ? 'Ferdig' : 
-                   product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
-                </Badge>
+                    {product.product_name}
+                  </h3>
+                </div>
+                <div className="text-right space-y-2">
+                  <div className="flex items-baseline justify-end gap-1">
+                    <span 
+                      className="font-bold"
+                      style={{ 
+                        color: accentColor,
+                        fontSize: `${settings?.product_quantity_font_size || 48}px`,
+                        fontWeight: settings?.product_quantity_font_weight || 700
+                      }}
+                    >
+                      {product.total_quantity}
+                    </span>
+                    {settings?.show_product_unit !== false && (
+                      <span 
+                        style={{ 
+                          color: accentColor,
+                          fontSize: `${settings?.product_unit_font_size || 24}px`
+                        }}
+                      >
+                        {product.product_unit}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    {settings?.show_line_items_count !== false && (
+                      <span 
+                        className="font-semibold block mb-1"
+                        style={{ 
+                          color: textColor,
+                          fontSize: `${settings?.line_items_count_font_size || 18}px`
+                        }}
+                      >
+                        {product.packed_line_items}/{product.total_line_items}
+                      </span>
+                    )}
+
+                    {settings?.show_status_badges !== false && (
+                      <Badge 
+                        variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                        style={{
+                          backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                          color: 'white',
+                          fontSize: `${settings?.status_badge_font_size || 14}px`
+                        }}
+                      >
+                        {product.packing_status === 'completed' ? 'Ferdig' : 
+                         product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
