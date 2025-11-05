@@ -77,6 +77,59 @@ export type Database = {
         }
         Relationships: []
       }
+      bakery_credentials: {
+        Row: {
+          bakery_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          last_tested_at: string | null
+          microsoft_client_id_encrypted: string | null
+          microsoft_client_secret_encrypted: string | null
+          microsoft_tenant_id_encrypted: string | null
+          resend_api_key_encrypted: string | null
+          test_error: string | null
+          test_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          last_tested_at?: string | null
+          microsoft_client_id_encrypted?: string | null
+          microsoft_client_secret_encrypted?: string | null
+          microsoft_tenant_id_encrypted?: string | null
+          resend_api_key_encrypted?: string | null
+          test_error?: string | null
+          test_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          last_tested_at?: string | null
+          microsoft_client_id_encrypted?: string | null
+          microsoft_client_secret_encrypted?: string | null
+          microsoft_tenant_id_encrypted?: string | null
+          resend_api_key_encrypted?: string | null
+          test_error?: string | null
+          test_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bakery_credentials_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: true
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -1201,6 +1254,14 @@ export type Database = {
       }
     }
     Functions: {
+      decrypt_credential: {
+        Args: { encrypted_text: string; key: string }
+        Returns: string
+      }
+      encrypt_credential: {
+        Args: { key: string; plain_text: string }
+        Returns: string
+      }
       extend_user_session: { Args: never; Returns: undefined }
       generate_display_url: { Args: never; Returns: string }
       get_bakery_id_from_display_url: {
