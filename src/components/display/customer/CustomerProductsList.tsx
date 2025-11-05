@@ -82,16 +82,19 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                   >
                     {product.packed_line_items}/{product.total_line_items}
                   </span>
-                  <Badge 
-                    variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                    style={{
-                      backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
-                      color: 'white'
-                    }}
-                  >
-                    {product.packing_status === 'completed' ? 'Ferdig' : 
-                     product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
-                  </Badge>
+                <Badge 
+                  variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                  style={{
+                    backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.ongoing,
+                    color: 'white',
+                    fontSize: settings?.status_badge_font_size 
+                      ? `${settings.status_badge_font_size}px` 
+                      : '14px'
+                  }}
+                >
+                  {product.packing_status === 'completed' ? 'Ferdig' : 
+                   product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
+                </Badge>
                 </div>
               </div>
             </div>

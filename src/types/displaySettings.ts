@@ -25,6 +25,7 @@ export interface DisplaySettings {
   product_name_font_size: number;
   product_unit_font_size: number;
   line_items_count_font_size: number;
+  status_badge_font_size: number;
   // Individual product background colors
   product_1_bg_color: string;
   product_2_bg_color: string;

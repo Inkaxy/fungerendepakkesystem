@@ -3,7 +3,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ColorPicker from './ColorPicker';
 import SliderControl from './SliderControl';
+import PresetSelector from './PresetSelector';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
+import { getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 
 interface ProductsSettingsTabProps {
   settings: DisplaySettings;
@@ -13,6 +15,9 @@ interface ProductsSettingsTabProps {
 const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) => {
   return (
     <div className="space-y-6">
+      {/* Smart Presets */}
+      <PresetSelector onApplyPreset={onUpdate} />
+
       {/* Text Sizes Section */}
       <Card>
         <CardHeader>
@@ -131,68 +136,127 @@ const ProductsSettingsTab = ({ settings, onUpdate }: ProductsSettingsTabProps) =
       {/* Product Preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Forhåndsvisning</CardTitle>
+          <CardTitle className="text-lg">🎨 Forhåndsvisning</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[
-              { name: 'Produkt 1', bgColor: settings.product_1_bg_color },
-              { name: 'Produkt 2', bgColor: settings.product_2_bg_color },
-              { name: 'Produkt 3', bgColor: settings.product_3_bg_color }
-            ].map((product, idx) => (
-              <div 
-                key={idx}
-                className="p-4 rounded-lg border" 
-                style={{ backgroundColor: product.bgColor }}
-              >
+              { 
+                name: 'Rugbrød', 
+                quantity: 85,
+                unit: 'stk',
+                packedLines: 12,
+                totalLines: 15,
+                status: 'completed' as const,
+                index: 0
+              },
+              { 
+                name: 'Grovbrød', 
+                quantity: 45,
+                unit: 'stk',
+                packedLines: 8,
+                totalLines: 12,
+                status: 'in_progress' as const,
+                index: 1
+              },
+              { 
+                name: 'Kringle', 
+                quantity: 24,
+                unit: 'kg',
+                packedLines: 0,
+                totalLines: 8,
+                status: 'pending' as const,
+                index: 2
+              }
+            ].map((product) => {
+              const bgColor = getProductBackgroundColor(settings, product.index);
+              const textColor = getProductTextColor(settings, product.index);
+              const accentColor = getProductAccentColor(settings, product.index);
+              
+              return (
                 <div 
-                  className="space-y-2"
+                  key={product.index}
+                  className="p-4 rounded-lg border" 
                   style={{ 
+                    backgroundColor: bgColor,
+                    borderRadius: `${settings.border_radius}px`,
                     transform: `scale(${settings.product_card_size / 100})`,
                     transformOrigin: 'top left'
                   }}
                 >
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: settings.product_accent_color }}
-                    />
-                    <h4 
-                      className="font-medium"
-                      style={{ color: settings.product_text_color }}
-                    >
-                      {product.name}
-                    </h4>
-                  </div>
-                  <p 
-                    className="text-sm"
-                    style={{ color: settings.product_text_color, opacity: 0.7 }}
-                  >
-                    Produktbeskrivelse her
-                  </p>
                   <div className="flex justify-between items-center">
-                    <span 
-                      className="font-bold"
-                      style={{ 
-                        color: settings.product_accent_color,
-                        fontSize: `${settings.product_quantity_font_size}px`
-                      }}
-                    >
-                      {idx + 3} stk
-                    </span>
-                    <span 
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ 
-                        backgroundColor: settings.product_accent_color,
-                        color: product.bgColor
-                      }}
-                    >
-                      Klar
-                    </span>
+                    {/* Venstre side: Produktnavn */}
+                    <div className="flex-1">
+                      <h4 
+                        className="font-bold"
+                        style={{ 
+                          color: textColor,
+                          fontSize: `${settings.product_name_font_size}px`
+                        }}
+                      >
+                        {product.name}
+                      </h4>
+                    </div>
+
+                    {/* Høyre side: Antall, enhet, varelinjer, status */}
+                    <div className="text-right space-y-2">
+                      {/* Antall og enhet */}
+                      <div className="flex items-baseline justify-end gap-1">
+                        <span 
+                          className="font-bold"
+                          style={{ 
+                            color: accentColor,
+                            fontSize: `${settings.product_quantity_font_size}px`
+                          }}
+                        >
+                          {product.quantity}
+                        </span>
+                        <span 
+                          style={{ 
+                            color: accentColor,
+                            fontSize: `${settings.product_unit_font_size}px`
+                          }}
+                        >
+                          {product.unit}
+                        </span>
+                      </div>
+
+                      {/* Varelinjer telling */}
+                      <div>
+                        <span 
+                          className="font-semibold block mb-1"
+                          style={{ 
+                            color: textColor,
+                            fontSize: `${settings.line_items_count_font_size}px`
+                          }}
+                        >
+                          {product.packedLines}/{product.totalLines}
+                        </span>
+
+                        {/* Status badge */}
+                        <span 
+                          className="inline-block px-2 py-1 rounded"
+                          style={{
+                            backgroundColor: product.status === 'completed' 
+                              ? settings.packing_status_completed_color 
+                              : settings.packing_status_ongoing_color,
+                            color: 'white',
+                            fontSize: `${settings.status_badge_font_size || 14}px`
+                          }}
+                        >
+                          {product.status === 'completed' ? 'Ferdig' : 
+                           product.status === 'in_progress' ? 'Pågår' : 'Venter'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+
+          <div className="mt-4 p-3 bg-muted/50 rounded text-sm text-muted-foreground">
+            💡 Denne forhåndsvisningen reflekterer alle dine innstillinger: produktnavn, antall, enhet, varelinjer-telling og status badge.
           </div>
         </CardContent>
       </Card>

@@ -335,6 +335,7 @@ export type Database = {
           stats_card_height: string | null
           stats_columns: number | null
           stats_icon_color: string | null
+          status_badge_font_size: number | null
           status_completed_color: string | null
           status_delivered_color: string | null
           status_in_progress_color: string | null
@@ -447,6 +448,7 @@ export type Database = {
           stats_card_height?: string | null
           stats_columns?: number | null
           stats_icon_color?: string | null
+          status_badge_font_size?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
           status_in_progress_color?: string | null
@@ -559,6 +561,7 @@ export type Database = {
           stats_card_height?: string | null
           stats_columns?: number | null
           stats_icon_color?: string | null
+          status_badge_font_size?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
           status_in_progress_color?: string | null

@@ -52,9 +52,19 @@ const StatusSettingsTab = ({ settings, onUpdate }: StatusSettingsTabProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Status farger</CardTitle>
+          <CardTitle>Status farger og størrelse</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <SliderControl
+            label="Status badge tekststørrelse"
+            value={settings.status_badge_font_size}
+            onChange={(value) => onUpdate({ status_badge_font_size: value })}
+            min={10}
+            max={24}
+            unit="px"
+            description="Størrelsen på teksten i status badges (Ferdig, Pågår, Venter)"
+          />
+          
           <div className="grid grid-cols-2 gap-4">
             <div>
               <ColorPicker
