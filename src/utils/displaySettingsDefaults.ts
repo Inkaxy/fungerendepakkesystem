@@ -84,4 +84,5 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   product_list_style: 'normal' as const,
   show_line_items_count: true,
   customer_sort_order: 'alphabetical' as const,
+  strikethrough_completed_products: true,
 });

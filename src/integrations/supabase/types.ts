@@ -347,6 +347,7 @@ export type Database = {
           status_indicator_font_size: number | null
           status_indicator_padding: number | null
           status_pending_color: string | null
+          strikethrough_completed_products: boolean | null
           subtitle: string | null
           text_color: string | null
           text_shadow_blur: number | null
@@ -465,6 +466,7 @@ export type Database = {
           status_indicator_font_size?: number | null
           status_indicator_padding?: number | null
           status_pending_color?: string | null
+          strikethrough_completed_products?: boolean | null
           subtitle?: string | null
           text_color?: string | null
           text_shadow_blur?: number | null
@@ -583,6 +585,7 @@ export type Database = {
           status_indicator_font_size?: number | null
           status_indicator_padding?: number | null
           status_pending_color?: string | null
+          strikethrough_completed_products?: boolean | null
           subtitle?: string | null
           text_color?: string | null
           text_shadow_blur?: number | null

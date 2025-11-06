@@ -95,4 +95,5 @@ export interface DisplaySettings {
   product_list_style: 'compact' | 'normal';
   show_line_items_count: boolean;
   customer_sort_order: 'alphabetical' | 'status' | 'progress';
+  strikethrough_completed_products: boolean;
 }

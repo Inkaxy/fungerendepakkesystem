@@ -61,6 +61,22 @@ const StatusIndicatorCard = ({ settings, onUpdate }: StatusIndicatorCardProps) =
               description="Størrelsen på teksten i status badges (Ferdig, Pågår, Venter)"
             />
 
+            <div className="flex items-center space-x-2 pt-4 pb-2">
+              <Switch
+                id="strikethrough-completed"
+                checked={settings.strikethrough_completed_products}
+                onCheckedChange={(checked) => onUpdate({ strikethrough_completed_products: checked })}
+              />
+              <div className="flex flex-col">
+                <Label htmlFor="strikethrough-completed">
+                  Strek over ferdige produkter
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Viser gjennomstreking på produktnavn når alle varelinjer er pakket
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ColorPicker
                 label="Pågående farge"

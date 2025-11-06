@@ -137,7 +137,13 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                   <div className="flex flex-col flex-1">
                     <span 
                       className="font-medium"
-                      style={{ color: getProductTextColor(settings || {} as any, idx % 3) }}
+                      style={{ 
+                        color: getProductTextColor(settings || {} as any, idx % 3),
+                        textDecoration: (settings?.strikethrough_completed_products && 
+                                         product.packing_status === 'completed') 
+                                         ? 'line-through' 
+                                         : 'none'
+                      }}
                     >
                       {product.product_name}
                     </span>

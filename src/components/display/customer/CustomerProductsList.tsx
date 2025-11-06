@@ -50,7 +50,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                     style={{ 
                       color: textColor,
                       fontSize: `${settings?.product_name_font_size || 24}px`,
-                      fontWeight: settings?.product_name_font_weight || 600
+                      fontWeight: settings?.product_name_font_weight || 600,
+                      textDecoration: (settings?.strikethrough_completed_products && 
+                                       product.packing_status === 'completed') 
+                                       ? 'line-through' 
+                                       : 'none'
                     }}
                   >
                     {product.product_name}
