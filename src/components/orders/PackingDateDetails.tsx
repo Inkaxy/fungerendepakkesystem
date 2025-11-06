@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package, Users, Clock, ShoppingCart } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Package, Users, Clock, ShoppingCart, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { Order } from '@/types/database';
 import { usePackingSessionByDate, useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
+import { useActivePackingSessions } from '@/hooks/useActivePackingSessions';
 import { useAuthStore } from '@/stores/authStore';
 
 interface PackingDateDetailsProps {
@@ -20,8 +22,15 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
   const navigate = useNavigate();
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
   const { data: packingSession } = usePackingSessionByDate(dateStr);
+  const { data: activeSessions } = useActivePackingSessions();
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
   const { profile } = useAuthStore();
+
+  // Check if there are other active sessions
+  const otherActiveSessions = activeSessions?.filter(
+    s => s.session_date !== dateStr && s.status === 'in_progress'
+  ) || [];
+  const hasOtherActiveSessions = otherActiveSessions.length > 0;
 
   // Calculate statistics
   const totalOrders = orders.length;
@@ -111,6 +120,19 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Warning for other active sessions */}
+        {hasOtherActiveSessions && packingSession?.status !== 'in_progress' && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Andre aktive sesjoner</AlertTitle>
+            <AlertDescription>
+              Det finnes {otherActiveSessions.length} andre aktive pakkesesjon{otherActiveSessions.length > 1 ? 'er' : ''}. 
+              {otherActiveSessions.length === 1 && ` (${format(new Date(otherActiveSessions[0].session_date), 'dd.MM.yyyy')})`}
+              {' '}Disse vil bli automatisk avsluttet når du starter denne sesjonen.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Status */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Status</span>

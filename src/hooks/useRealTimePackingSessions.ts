@@ -42,11 +42,23 @@ export const useRealTimePackingSessions = () => {
                   duration: 3000,
                 });
               } else if (newStatus === 'completed') {
-                toast({
-                  title: "Pakking fullført",
-                  description: "Pakkesession er ferdigstilt",
-                  duration: 3000,
-                });
+                // Check if this was an auto-close (status changed from in_progress to completed)
+                if (oldStatus === 'in_progress') {
+                  const sessionDate = payload.old?.session_date;
+                  toast({
+                    title: "Pakkesesjon avsluttet",
+                    description: sessionDate 
+                      ? `Sesjonen for ${new Date(sessionDate).toLocaleDateString('nb-NO')} ble automatisk avsluttet`
+                      : "En aktiv pakkesesjon ble automatisk avsluttet",
+                    duration: 5000,
+                  });
+                } else {
+                  toast({
+                    title: "Pakking fullført",
+                    description: "Pakkesession er ferdigstilt",
+                    duration: 3000,
+                  });
+                }
               }
             }
           }
