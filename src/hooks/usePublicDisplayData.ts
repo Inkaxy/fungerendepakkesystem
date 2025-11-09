@@ -17,7 +17,7 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
         .from('public_display_customers')
         .select('*')
         .eq('display_url', displayUrl)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching public customer:', error);
@@ -57,7 +57,7 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
         .select('*')
         .eq('bakery_id', customer.bakery_id)
         .eq('screen_type', 'shared')
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching public display settings:', error);
