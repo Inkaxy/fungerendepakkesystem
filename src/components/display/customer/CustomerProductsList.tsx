@@ -67,7 +67,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                       style={{ 
                         color: accentColor,
                         fontSize: `${settings?.product_quantity_font_size || 48}px`,
-                        fontWeight: settings?.product_quantity_font_weight || 700
+                        fontWeight: settings?.product_quantity_font_weight || 700,
+                        textDecoration: (settings?.strikethrough_completed_products && 
+                                         product.packing_status === 'completed') 
+                                         ? 'line-through' 
+                                         : 'none'
                       }}
                     >
                       {product.total_quantity}
@@ -76,7 +80,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                       <span 
                         style={{ 
                           color: accentColor,
-                          fontSize: `${settings?.product_unit_font_size || 24}px`
+                          fontSize: `${settings?.product_unit_font_size || 24}px`,
+                          textDecoration: (settings?.strikethrough_completed_products && 
+                                           product.packing_status === 'completed') 
+                                           ? 'line-through' 
+                                           : 'none'
                         }}
                       >
                         {product.product_unit}

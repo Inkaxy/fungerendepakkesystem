@@ -153,7 +153,11 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                         color: getProductAccentColor(settings || {} as any, idx % 3),
                         fontSize: settings?.product_quantity_font_size 
                           ? `${settings.product_quantity_font_size * 0.5}px` 
-                          : '24px'
+                          : '24px',
+                        textDecoration: (settings?.strikethrough_completed_products && 
+                                         product.packing_status === 'completed') 
+                                         ? 'line-through' 
+                                         : 'none'
                       }}
                     >
                       {product.total_quantity} {product.product_unit}
