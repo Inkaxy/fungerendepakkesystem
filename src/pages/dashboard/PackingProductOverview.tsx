@@ -6,8 +6,9 @@ import { ArrowLeft, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
-import { useCreateOrUpdatePackingSession } from '@/hooks/usePackingSessions';
+import { useCreateOrUpdatePackingSession, usePackingSessionByDate } from '@/hooks/usePackingSessions';
 import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
+import { useToast } from '@/hooks/use-toast';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useQueryClient } from '@tanstack/react-query';
 import ProductsTable from '@/components/packing/ProductsTable';
@@ -18,10 +19,12 @@ const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showReport, setShowReport] = useState(false);
   
   const { data: orders } = useOrders(date);
+  const { data: existingSession } = usePackingSessionByDate(date || '');
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
   const setActivePackingProducts = useSetActivePackingProducts();
   
@@ -132,16 +135,20 @@ const PackingProductOverview = () => {
     try {
       console.log('🚀 Starting packing session with products:', selectedProducts);
       
-      // Create packing session
-      await createOrUpdateSession.mutateAsync({
-        bakery_id: orders?.[0]?.bakery_id || '',
-        session_date: date || '',
-        total_orders: orders?.length || 0,
-        unique_customers: new Set(orders?.map(o => o.customer_id)).size,
-        product_types: productList.length,
-        files_uploaded: 0,
-        status: 'in_progress'
-      });
+      // Only create/update session if not already in progress
+      if (existingSession?.status !== 'in_progress') {
+        await createOrUpdateSession.mutateAsync({
+          bakery_id: orders?.[0]?.bakery_id || '',
+          session_date: date || '',
+          total_orders: orders?.length || 0,
+          unique_customers: new Set(orders?.map(o => o.customer_id)).size,
+          product_types: productList.length,
+          files_uploaded: 0,
+          status: 'in_progress'
+        });
+      } else {
+        console.log('⏭️ Session already in progress - skipping upsert');
+      }
 
       // Save selected products as active packing products
       const activeProducts = selectedProducts.map(productId => {
@@ -167,7 +174,15 @@ const PackingProductOverview = () => {
       });
       
     } catch (error) {
-      console.error('❌ Failed to start packing session:', error);
+      if (error instanceof Error && error.message.includes('Too many requests')) {
+        toast({
+          title: "For raskt",
+          description: "Vennligst vent et øyeblikk før du prøver igjen",
+          variant: "destructive",
+        });
+      } else {
+        console.error('❌ Failed to start packing session:', error);
+      }
     }
   };
 

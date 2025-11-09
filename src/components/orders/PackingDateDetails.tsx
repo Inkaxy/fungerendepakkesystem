@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ interface PackingDateDetailsProps {
 const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) => {
   const navigate = useNavigate();
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
+  const [isNavigating, setIsNavigating] = useState(false);
   const { data: packingSession } = usePackingSessionByDate(dateStr);
   const { data: activeSessions } = useActivePackingSessions();
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
@@ -67,6 +68,8 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
   };
 
   const handleStartPacking = async () => {
+    if (isNavigating) return; // Prevent double-click
+    
     if (packingSession?.status === 'in_progress') {
       // If already in progress, go directly to product overview
       navigate(`/dashboard/orders/packing/${dateStr}`);
@@ -86,6 +89,7 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
     }
 
     console.log('Starting packing session with user:', user.id, 'bakery:', profile.bakery_id);
+    setIsNavigating(true);
 
     try {
       await createOrUpdateSession.mutateAsync({
@@ -102,6 +106,7 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
       navigate(`/dashboard/orders/packing/${dateStr}`);
     } catch (error) {
       console.error('Failed to start packing session:', error);
+      setIsNavigating(false); // Reset on error
       
       // If it's an RLS error, provide more helpful feedback
       if (error instanceof Error && error.message.includes('row-level security')) {
@@ -175,7 +180,7 @@ const PackingDateDetails = ({ selectedDate, orders }: PackingDateDetailsProps) =
           <Button 
             className="w-full"
             onClick={handleStartPacking}
-            disabled={createOrUpdateSession.isPending}
+            disabled={createOrUpdateSession.isPending || isNavigating}
           >
             <Package className="w-4 h-4 mr-2" />
             {packingSession?.status === 'in_progress' ? 'Fortsett pakking' : 'Start pakking'}
