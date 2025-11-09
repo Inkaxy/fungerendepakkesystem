@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
@@ -29,8 +30,9 @@ const SharedDisplay = () => {
   );
   
   const { connectionStatus } = useRealTimeDisplay();
+  useRealTimeActivePackingProducts();
   
-  const { triggerRefresh } = useDisplayRefresh({ 
+  const { triggerRefresh } = useDisplayRefresh({
     enabled: true, 
     interval: (settings?.auto_refresh_interval || 30) * 1000 
   });

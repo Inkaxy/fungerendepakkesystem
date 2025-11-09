@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
@@ -35,6 +36,7 @@ const CustomerDisplay = () => {
   );
   
   const { connectionStatus } = useRealTimeDisplay();
+  useRealTimeActivePackingProducts();
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
