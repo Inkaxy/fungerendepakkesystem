@@ -4,19 +4,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CalendarIcon, AlertTriangle } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, Trash2 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { usePackingDeviations, usePackingDeviationsByDate } from '@/hooks/usePackingDeviations';
+import { useDeletePackingSessions, useDeletePackingDataWithOrders } from '@/hooks/useDeletePackingData';
 import DeviationOverview from '@/components/reports/DeviationOverview';
 import DeviationDetails from '@/components/reports/DeviationDetails';
+import DeletePackingDataDialog from '@/components/reports/DeletePackingDataDialog';
 
 const Reports = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd')
   });
+
+  const deleteSessionsMutation = useDeletePackingSessions();
+  const deleteAllMutation = useDeletePackingDataWithOrders();
 
   const { data: deviationData, isLoading } = usePackingDeviations(
     dateRange.startDate,
@@ -40,6 +46,20 @@ const Reports = () => {
 
   const handleBack = () => {
     setSelectedDate(null);
+  };
+
+  const handleDeleteConfirm = async (deleteType: 'sessions' | 'all') => {
+    if (deleteType === 'sessions') {
+      await deleteSessionsMutation.mutateAsync({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      });
+    } else {
+      await deleteAllMutation.mutateAsync({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      });
+    }
   };
 
   if (isLoading) {
@@ -77,6 +97,18 @@ const Reports = () => {
             Oversikt over pakkeavvik og detaljerte rapporter
           </p>
         </div>
+        
+        {!selectedDate && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowDeleteDialog(true)}
+            className="flex items-center space-x-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>Slett pakkedata</span>
+          </Button>
+        )}
       </div>
 
       {/* Date Range Filter */}
@@ -127,6 +159,15 @@ const Reports = () => {
           onSelectDate={handleSelectDate}
         />
       )}
+
+      <DeletePackingDataDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteSessionsMutation.isPending || deleteAllMutation.isPending}
+      />
     </div>
   );
 };
