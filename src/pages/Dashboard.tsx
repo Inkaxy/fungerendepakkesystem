@@ -7,10 +7,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { profile } = useAuthStore();
   const { data: stats, isLoading, error } = useDashboardStats();
+  const navigate = useNavigate();
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -156,21 +158,42 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+            <div 
+              className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+              onClick={() => navigate('/dashboard/orders')}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/dashboard/orders')}
+              role="button"
+              tabIndex={0}
+              aria-label="Gå til pakking"
+            >
               <h4 className="font-medium flex items-center">
                 <Package className="h-4 w-4 mr-2 text-blue-600" />
                 Pakking
               </h4>
               <p className="text-sm text-gray-600">Start pakking av nye ordrer</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+            <div 
+              className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+              onClick={() => navigate('/dashboard/reports')}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/dashboard/reports')}
+              role="button"
+              tabIndex={0}
+              aria-label="Gå til rapporter"
+            >
               <h4 className="font-medium flex items-center">
                 <Clock className="h-4 w-4 mr-2 text-orange-600" />
                 Rapporter
               </h4>
               <p className="text-sm text-gray-600">Se avviksrapporter og statistikk</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+            <div 
+              className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+              onClick={() => navigate('/dashboard/customers')}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/dashboard/customers')}
+              role="button"
+              tabIndex={0}
+              aria-label="Gå til kunder"
+            >
               <h4 className="font-medium flex items-center">
                 <Users className="h-4 w-4 mr-2 text-purple-600" />
                 Kunder
