@@ -5,11 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
-import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
-import ConnectionStatus from '@/components/display/ConnectionStatus';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
@@ -35,8 +32,6 @@ const CustomerDisplay = () => {
     activePackingDate || undefined
   );
   
-  const { connectionStatus } = useRealTimeDisplay();
-  useRealTimeActivePackingProducts();
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
@@ -88,11 +83,7 @@ const CustomerDisplay = () => {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex justify-end">
-            <ConnectionStatus status={connectionStatus} />
-          </div>
-
-          <CustomerHeader 
+          <CustomerHeader
             customerName={customer.name}
             showRefresh={true}
             onRefresh={triggerRefresh}
@@ -125,11 +116,7 @@ const CustomerDisplay = () => {
     return (
       <div className="min-h-screen p-8" style={displayStyles}>
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex justify-end">
-            <ConnectionStatus status={connectionStatus} />
-          </div>
-
-          <CustomerHeader 
+          <CustomerHeader
             customerName={customer.name}
             showRefresh={true}
             onRefresh={triggerRefresh}
@@ -192,11 +179,7 @@ const CustomerDisplay = () => {
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-end">
-          <ConnectionStatus status={connectionStatus} />
-        </div>
-
-        <CustomerHeader 
+        <CustomerHeader
           customerName={customer.name}
           showRefresh={true}
           onRefresh={triggerRefresh}
