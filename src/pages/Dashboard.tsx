@@ -41,6 +41,18 @@ const Dashboard = () => {
     }
   };
 
+  const getNavigationPath = (activityType: string) => {
+    switch (activityType) {
+      case 'order_packed':
+      case 'order_created':
+        return '/dashboard/orders';
+      case 'customer_added':
+        return '/dashboard/customers';
+      default:
+        return null;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -213,20 +225,36 @@ const Dashboard = () => {
           <CardContent>
             <div className="space-y-3">
               {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-                stats.recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${getActivityIcon(activity.type)}`}></div>
-                    <div className="flex-1">
-                      <p className="text-sm">{activity.message}</p>
-                      <p className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(activity.timestamp), { 
-                          addSuffix: true, 
-                          locale: nb 
-                        })}
-                      </p>
+                stats.recentActivity.map((activity) => {
+                  const navigationPath = getNavigationPath(activity.type);
+                  
+                  return (
+                    <div 
+                      key={activity.id} 
+                      className={`flex items-center space-x-3 ${
+                        navigationPath 
+                          ? 'p-2 -mx-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors' 
+                          : ''
+                      }`}
+                      onClick={() => navigationPath && navigate(navigationPath)}
+                      onKeyDown={(e) => navigationPath && e.key === 'Enter' && navigate(navigationPath)}
+                      role={navigationPath ? "button" : undefined}
+                      tabIndex={navigationPath ? 0 : undefined}
+                      aria-label={navigationPath ? `Gå til ${activity.type === 'customer_added' ? 'kunder' : 'ordrer'}` : undefined}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${getActivityIcon(activity.type)}`}></div>
+                      <div className="flex-1">
+                        <p className="text-sm">{activity.message}</p>
+                        <p className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(activity.timestamp), { 
+                            addSuffix: true, 
+                            locale: nb 
+                          })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500">Ingen nylige aktiviteter</p>
