@@ -28,6 +28,8 @@ export const useRealTimeOrders = () => {
           queryClient.invalidateQueries({ queryKey: ['orders'] });
           queryClient.invalidateQueries({ queryKey: ['order-counts'] });
           queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+          queryClient.invalidateQueries({ queryKey: ['public-display-orders'] });
+          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
         }
       )
       .on(
@@ -43,6 +45,8 @@ export const useRealTimeOrders = () => {
           // Invalidate orders when products change
           queryClient.invalidateQueries({ queryKey: ['orders'] });
           queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+          queryClient.invalidateQueries({ queryKey: ['public-display-orders'] });
+          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
 
           // Show notification for packing status changes
           if (payload.eventType === 'UPDATE') {
@@ -70,6 +74,8 @@ export const useRealTimeOrders = () => {
           // Invalidate packing data when sessions change
           queryClient.invalidateQueries({ queryKey: ['packing-data'] });
           queryClient.invalidateQueries({ queryKey: ['orders'] });
+          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
+          queryClient.invalidateQueries({ queryKey: ['public-active-packing-date'] });
         }
       )
       .subscribe((status) => {

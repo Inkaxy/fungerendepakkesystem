@@ -27,7 +27,12 @@ export const useDisplayRefresh = ({
         'packing-data',
         'display-settings',
         'active-packing-products',
-        'active-packing-date'
+        'active-packing-date',
+        'public-active-packing-products',
+        'public-active-packing-date',
+        'public-packing-data',
+        'public-display-settings',
+        'public-customer'
       ];
 
       queriesToRefresh.forEach(queryKey => {
@@ -54,7 +59,12 @@ export const useDisplayRefresh = ({
       'packing-data', 
       'display-settings',
       'active-packing-products',
-      'active-packing-date'
+      'active-packing-date',
+      'public-active-packing-products',
+      'public-active-packing-date',
+      'public-packing-data',
+      'public-display-settings',
+      'public-customer'
     ];
 
     queriesToRefresh.forEach(queryKey => {

@@ -27,6 +27,15 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
       console.log('Found public customer:', data);
       return data as Customer;
     },
+    staleTime: 10000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached customer data due to fetch failure');
+      return false;
+    },
   });
 };
 
@@ -67,6 +76,15 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
       return mappedSettings;
     },
     enabled: !!customer?.bakery_id,
+    staleTime: 10000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached display settings due to fetch failure');
+      return false;
+    },
   });
 };
 
@@ -112,8 +130,15 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
       return sessionData[0].session_date;
     },
     enabled: !!bakeryId,
-    staleTime: 1000, // Reduced to ensure fresh data
+    staleTime: 10000,
     refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached packing date due to fetch failure');
+      return false;
+    },
   });
 };
 
@@ -141,6 +166,15 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
       return data;
     },
     enabled: !!bakeryId && !!date,
+    staleTime: 10000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached active products due to fetch failure');
+      return false;
+    },
   });
 };
 
@@ -293,6 +327,13 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId,
     refetchInterval: 5000,
-    staleTime: 1000,
+    staleTime: 10000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached packing data due to fetch failure');
+      return false;
+    },
   });
 };

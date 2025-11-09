@@ -56,6 +56,31 @@ export const useAuthInit = () => {
         
         if (error) {
           console.error('Error getting session:', error);
+          // Try to use cached session as fallback
+          const cachedSession = useAuthStore.getState().session;
+          if (cachedSession && mounted) {
+            console.log('Using cached session due to getSession error');
+            setSession(cachedSession);
+            setUser(cachedSession.user);
+            
+            if (cachedSession.user) {
+              setTimeout(() => {
+                if (mounted) {
+                  fetchProfile(cachedSession.user.id).catch(error => {
+                    console.error('Error fetching profile with cached session:', error);
+                  });
+                }
+              }, 0);
+            }
+            
+            if (!initializationComplete) {
+              initializationComplete = true;
+              useAuthStore.setState({ isLoading: false });
+            }
+            return;
+          }
+          
+          // Only log out if both Supabase and cache fail
           if (mounted) {
             setSession(null);
             setUser(null);

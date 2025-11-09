@@ -30,7 +30,10 @@ export const useRealTimeActivePackingProducts = () => {
             'active-packing-date', 
             'packing-data',
             'orders',
-            'packing-sessions'
+            'packing-sessions',
+            'public-active-packing-products',
+            'public-active-packing-date',
+            'public-packing-data',
           ];
 
           queriesToInvalidate.forEach(queryKey => {
