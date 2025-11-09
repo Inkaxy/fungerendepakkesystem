@@ -1,5 +1,5 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { DisplaySettings } from '@/types/displaySettings';
@@ -31,6 +31,7 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
     refetchInterval: 5000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    placeholderData: keepPreviousData,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached customer data due to fetch failure');
@@ -80,6 +81,7 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
     refetchInterval: 5000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    placeholderData: keepPreviousData,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached display settings due to fetch failure');
@@ -134,6 +136,7 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
     refetchInterval: 5000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    placeholderData: keepPreviousData,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached packing date due to fetch failure');
@@ -170,6 +173,7 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     refetchInterval: 5000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    placeholderData: keepPreviousData,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached active products due to fetch failure');
@@ -330,6 +334,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     staleTime: 10000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    placeholderData: keepPreviousData,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached packing data due to fetch failure');
