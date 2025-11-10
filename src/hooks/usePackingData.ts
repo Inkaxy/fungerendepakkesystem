@@ -144,7 +144,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
           }
 
           // Check if this product is active (if we have active products, only show those)
-          const shouldIncludeProduct = !activeOnly || activeProductIds.size === 0 || activeProductIds.has(op.product_id);
+          const shouldIncludeProduct = !activeOnly || activeProductIds.has(op.product_id);
           
           console.log('📋 Processing product:', {
             productName: op.product.name,

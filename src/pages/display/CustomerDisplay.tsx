@@ -236,21 +236,40 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        <CustomerProductsList
-          customerPackingData={customerPackingData}
-          settings={settings}
-          statusColors={statusColors}
-        />
+        {packingLoading ? (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p style={{ color: settings?.text_color || '#6b7280' }}>
+                Oppdaterer...
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <CustomerProductsList
+              customerPackingData={customerPackingData}
+              settings={settings}
+              statusColors={statusColors}
+            />
 
-        <CustomerStatusIndicator
-          isAllPacked={isAllPacked}
-          settings={settings}
-        />
+            <CustomerStatusIndicator
+              isAllPacked={isAllPacked}
+              settings={settings}
+            />
 
-        <CustomerProgressBar
-          customerPackingData={customerPackingData}
-          settings={settings}
-        />
+            <CustomerProgressBar
+              customerPackingData={customerPackingData}
+              settings={settings}
+            />
+          </>
+        )}
 
 
         <div className="text-center">

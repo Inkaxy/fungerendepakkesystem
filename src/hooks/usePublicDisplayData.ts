@@ -268,8 +268,8 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
             customer!.packed_line_items_all += 1;
           }
 
-          // Only include active products or all if no active products
-          const shouldIncludeProduct = activeProductIds.size === 0 || activeProductIds.has(op.product_id);
+          // Only include active products
+          const shouldIncludeProduct = activeProductIds.has(op.product_id);
           
           if (!shouldIncludeProduct) return;
 

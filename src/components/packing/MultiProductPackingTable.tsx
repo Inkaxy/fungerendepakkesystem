@@ -93,14 +93,25 @@ const MultiProductPackingTable = ({
   return (
     <div className="space-y-6">
       <Tabs defaultValue={products[0]?.id} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-3 gap-4 mb-6 bg-transparent p-2">
           {products.map((product) => {
             const progress = getProductProgress(product);
             return (
-              <TabsTrigger key={product.id} value={product.id} className="flex flex-col gap-1 py-3">
-                <div className="font-medium text-sm">{product.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {progress.packed}/{progress.total} ({progress.percentage}%)
+              <TabsTrigger 
+                key={product.id} 
+                value={product.id} 
+                className="flex flex-col gap-2 py-5 px-6 rounded-lg border-3 transition-all duration-200 
+                           data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
+                           data-[state=active]:shadow-lg data-[state=active]:scale-105 data-[state=active]:border-primary
+                           data-[state=inactive]:bg-muted/50 data-[state=inactive]:border-border 
+                           data-[state=inactive]:hover:bg-muted data-[state=inactive]:hover:border-muted-foreground"
+              >
+                <div className="font-semibold text-base">{product.name}</div>
+                <div className="text-sm opacity-90">
+                  {progress.packed}/{progress.total} pakket
+                </div>
+                <div className="text-xs opacity-75">
+                  {progress.percentage}% ferdig
                 </div>
               </TabsTrigger>
             );
