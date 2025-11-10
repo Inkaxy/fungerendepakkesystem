@@ -12,9 +12,10 @@ import { Customer } from '@/types/database';
 import { QrCode, Copy, ExternalLink, X, Loader2 } from 'lucide-react';
 import { getDisplayPath, getDisplayUrl, generateQrCodeUrl } from '@/utils/displayUtils';
 import { cn } from '@/lib/utils';
+import { useCustomers } from '@/hooks/useCustomers';
 
 interface QrCodeModalProps {
-  customer: Customer | null;
+  customerId: string | null;
   isOpen: boolean;
   onClose: () => void;
   onToggleDisplay: (customer: Customer, hasDedicatedDisplay: boolean) => void;
@@ -23,7 +24,7 @@ interface QrCodeModalProps {
 }
 
 const QrCodeModal = ({
-  customer,
+  customerId,
   isOpen,
   onClose,
   onToggleDisplay,
@@ -32,6 +33,10 @@ const QrCodeModal = ({
 }: QrCodeModalProps) => {
   const [showQrCode, setShowQrCode] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  
+  // Hent customer-data fra React Query cache
+  const { data: customers } = useCustomers();
+  const customer = customers?.find(c => c.id === customerId);
 
   if (!customer) return null;
 

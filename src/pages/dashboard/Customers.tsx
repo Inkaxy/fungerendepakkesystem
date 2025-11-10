@@ -32,7 +32,7 @@ const Customers = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
-  const [qrCodeCustomer, setQrCodeCustomer] = useState<Customer | null>(null);
+  const [qrCodeCustomerId, setQrCodeCustomerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
@@ -146,7 +146,7 @@ const Customers = () => {
             onToggleDisplay={handleToggleDisplay}
             onCopyUrl={copyDisplayUrl}
             onOpenUrl={openDisplayUrl}
-            onShowQrCode={setQrCodeCustomer}
+            onShowQrCode={(customer) => setQrCodeCustomerId(customer.id)}
           />
         </CardContent>
       </Card>
@@ -177,9 +177,9 @@ const Customers = () => {
       </Dialog>
 
       <QrCodeModal
-        customer={qrCodeCustomer}
-        isOpen={!!qrCodeCustomer}
-        onClose={() => setQrCodeCustomer(null)}
+        customerId={qrCodeCustomerId}
+        isOpen={!!qrCodeCustomerId}
+        onClose={() => setQrCodeCustomerId(null)}
         onToggleDisplay={handleToggleDisplay}
         onCopyUrl={copyDisplayUrl}
         onOpenUrl={openDisplayUrl}
