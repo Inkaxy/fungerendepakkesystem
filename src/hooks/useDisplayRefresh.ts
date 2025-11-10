@@ -36,8 +36,18 @@ export const useDisplayRefresh = ({
       ];
 
       queriesToRefresh.forEach(queryKey => {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
-        queryClient.refetchQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({ 
+          predicate: (query) => {
+            const key = query.queryKey[0];
+            return key === queryKey;
+          }
+        });
+        queryClient.refetchQueries({ 
+          predicate: (query) => {
+            const key = query.queryKey[0];
+            return key === queryKey;
+          }
+        });
       });
     };
 
@@ -68,8 +78,18 @@ export const useDisplayRefresh = ({
     ];
 
     queriesToRefresh.forEach(queryKey => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
-      queryClient.refetchQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === queryKey;
+        }
+      });
+      queryClient.refetchQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === queryKey;
+        }
+      });
     });
   };
 
