@@ -21,6 +21,16 @@ const CustomerHeader = ({
   settings,
   className = ""
 }: CustomerHeaderProps) => {
+  const handleRefresh = () => {
+    console.log('🔄 CustomerHeader: Refresh button clicked!');
+    if (onRefresh) {
+      console.log('🔄 CustomerHeader: Calling onRefresh()');
+      onRefresh();
+    } else {
+      console.error('❌ CustomerHeader: onRefresh is undefined!');
+    }
+  };
+
   return (
     <div className={`flex justify-between items-start ${className}`}>
       <div className="text-center flex-1 flex-shrink mr-4">
@@ -44,13 +54,14 @@ const CustomerHeader = ({
         </p>
       </div>
       {showRefresh && onRefresh && (
-        <div className="flex flex-col items-end flex-shrink-0 relative z-10">
+        <div className="flex flex-col items-end gap-2">
           <Button
             variant="outline"
-            size="lg"
-            onClick={onRefresh}
+            size="sm"
+            onClick={handleRefresh}
+            className="relative z-10"
           >
-            <RefreshCw className="h-5 w-5 mr-2" />
+            <RefreshCw className="h-4 w-4 mr-2" />
             Oppdater
           </Button>
         </div>
