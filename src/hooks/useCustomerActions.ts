@@ -62,8 +62,8 @@ export const useCustomerActions = () => {
         }
       } else {
         // Switching to shared display
-        // Remove display_url
-        updates.display_url = null;
+        // Remove display_url (use undefined instead of null for type safety)
+        updates.display_url = undefined;
       }
       
       await updateCustomer.mutateAsync({
@@ -81,9 +81,12 @@ export const useCustomerActions = () => {
         description: description,
       });
     } catch (error) {
+      console.error('Toggle display error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Ukjent feil';
+      
       toast({
         title: "Feil",
-        description: "Kunne ikke oppdatere display-innstilling",
+        description: `Kunne ikke oppdatere display-innstilling: ${errorMessage}`,
         variant: "destructive",
       });
     }
