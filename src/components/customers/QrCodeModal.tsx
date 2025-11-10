@@ -9,8 +9,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Customer } from '@/types/database';
-import { QrCode, Copy, ExternalLink, X } from 'lucide-react';
+import { QrCode, Copy, ExternalLink, X, Loader2 } from 'lucide-react';
 import { getDisplayPath, getDisplayUrl, generateQrCodeUrl } from '@/utils/displayUtils';
+import { cn } from '@/lib/utils';
 
 interface QrCodeModalProps {
   customer: Customer | null;
@@ -30,6 +31,7 @@ const QrCodeModal = ({
   onOpenUrl,
 }: QrCodeModalProps) => {
   const [showQrCode, setShowQrCode] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
   if (!customer) return null;
 
@@ -48,43 +50,55 @@ const QrCodeModal = ({
     onOpenUrl(displayPath);
   };
 
-  const handleToggleDisplay = (checked: boolean) => {
-    onToggleDisplay(customer, checked);
+  const handleToggleDisplay = async (checked: boolean) => {
+    setIsToggling(true);
+    try {
+      await onToggleDisplay(customer, checked);
+    } finally {
+      setTimeout(() => setIsToggling(false), 300);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center">
-              <QrCode className="w-5 h-5 mr-2" />
-              Skjerminnstillinger for {customer.name}
-            </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
+          <DialogTitle className="flex items-center">
+            <QrCode className="w-5 h-5 mr-2" />
+            Skjerminnstillinger for {customer.name}
+          </DialogTitle>
           <p className="text-sm text-muted-foreground">
             Administrer dedikert skjerm for kunde #{customer.customer_number}
           </p>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 transition-all duration-200">
             <div>
               <p className="font-medium">Dedikert skjerm</p>
               <p className="text-sm text-muted-foreground">
                 Aktiver individuell skjerm for denne kunden
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">
-                {customer.has_dedicated_display ? 'Aktiv' : 'Inaktiv'}
+            <div className="flex items-center space-x-3">
+              <span className={cn(
+                "text-sm font-medium transition-all duration-300 ease-out",
+                customer.has_dedicated_display 
+                  ? "text-green-600 animate-fade-in" 
+                  : "text-gray-500 animate-fade-in",
+                isToggling && "animate-pulse"
+              )}>
+                {isToggling ? (
+                  <Loader2 className="w-4 h-4 animate-spin inline" />
+                ) : (
+                  customer.has_dedicated_display ? 'Aktiv' : 'Inaktiv'
+                )}
               </span>
               <Switch
                 checked={customer.has_dedicated_display}
                 onCheckedChange={handleToggleDisplay}
+                disabled={isToggling}
+                className="data-[state=checked]:bg-green-500"
               />
             </div>
           </div>
@@ -126,23 +140,23 @@ const QrCodeModal = ({
 
           <Button
             variant="default"
-            className="w-full bg-gray-800 hover:bg-gray-700"
+            className="w-full bg-gray-800 hover:bg-gray-700 transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg"
             onClick={handleShowQrCode}
           >
-            <QrCode className="w-4 h-4 mr-2" />
+            <QrCode className="w-4 h-4 mr-2 transition-transform duration-300" />
             {showQrCode ? 'Skjul QR-kode' : 'Vis QR-kode'}
           </Button>
 
           {showQrCode && (
-            <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white rounded-lg border">
+            <div className="flex flex-col items-center space-y-4 animate-fade-in">
+              <div className="p-4 bg-white rounded-lg border animate-scale-in">
                 <img
                   src={generateQrCodeUrl(fullUrl)}
                   alt="QR-kode for display"
                   className="w-48 h-48"
                 />
               </div>
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground animate-fade-in">
                 Scan QR-koden for å åpne display-siden
               </p>
             </div>
