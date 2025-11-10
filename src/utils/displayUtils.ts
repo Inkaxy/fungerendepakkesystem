@@ -5,7 +5,7 @@ export const getDisplayPath = (customer: Customer): string => {
   if (customer.has_dedicated_display && customer.display_url) {
     return `/display/${customer.display_url}`;
   }
-  return '/display/shared';
+  return '/dashboard/display/shared';
 };
 
 export const getDisplayUrl = (customer: Customer): string => {

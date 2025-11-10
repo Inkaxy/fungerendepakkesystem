@@ -89,7 +89,7 @@ const DisplayModeSelector = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onCopyUrl('/display/shared')}
+                    onClick={() => onCopyUrl('/dashboard/display/shared')}
                     className="h-6 text-xs"
                   >
                     <Copy className="w-3 h-3 mr-1" />
@@ -98,7 +98,7 @@ const DisplayModeSelector = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onOpenUrl('/display/shared')}
+                    onClick={() => onOpenUrl('/dashboard/display/shared')}
                     className="h-6 text-xs"
                   >
                     <ExternalLink className="w-3 h-3 mr-1" />

@@ -63,7 +63,6 @@ function AppContent() {
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
         
         {/* Display routes (public) */}
-        <Route path="/display/shared" element={<SharedDisplay />} />
         <Route path="/display/:displayUrl" element={<CustomerDisplay />} />
         
         {/* Protected routes */}
@@ -111,6 +110,11 @@ function AppContent() {
           <Route path="/dashboard/admin" element={
             <AuthLayout>
               <Admin />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/display/shared" element={
+            <AuthLayout>
+              <SharedDisplay />
             </AuthLayout>
           } />
         </Route>

@@ -86,7 +86,7 @@ const CustomerDisplay = () => {
           </p>
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = '/display/shared'}
+            onClick={() => window.location.href = '/dashboard/display/shared'}
           >
             Gå til felles display
           </Button>
