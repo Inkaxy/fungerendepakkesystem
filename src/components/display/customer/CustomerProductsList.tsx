@@ -28,10 +28,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
           flexDirection: 'column',
           gap: `${settings?.product_spacing || 16}px`
         }}>
-          {customerPackingData.products.map((product, index) => {
-            const bgColor = getProductBackgroundColor(settings || {} as any, index);
-            const textColor = getProductTextColor(settings || {} as any, index);
-            const accentColor = getProductAccentColor(settings || {} as any, index);
+          {customerPackingData.products.map((product) => {
+            const colorIndex = product.colorIndex ?? 0;
+            const bgColor = getProductBackgroundColor(settings || {} as any, colorIndex);
+            const textColor = getProductTextColor(settings || {} as any, colorIndex);
+            const accentColor = getProductAccentColor(settings || {} as any, colorIndex);
             
             return (
               <div 

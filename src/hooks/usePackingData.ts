@@ -15,6 +15,7 @@ export interface PackingProduct {
   total_line_items: number;
   packed_line_items: number;
   packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
+  colorIndex?: number;
 }
 
 export interface PackingCustomer {
@@ -91,6 +92,14 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
           activeProductIds.add(ap.product_id);
         });
         console.log('🎨 Active product IDs:', Array.from(activeProductIds));
+      }
+
+      // Create product color map based on active products order
+      const productColorMap = new Map<string, number>();
+      if (activeProducts && activeProducts.length > 0) {
+        activeProducts.forEach((ap, index) => {
+          productColorMap.set(ap.product_id, index % 3); // 0, 1, or 2
+        });
       }
 
       // Group by customer and aggregate products
@@ -180,6 +189,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               total_line_items: 1,
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
               packing_status: validPackingStatus,
+              colorIndex: productColorMap.get(op.product_id) ?? 0,
             };
 
             customer!.products.push(newProduct);
