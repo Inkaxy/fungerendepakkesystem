@@ -71,24 +71,10 @@ export const useCustomerActions = () => {
         ...updates,
       });
       
-      const displayType = hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert";
-      const description = hasDedicatedDisplay 
-        ? `${customer.name} har nå sitt eget private display med URL: ${updates.display_url || customer.display_url}`
-        : `${customer.name} vises nå på felles display`;
-        
-      toast({
-        title: displayType,
-        description: description,
-      });
+      // Toast håndteres av useUpdateCustomer med optimistic updates
     } catch (error) {
       console.error('Toggle display error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Ukjent feil';
-      
-      toast({
-        title: "Feil",
-        description: `Kunne ikke oppdatere display-innstilling: ${errorMessage}`,
-        variant: "destructive",
-      });
+      // Feil-håndtering gjøres av useUpdateCustomer
     }
   };
 

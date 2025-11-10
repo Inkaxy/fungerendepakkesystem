@@ -58,6 +58,7 @@ export const useCreateCustomer = () => {
 export const useUpdateCustomer = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuthStore();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Customer> & { id: string }) => {
@@ -71,19 +72,54 @@ export const useUpdateCustomer = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      const { profile } = useAuthStore.getState();
-      queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
-      toast({
-        title: "Suksess",
-        description: "Kunde oppdatert",
+    // Optimistic update - oppdater UI før API-kallet er ferdig
+    onMutate: async ({ id, ...updates }) => {
+      const queryKey = ['customers', profile?.bakery_id];
+      
+      // Cancel pågående refetch for å unngå race conditions
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot av nåværende data (for rollback)
+      const previousCustomers = queryClient.getQueryData<Customer[]>(queryKey);
+
+      // Optimistically oppdater cachen
+      queryClient.setQueryData<Customer[]>(queryKey, (old) => {
+        if (!old) return old;
+        return old.map(customer =>
+          customer.id === id
+            ? { ...customer, ...updates, updated_at: new Date().toISOString() }
+            : customer
+        );
       });
+
+      // Returner context med snapshot for rollback
+      return { previousCustomers };
     },
-    onError: (error) => {
+    // Hvis mutation feiler, bruk context til å rulle tilbake
+    onError: (error, variables, context) => {
+      if (context?.previousCustomers) {
+        queryClient.setQueryData(
+          ['customers', profile?.bakery_id],
+          context.previousCustomers
+        );
+      }
+      
       toast({
         title: "Feil",
         description: `Kunne ikke oppdatere kunde: ${error.message}`,
         variant: "destructive",
+      });
+    },
+    // Alltid refetch etter mutation for å sikre data-synk
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['customers', profile?.bakery_id] 
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Suksess",
+        description: "Kunde oppdatert",
       });
     },
   });
