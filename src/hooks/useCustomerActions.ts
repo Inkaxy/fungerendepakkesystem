@@ -49,14 +49,31 @@ export const useCustomerActions = () => {
 
   const handleToggleDisplay = async (customer: Customer, hasDedicatedDisplay: boolean) => {
     try {
+      // Prepare update data
+      const updates: any = {
+        has_dedicated_display: hasDedicatedDisplay,
+      };
+      
+      if (hasDedicatedDisplay) {
+        // Switching to dedicated display
+        // Generate display_url if it doesn't exist
+        if (!customer.display_url) {
+          updates.display_url = `display-${crypto.randomUUID().substring(0, 8)}`;
+        }
+      } else {
+        // Switching to shared display
+        // Remove display_url
+        updates.display_url = null;
+      }
+      
       await updateCustomer.mutateAsync({
         id: customer.id,
-        has_dedicated_display: hasDedicatedDisplay,
+        ...updates,
       });
       
       const displayType = hasDedicatedDisplay ? "Privat display aktivert" : "Felles display aktivert";
       const description = hasDedicatedDisplay 
-        ? `${customer.name} har nå sitt eget private display med automatisk generert URL`
+        ? `${customer.name} har nå sitt eget private display med URL: ${updates.display_url || customer.display_url}`
         : `${customer.name} vises nå på felles display`;
         
       toast({
