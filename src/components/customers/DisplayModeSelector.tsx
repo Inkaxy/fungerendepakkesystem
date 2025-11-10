@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { Monitor, Users, Copy, ExternalLink, Zap, Globe, Lock } from 'lucide-react';
+import { Monitor, Users, Copy, ExternalLink, Zap, Globe, Lock, Loader2 } from 'lucide-react';
 import { Customer } from '@/types/database';
 import { getDisplayPath } from '@/utils/displayUtils';
 import { cn } from '@/lib/utils';
@@ -23,19 +23,37 @@ const DisplayModeSelector = ({
   onOpenUrl 
 }: DisplayModeSelectorProps) => {
   const hasDedicatedDisplay = customer.has_dedicated_display || false;
+  const [isToggling, setIsToggling] = useState(false);
+
+  const handleToggle = async (checked: boolean) => {
+    setIsToggling(true);
+    try {
+      await onToggleDisplay(customer, checked);
+    } finally {
+      // Add a small delay for smooth animation completion
+      setTimeout(() => setIsToggling(false), 300);
+    }
+  };
 
   return (
     <div className="space-y-3">
       {/* Toggle Section */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 transition-all duration-200">
         <div className="flex items-center space-x-3">
           <div className={cn(
-            "p-2 rounded-lg transition-colors duration-200",
+            "p-2 rounded-lg transition-all duration-300 ease-out",
             hasDedicatedDisplay 
               ? "bg-green-100 text-green-600" 
-              : "bg-blue-100 text-blue-600"
+              : "bg-blue-100 text-blue-600",
+            isToggling && "animate-pulse"
           )}>
-            {hasDedicatedDisplay ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+            {isToggling ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : hasDedicatedDisplay ? (
+              <Lock key="lock" className="w-4 h-4 animate-scale-in" />
+            ) : (
+              <Globe key="globe" className="w-4 h-4 animate-scale-in" />
+            )}
           </div>
           <div>
             <p className="font-medium text-gray-900">
@@ -50,7 +68,8 @@ const DisplayModeSelector = ({
         </div>
         <Switch
           checked={hasDedicatedDisplay}
-          onCheckedChange={(checked) => onToggleDisplay(customer, checked)}
+          onCheckedChange={handleToggle}
+          disabled={isToggling}
           className="data-[state=checked]:bg-green-500"
         />
       </div>
@@ -59,10 +78,10 @@ const DisplayModeSelector = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Shared Display Card */}
         <Card className={cn(
-          "p-3 transition-all duration-200 cursor-pointer border-2",
+          "p-3 transition-all duration-300 ease-out cursor-pointer border-2",
           !hasDedicatedDisplay 
             ? "border-blue-500 bg-blue-50 shadow-md" 
-            : "border-gray-200 hover:border-gray-300"
+            : "border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]"
         )}>
           <div className="flex items-start space-x-3">
             <div className={cn(
@@ -112,10 +131,10 @@ const DisplayModeSelector = ({
 
         {/* Dedicated Display Card */}
         <Card className={cn(
-          "p-3 transition-all duration-200 cursor-pointer border-2",
+          "p-3 transition-all duration-300 ease-out cursor-pointer border-2",
           hasDedicatedDisplay 
             ? "border-green-500 bg-green-50 shadow-md" 
-            : "border-gray-200 hover:border-gray-300"
+            : "border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]"
         )}>
           <div className="flex items-start space-x-3">
             <div className={cn(
