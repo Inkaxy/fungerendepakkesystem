@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useActivePackingProducts } from './useActivePackingProducts';
+import { useAuthStore } from '@/stores/authStore';
 
 export interface PackingProduct {
   id: string;
@@ -29,11 +30,12 @@ export interface PackingCustomer {
 }
 
 export const usePackingData = (customerId?: string, date?: string, activeOnly: boolean = false) => {
+  const { profile } = useAuthStore();
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
   const { data: activeProducts, isLoading: activeProductsLoading } = useActivePackingProducts(activeOnly ? targetDate : undefined);
 
   return useQuery({
-    queryKey: ['packing-data', customerId, targetDate, activeOnly, activeProducts?.length || 0],
+    queryKey: ['packing-data', profile?.bakery_id, customerId, targetDate, activeOnly, activeProducts?.length || 0],
     queryFn: async () => {
       console.log('🔍 Starting packing data fetch:', {
         customerId,

@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
+import { QueryClient } from '@tanstack/react-query';
+
+// Create a query client instance for cache clearing
+const queryClient = new QueryClient();
 
 export type UserRole = 'super_admin' | 'bakery_admin' | 'bakery_user';
 export type AuthProvider = 'email' | 'google';
@@ -107,6 +111,11 @@ export const useAuthStore = create<AuthState>()(
       // Sign Out
       signOut: async () => {
         await supabase.auth.signOut();
+        
+        // Clear all React Query cache to prevent data leakage between users
+        queryClient.clear();
+        console.log('🧹 Cache cleared on logout');
+        
         set({
           user: null,
           session: null,

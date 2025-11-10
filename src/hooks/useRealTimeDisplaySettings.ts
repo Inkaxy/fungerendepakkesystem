@@ -3,33 +3,36 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useRealTimeDisplaySettings = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuthStore();
 
   useEffect(() => {
-    console.log('Setting up real-time listener for display settings');
+    if (!profile?.bakery_id) return;
+
+    console.log('Setting up real-time listener for bakery:', profile.bakery_id);
 
     const channel = supabase
-      .channel('display-settings-changes')
+      .channel(`display-settings-${profile.bakery_id}`)
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
-          table: 'display_settings'
+          table: 'display_settings',
+          filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('Display settings changed:', payload);
+          console.log('Display settings changed for bakery:', profile.bakery_id);
           
-          // Invalidate display settings cache to trigger refresh
-          queryClient.invalidateQueries({ queryKey: ['display-settings'] });
-          
-          // Also invalidate other related queries that might be affected
-          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-          queryClient.invalidateQueries({ queryKey: ['customers'] });
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
+          // Invalidate bakery-specific queries
+          queryClient.invalidateQueries({ queryKey: ['display-settings', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['customers', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
 
           // Show a subtle notification that settings were updated
           toast({
@@ -42,8 +45,8 @@ export const useRealTimeDisplaySettings = () => {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up display settings real-time listener');
+      console.log('Cleaning up display settings listener for bakery:', profile.bakery_id);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast]);
+  }, [queryClient, toast, profile?.bakery_id]);
 };

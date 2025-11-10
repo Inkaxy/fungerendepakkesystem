@@ -4,12 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DisplaySettings } from '@/types/displaySettings';
 import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
+import { useAuthStore } from '@/stores/authStore';
 
 export type { DisplaySettings } from '@/types/displaySettings';
 
 export const useDisplaySettings = () => {
+  const { profile } = useAuthStore();
+  
   return useQuery({
-    queryKey: ['display-settings'],
+    queryKey: ['display-settings', profile?.bakery_id],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
@@ -178,11 +181,12 @@ export const useUpdateDisplaySettings = () => {
       return updateData[0];
     },
     onSuccess: () => {
-      // Immediately invalidate all relevant queries to trigger updates
-      queryClient.invalidateQueries({ queryKey: ['display-settings'] });
-      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      const { profile } = useAuthStore.getState();
+      // Immediately invalidate all relevant queries with bakery_id
+      queryClient.invalidateQueries({ queryKey: ['display-settings', profile?.bakery_id] });
+      queryClient.invalidateQueries({ queryKey: ['packing-data', profile?.bakery_id] });
+      queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
+      queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
       
       console.log('Display settings updated - cache invalidated');
       

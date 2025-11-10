@@ -3,31 +3,36 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useRealTimePackingSessions = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuthStore();
 
   useEffect(() => {
-    console.log('Setting up real-time listener for packing sessions');
+    if (!profile?.bakery_id) return;
+
+    console.log('Setting up real-time listener for bakery:', profile.bakery_id);
 
     const channel = supabase
-      .channel('packing-sessions-changes')
+      .channel(`packing-sessions-${profile.bakery_id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'packing_sessions'
+          table: 'packing_sessions',
+          filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('Packing session changed:', payload);
+          console.log('Packing session changed for bakery:', profile.bakery_id);
           
-          // Invalidate relevant queries
-          queryClient.invalidateQueries({ queryKey: ['packing-sessions'] });
-          queryClient.invalidateQueries({ queryKey: ['active-packing-date'] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
+          // Invalidate bakery-specific queries
+          queryClient.invalidateQueries({ queryKey: ['packing-sessions', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['active-packing-date', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
 
           // Show notification for session status changes
           if (payload.eventType === 'UPDATE') {
@@ -67,8 +72,8 @@ export const useRealTimePackingSessions = () => {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up packing sessions real-time listener');
+      console.log('Cleaning up packing sessions listener for bakery:', profile.bakery_id);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast]);
+  }, [queryClient, toast, profile?.bakery_id]);
 };

@@ -3,46 +3,45 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useRealTimeActivePackingProducts = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuthStore();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
 
   useEffect(() => {
-    console.log('🔄 Setting up enhanced real-time listener for active packing products');
+    if (!profile?.bakery_id) return;
+
+    console.log('🔄 Setting up real-time listener for bakery:', profile.bakery_id);
 
     const channel = supabase
-      .channel('active-packing-products-enhanced')
+      .channel(`active-packing-products-${profile.bakery_id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'active_packing_products'
+          table: 'active_packing_products',
+          filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('🔔 Active packing products changed:', payload);
+          console.log('🔔 Active packing products changed for bakery:', profile.bakery_id);
           
-          // Immediate and comprehensive invalidation
-          const queriesToInvalidate = [
-            'active-packing-products',
-            'active-packing-date', 
-            'packing-data',
-            'orders',
-            'packing-sessions',
-            'public-active-packing-products',
-            'public-active-packing-date',
-            'public-packing-data',
-          ];
+          // Invalidate bakery-specific queries
+          queryClient.invalidateQueries({ queryKey: ['active-packing-products', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['active-packing-date', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['packing-sessions', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['public-active-packing-products'] });
+          queryClient.invalidateQueries({ queryKey: ['public-active-packing-date'] });
+          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
 
-          queriesToInvalidate.forEach(queryKey => {
-            queryClient.invalidateQueries({ queryKey: [queryKey] });
-          });
-
-          // Force immediate refetch of critical queries
-          queryClient.refetchQueries({ queryKey: ['active-packing-date'] });
-          queryClient.refetchQueries({ queryKey: ['packing-data'] });
+          // Force immediate refetch
+          queryClient.refetchQueries({ queryKey: ['active-packing-date', profile.bakery_id] });
+          queryClient.refetchQueries({ queryKey: ['packing-data', profile.bakery_id] });
 
           // Enhanced notifications for product selection changes
           if (payload.eventType === 'INSERT') {
@@ -91,10 +90,10 @@ export const useRealTimeActivePackingProducts = () => {
       });
 
     return () => {
-      console.log('🧹 Cleaning up enhanced active packing products real-time listener');
+      console.log('🧹 Cleaning up active packing products listener for bakery:', profile.bakery_id);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast]);
+  }, [queryClient, toast, profile?.bakery_id]);
 
   return { connectionStatus };
 };

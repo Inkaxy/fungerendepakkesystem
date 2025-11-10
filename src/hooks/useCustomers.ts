@@ -3,10 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useCustomers = () => {
+  const { profile } = useAuthStore();
+  
   return useQuery({
-    queryKey: ['customers'],
+    queryKey: ['customers', profile?.bakery_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('customers')
@@ -35,7 +38,8 @@ export const useCreateCustomer = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Kunde opprettet",
@@ -68,7 +72,8 @@ export const useUpdateCustomer = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Kunde oppdatert",
@@ -98,7 +103,8 @@ export const useDeleteCustomer = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Kunde slettet",
@@ -128,9 +134,10 @@ export const useDeleteAllCustomers = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['order-counts'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
+      queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
+      queryClient.invalidateQueries({ queryKey: ['order-counts', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Alle kunder og tilknyttede ordrer er slettet",

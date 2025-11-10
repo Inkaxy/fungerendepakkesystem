@@ -3,10 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useProducts = () => {
+  const { profile } = useAuthStore();
+  
   return useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', profile?.bakery_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
@@ -35,7 +38,8 @@ export const useCreateProduct = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['products', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Produkt opprettet",
@@ -69,7 +73,8 @@ export const useUpdateProduct = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['products', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Produkt oppdatert",
@@ -99,7 +104,8 @@ export const useDeleteProduct = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['products', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Produkt slettet",
@@ -129,7 +135,8 @@ export const useDeleteAllProducts = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['products', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Alle produkter slettet",

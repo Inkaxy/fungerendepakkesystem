@@ -2,10 +2,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useOrders = (date?: string) => {
+  const { profile } = useAuthStore();
+  
   return useQuery({
-    queryKey: date ? ['orders', date] : ['orders'],
+    queryKey: date ? ['orders', profile?.bakery_id, date] : ['orders', profile?.bakery_id],
     queryFn: async () => {
       let query = supabase
         .from('orders')
@@ -32,8 +35,10 @@ export const useOrders = (date?: string) => {
 };
 
 export const useOrdersByDateRange = (startDate: string, endDate: string) => {
+  const { profile } = useAuthStore();
+  
   return useQuery({
-    queryKey: ['orders', 'dateRange', startDate, endDate],
+    queryKey: ['orders', profile?.bakery_id, 'dateRange', startDate, endDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
@@ -71,7 +76,8 @@ export const useCreateOrder = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Ordre opprettet",
@@ -104,7 +110,8 @@ export const useUpdateOrder = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Ordre oppdatert",
@@ -137,7 +144,8 @@ export const useUpdateOrderStatus = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Ordre status oppdatert",
@@ -167,7 +175,8 @@ export const useDeleteOrder = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      const { profile } = useAuthStore.getState();
+      queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
       toast({
         title: "Suksess",
         description: "Ordre slettet",

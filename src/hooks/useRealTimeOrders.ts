@@ -3,31 +3,36 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useRealTimeOrders = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuthStore();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
 
   useEffect(() => {
-    console.log('Setting up enhanced real-time listener for orders');
+    if (!profile?.bakery_id) return;
+
+    console.log('Setting up real-time listener for bakery:', profile.bakery_id);
 
     const channel = supabase
-      .channel('orders-changes-enhanced')
+      .channel(`orders-changes-${profile.bakery_id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'orders'
+          table: 'orders',
+          filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('Order changed:', payload);
+          console.log('Order changed for bakery:', profile.bakery_id);
           
-          // Invalidate and refetch orders data
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
-          queryClient.invalidateQueries({ queryKey: ['order-counts'] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+          // Invalidate bakery-specific queries
+          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['order-counts', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
           queryClient.invalidateQueries({ queryKey: ['public-display-orders'] });
           queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
         }
@@ -40,11 +45,11 @@ export const useRealTimeOrders = () => {
           table: 'order_products'
         },
         (payload) => {
-          console.log('Order product changed:', payload);
+          console.log('Order product changed for bakery:', profile.bakery_id);
           
-          // Invalidate orders when products change
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+          // Invalidate bakery-specific queries
+          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
           queryClient.invalidateQueries({ queryKey: ['public-display-orders'] });
           queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
 
@@ -68,12 +73,13 @@ export const useRealTimeOrders = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'packing_sessions'
+          table: 'packing_sessions',
+          filter: `bakery_id=eq.${profile.bakery_id}`
         },
         () => {
-          // Invalidate packing data when sessions change
-          queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
+          // Invalidate bakery-specific queries
+          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
           queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
           queryClient.invalidateQueries({ queryKey: ['public-active-packing-date'] });
         }
@@ -97,10 +103,10 @@ export const useRealTimeOrders = () => {
       });
 
     return () => {
-      console.log('Cleaning up enhanced orders real-time listener');
+      console.log('Cleaning up orders listener for bakery:', profile.bakery_id);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast]);
+  }, [queryClient, toast, profile?.bakery_id]);
 
   return { connectionStatus };
 };
