@@ -93,7 +93,7 @@ const MultiProductPackingTable = ({
   return (
     <div className="space-y-6">
       <Tabs defaultValue={products[0]?.id} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 gap-4 mb-6 bg-transparent p-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 bg-transparent p-2">
           {products.map((product) => {
             const progress = getProductProgress(product);
             return (

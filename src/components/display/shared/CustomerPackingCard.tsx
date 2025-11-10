@@ -130,7 +130,7 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                   key={product.id} 
                   className={`${getProductItemClass()} rounded flex justify-between items-center`}
                   style={{
-                    backgroundColor: getProductBackgroundColor(settings || {} as any, idx % 3),
+                    backgroundColor: getProductBackgroundColor(settings || {} as any, product.colorIndex ?? idx % 3),
                     borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
                   }}
                 >
@@ -138,7 +138,7 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                     <span 
                       className="font-medium"
                       style={{ 
-                        color: getProductTextColor(settings || {} as any, idx % 3),
+                        color: getProductTextColor(settings || {} as any, product.colorIndex ?? idx % 3),
                         textDecoration: (settings?.strikethrough_completed_products && 
                                          product.packing_status === 'completed') 
                                          ? 'line-through' 
@@ -150,7 +150,7 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                     <span 
                       className="font-semibold"
                       style={{ 
-                        color: getProductAccentColor(settings || {} as any, idx % 3),
+                        color: getProductAccentColor(settings || {} as any, product.colorIndex ?? idx % 3),
                         fontSize: settings?.product_quantity_font_size 
                           ? `${settings.product_quantity_font_size * 0.5}px` 
                           : '24px',
@@ -167,7 +167,7 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
                     {settings?.show_line_items_count && (
                       <span 
                         className="text-xs"
-                        style={{ color: getProductAccentColor(settings || {} as any, idx % 3) }}
+                        style={{ color: getProductAccentColor(settings || {} as any, product.colorIndex ?? idx % 3) }}
                       >
                         {product.packed_line_items}/{product.total_line_items}
                       </span>

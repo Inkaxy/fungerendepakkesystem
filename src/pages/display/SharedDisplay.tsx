@@ -24,7 +24,7 @@ const SharedDisplay = () => {
   
   const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
   
-  const { data: packingData } = usePackingData(
+  const { data: packingData, isLoading: packingLoading } = usePackingData(
     undefined, 
     activePackingDate || undefined,
     true
@@ -141,7 +141,22 @@ const SharedDisplay = () => {
           />
         )}
 
-        {!dateLoading && activePackingDate && sharedDisplayPackingData.length > 0 && (
+        {!dateLoading && activePackingDate && (packingLoading ? (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p style={{ color: settings?.text_color || '#6b7280' }}>
+                Oppdaterer...
+              </p>
+            </CardContent>
+          </Card>
+        ) : sharedDisplayPackingData.length > 0 ? (
           <div 
             className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
@@ -163,7 +178,7 @@ const SharedDisplay = () => {
               );
             })}
           </div>
-        )}
+        ) : null)}
 
         {!dateLoading && activePackingDate && sharedDisplayPackingData.length === 0 && (
           <EmptyPackingState
