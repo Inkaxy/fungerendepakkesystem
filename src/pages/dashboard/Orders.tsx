@@ -11,6 +11,7 @@ import { usePackingSessions } from '@/hooks/usePackingSessions';
 import OrderDetailsModal from '@/components/orders/OrderDetailsModal';
 import DataUploadModal from '@/components/orders/DataUploadModal';
 import PackingDateDetails from '@/components/orders/PackingDateDetails';
+import ContinuePackingButton from '@/components/orders/ContinuePackingButton';
 import { Order } from '@/types/database';
 
 const Orders = () => {
@@ -105,6 +106,9 @@ const Orders = () => {
           Last opp data
         </Button>
       </div>
+
+      {/* Fortsett pakking knapp - vises kun når det er aktiv pakking */}
+      <ContinuePackingButton />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
