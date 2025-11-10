@@ -34,9 +34,23 @@ const CustomerDisplay = () => {
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
+  // Debug logging
+  console.log('🔍 CustomerDisplay render:', {
+    displayUrl,
+    customer: customer ? { id: customer.id, name: customer.name } : null,
+    customerLoading,
+    settingsLoading,
+    dateLoading,
+    packingLoading,
+    hasSettings: !!settings,
+    activePackingDate,
+  });
+
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
-  if (customerLoading || settingsLoading || dateLoading || packingLoading) {
+  // Only wait for customer loading initially, then settings if customer exists
+  const isInitialLoading = customerLoading || (customer && settingsLoading);
+  if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
            style={settings ? generateDisplayStyles(settings) : {}}>
@@ -53,23 +67,30 @@ const CustomerDisplay = () => {
   }
   
   if (!customer) {
+    console.error('❌ Customer not found for URL:', displayUrl);
+    console.log('💡 Tip: Sjekk at URL-en er riktig i kundeoversikten under "Display Management"');
+    
     return (
-      <div className="min-h-screen flex items-center justify-center"
-           style={settings ? generateDisplayStyles(settings) : {}}>
-        <Card className="max-w-md">
-          <CardContent className="text-center p-8">
-            <h1 className="text-xl font-bold mb-4">Kunde ikke funnet</h1>
-            <p className="text-gray-600 mb-4">
-              Ingen kunde funnet for denne display-URL-en.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = '/display/shared'}
-            >
-              Gå til felles display
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+          <Package2 className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+          <h2 className="text-2xl font-bold mb-2 text-gray-900">Kunde ikke funnet</h2>
+          <p className="text-gray-600 mb-2">
+            Ingen kunde funnet for URL:
+          </p>
+          <code className="block bg-gray-100 px-3 py-2 rounded text-sm mb-4 text-gray-800">
+            {displayUrl}
+          </code>
+          <p className="text-sm text-gray-500 mb-6">
+            Sjekk at URL-en er riktig, eller gå til kundeoversikten for å finne riktig display-URL under "Display Management".
+          </p>
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.href = '/display/shared'}
+          >
+            Gå til felles display
+          </Button>
+        </div>
       </div>
     );
   }
