@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
@@ -21,6 +21,7 @@ import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
   const { displayUrl } = useParams();
+  const navigate = useNavigate();
   
   // Use public hooks that don't require authentication
   const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
@@ -86,7 +87,7 @@ const CustomerDisplay = () => {
           </p>
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = '/dashboard/display/shared'}
+            onClick={() => navigate('/dashboard/display/shared')}
           >
             Gå til felles display
           </Button>
