@@ -23,7 +23,7 @@ const CustomerHeader = ({
 }: CustomerHeaderProps) => {
   return (
     <div className={`flex justify-between items-start ${className}`}>
-      <div className="text-center flex-1">
+      <div className="text-center flex-1 flex-shrink mr-4">
         <h1 
           className="font-bold mb-2"
           style={{ 
@@ -44,12 +44,11 @@ const CustomerHeader = ({
         </p>
       </div>
       {showRefresh && onRefresh && (
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end flex-shrink-0 relative z-10">
           <Button
             variant="outline"
             size="lg"
             onClick={onRefresh}
-            className="ml-4"
           >
             <RefreshCw className="h-5 w-5 mr-2" />
             Oppdater
