@@ -28,7 +28,7 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
       return data as Customer;
     },
     staleTime: 10000,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -77,7 +77,7 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
     },
     enabled: !!customer?.bakery_id,
     staleTime: 10000,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -131,7 +131,7 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
     },
     enabled: !!bakeryId,
     staleTime: 10000,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -167,7 +167,7 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     },
     enabled: !!bakeryId && !!date,
     staleTime: 10000,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -326,7 +326,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       return result;
     },
     enabled: !!customerId && !!bakeryId,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     staleTime: 10000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,

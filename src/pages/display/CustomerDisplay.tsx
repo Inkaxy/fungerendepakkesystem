@@ -16,6 +16,7 @@ import {
   usePublicActivePackingDate, 
   usePublicPackingData 
 } from '@/hooks/usePublicDisplayData';
+import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -32,6 +33,9 @@ const CustomerDisplay = () => {
     customer?.bakery_id, 
     activePackingDate || undefined
   );
+  
+  // Add real-time listener for immediate updates
+  useRealTimePublicDisplay(customer?.bakery_id);
   
   const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
 
@@ -248,12 +252,6 @@ const CustomerDisplay = () => {
           settings={settings}
         />
 
-        {isAllPacked && settings?.show_status_indicator && (
-          <CustomerStatusIndicator
-            isAllPacked={true}
-            settings={settings}
-          />
-        )}
 
         <div className="text-center">
           <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>

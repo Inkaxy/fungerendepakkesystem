@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
+import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
@@ -31,6 +32,10 @@ const SharedDisplay = () => {
   
   const { connectionStatus } = useRealTimeDisplay();
   useRealTimeActivePackingProducts();
+  
+  // Add real-time listener for public displays
+  const bakeryId = customers?.[0]?.bakery_id;
+  useRealTimePublicDisplay(bakeryId);
   
   const { triggerRefresh } = useDisplayRefresh({
     enabled: true, 
