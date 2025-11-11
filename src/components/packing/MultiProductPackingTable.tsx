@@ -93,31 +93,51 @@ const MultiProductPackingTable = ({
   return (
     <div className="space-y-6">
       <Tabs defaultValue={products[0]?.id} className="w-full">
-        <TabsList className="flex flex-wrap gap-3 mb-6 bg-transparent p-0 h-auto">
+        <TabsList className="flex flex-wrap gap-2 mb-4 bg-transparent p-0 h-auto sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-3 border-b">
           {products.map((product) => {
             const progress = getProductProgress(product);
+            const circumference = 2 * Math.PI * 14;
+            const strokeDashoffset = circumference * (1 - progress.percentage / 100);
+            
             return (
               <TabsTrigger 
                 key={product.id} 
                 value={product.id} 
-                className="flex-1 min-w-[200px] max-w-[350px] flex flex-col gap-2 py-5 px-6 rounded-xl border-2 transition-all duration-200 
-                           data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
-                           data-[state=active]:shadow-xl data-[state=active]:scale-[1.02] data-[state=active]:border-primary data-[state=active]:ring-2 data-[state=active]:ring-primary/50
-                           data-[state=inactive]:bg-card data-[state=inactive]:text-card-foreground data-[state=inactive]:border-border 
-                           data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:border-accent-foreground data-[state=inactive]:hover:shadow-md
-                           cursor-pointer"
+                className="relative px-4 py-2 rounded-full border transition-all duration-200 
+                           data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
+                           data-[state=inactive]:bg-card data-[state=inactive]:hover:bg-accent
+                           flex items-center gap-2"
               >
-                <div className="font-bold text-lg leading-tight">{product.name}</div>
-                {product.productNumber && (
-                  <div className="text-xs opacity-80 font-medium">
-                    Varenr: {product.productNumber}
-                  </div>
-                )}
-                <div className="text-sm font-medium mt-1">
-                  {progress.packed}/{progress.total} pakket
+                {/* Circular progress indicator */}
+                <div className="relative w-8 h-8 flex items-center justify-center">
+                  <svg className="w-8 h-8 -rotate-90">
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="14"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      opacity="0.2"
+                    />
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="14"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      className="transition-all duration-300"
+                    />
+                  </svg>
+                  <span className="absolute text-xs font-bold">{progress.percentage}%</span>
                 </div>
-                <div className="text-xs opacity-90 font-semibold">
-                  {progress.percentage}% ferdig
+                
+                <div className="flex flex-col items-start">
+                  <span className="font-semibold text-sm">{product.name}</span>
+                  <span className="text-xs opacity-75">{progress.packed}/{progress.total}</span>
                 </div>
               </TabsTrigger>
             );
@@ -130,64 +150,44 @@ const MultiProductPackingTable = ({
           const remainingCount = progress.total - progress.packed;
 
           return (
-            <TabsContent key={product.id} value={product.id} className="space-y-6">
-              {/* Product Header with Summary */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <Package className="h-6 w-6 text-primary" />
-                      <div>
-                        <h2 className="text-2xl font-semibold tracking-tight">{product.name}</h2>
-                        {product.productNumber && (
-                          <p className="text-sm text-muted-foreground">Varenummer: {product.productNumber}</p>
-                        )}
-                      </div>
-                    </div>
+            <TabsContent key={product.id} value={product.id} className="space-y-4">
+              {/* Compact Product Header */}
+              <div className="flex items-center justify-between py-3 px-4 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Package className="h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="text-lg font-semibold">{product.name}</h3>
+                    {product.productNumber && (
+                      <p className="text-xs text-muted-foreground">Varenr: {product.productNumber}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-6">
+                  {/* Inline stats badges */}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <Check className="w-3 h-3 mr-1" />
+                      {progress.packed} pakket
+                    </Badge>
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                      {remainingCount} gjenstår
+                    </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{progress.packed}</div>
-                      <div className="text-sm text-muted-foreground">Pakket</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600">{remainingCount}</div>
-                      <div className="text-sm text-muted-foreground">Gjenstår</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{progress.total}</div>
-                      <div className="text-sm text-muted-foreground">Totalt</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Fremdrift</span>
-                    <span className="font-medium">{progress.percentage}%</span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress.percentage}%` }}
-                    />
-                  </div>
-                </div>
-
-                {remainingCount > 0 && (
-                  <div className="mt-4 flex justify-end">
+                  {/* Compact mark all button */}
+                  {remainingCount > 0 && (
                     <Button 
+                      size="sm"
                       onClick={() => onMarkAllPacked(product.id)}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      <Check className="w-4 h-4 mr-2" />
-                      Merk alle som pakket ({remainingCount})
+                      <Check className="w-4 h-4 mr-1" />
+                      Alle ({remainingCount})
                     </Button>
-                  </div>
-                )}
-              </Card>
+                  )}
+                </div>
+              </div>
 
               {/* Packing Table */}
               <Card>
