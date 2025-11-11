@@ -247,29 +247,27 @@ const CustomerDisplay = () => {
             <CardContent className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p style={{ color: settings?.text_color || '#6b7280' }}>
-                Oppdaterer...
+                Oppdaterer produktliste...
               </p>
             </CardContent>
           </Card>
         ) : (
-          <>
-            <CustomerProductsList
-              customerPackingData={customerPackingData}
-              settings={settings}
-              statusColors={statusColors}
-            />
-
-            <CustomerStatusIndicator
-              isAllPacked={isAllPacked}
-              settings={settings}
-            />
-
-            <CustomerProgressBar
-              customerPackingData={customerPackingData}
-              settings={settings}
-            />
-          </>
+          <CustomerProductsList
+            customerPackingData={customerPackingData}
+            settings={settings}
+            statusColors={statusColors}
+          />
         )}
+
+        <CustomerStatusIndicator
+          isAllPacked={isAllPacked}
+          settings={settings}
+        />
+
+        <CustomerProgressBar
+          customerPackingData={customerPackingData}
+          settings={settings}
+        />
 
 
         <div className="text-center">

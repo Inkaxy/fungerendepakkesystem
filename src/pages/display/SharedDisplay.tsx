@@ -152,7 +152,7 @@ const SharedDisplay = () => {
             <CardContent className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p style={{ color: settings?.text_color || '#6b7280' }}>
-                Oppdaterer...
+                Oppdaterer kundekort...
               </p>
             </CardContent>
           </Card>
