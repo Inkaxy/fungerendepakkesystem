@@ -138,7 +138,13 @@ const PackingProductDetail = () => {
       );
       setPackedItems(alreadyPacked);
     }
-  }, [orders, isMultiProductMode]);
+  }, [orders, isMultiProductMode, selectedProducts, allProductsData, currentProductData]);
+
+  // Reset deviation states when selectedProducts change
+  useEffect(() => {
+    setDeviationItems(new Set());
+    setDeviationQuantities(new Map());
+  }, [selectedProducts]);
 
   const handleItemToggle = async (itemKey: string, checked: boolean) => {
     // Find the item to get its orderProductId
