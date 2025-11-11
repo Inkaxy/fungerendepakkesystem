@@ -14,7 +14,8 @@ import {
   usePublicCustomerByDisplayUrl, 
   usePublicDisplaySettings, 
   usePublicActivePackingDate, 
-  usePublicPackingData 
+  usePublicPackingData,
+  usePublicPackingSession
 } from '@/hooks/usePublicDisplayData';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { format } from 'date-fns';
@@ -30,6 +31,10 @@ const CustomerDisplay = () => {
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
   const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
     customer?.id, 
+    customer?.bakery_id, 
+    activePackingDate || undefined
+  );
+  const { data: packingSession } = usePublicPackingSession(
     customer?.bakery_id, 
     activePackingDate || undefined
   );
@@ -104,6 +109,25 @@ const CustomerDisplay = () => {
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
+  // Helper function to calculate session-based progress
+  const getSessionProgress = () => {
+    if (packingSession && packingSession.status === 'completed') {
+      return { percentage: 100, isCompleted: true };
+    }
+    
+    if (customerPackingData) {
+      return {
+        percentage: customerPackingData.progress_percentage,
+        isCompleted: customerPackingData.progress_percentage >= 100
+      };
+    }
+    
+    // Default to 0% if no data
+    return { percentage: 0, isCompleted: false };
+  };
+
+  const sessionProgress = getSessionProgress();
+
   // If no active packing date, show message that no products are selected
   if (!activePackingDate) {
     return (
@@ -137,70 +161,6 @@ const CustomerDisplay = () => {
       </div>
     );
   }
-
-  if (!customerPackingData || customerPackingData.products.length === 0) {
-    return (
-      <div className="min-h-screen p-8" style={displayStyles}>
-        <div className="max-w-4xl mx-auto space-y-8">
-          <CustomerHeader
-            customerName={customer.name}
-            showRefresh={true}
-            onRefresh={triggerRefresh}
-            settings={settings}
-          />
-
-          <Card
-            style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2">
-                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
-                <span 
-                  className={`text-sm ${!isToday ? 'font-bold' : ''}`}
-                  style={{ 
-                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
-                  }}
-                >
-                  {!isToday && 'PAKKING FOR: '}
-                  {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-                  {!isToday && ' (ikke i dag)'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="text-center p-12">
-              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
-              <p 
-                className="text-xl mb-6"
-                style={{ color: settings?.text_color || '#6b7280' }}
-              >
-                {customer.name} har ingen aktive produkter valgt for pakking
-                {activePackingDate && !isToday && (
-                  <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
-                    for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
-                  </span>
-                )}
-              </p>
-              <p 
-                className="text-sm"
-                style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
-              >
-                Produkter valgt for andre kunder vises ikke på denne kundespesifikke skjermen
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  const isAllPacked = customerPackingData.progress_percentage >= 100;
 
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
@@ -236,7 +196,55 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        {packingLoading ? (
+        {/* STATUS BAR - ALLTID SYNLIG når det er en session */}
+        <CustomerStatusIndicator
+          isAllPacked={sessionProgress.isCompleted}
+          settings={settings}
+        />
+
+        {/* PROGRESS BAR - ALLTID SYNLIG når det er en session */}
+        <CustomerProgressBar
+          customerPackingData={
+            customerPackingData || {
+              id: customer.id,
+              name: customer.name,
+              products: [],
+              overall_status: packingSession?.status === 'completed' ? 'completed' : 'ongoing',
+              progress_percentage: sessionProgress.percentage,
+              total_line_items: 0,
+              packed_line_items: 0,
+              total_line_items_all: 0,
+              packed_line_items_all: 0,
+            }
+          }
+          settings={settings}
+        />
+
+        {/* Content area - conditional basert på state */}
+        {!customerPackingData || customerPackingData.products.length === 0 ? (
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center p-12">
+              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
+              <p 
+                className="text-xl mb-6"
+                style={{ color: settings?.text_color || '#6b7280' }}
+              >
+                {customer.name} har ingen aktive produkter valgt for pakking
+                {activePackingDate && !isToday && (
+                  <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
+                    for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                  </span>
+                )}
+              </p>
+              <p 
+                className="text-sm"
+                style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+              >
+                Produkter valgt for andre kunder vises ikke på denne kundespesifikke skjermen
+              </p>
+            </CardContent>
+          </Card>
+        ) : packingLoading ? (
           <Card
             style={{
               backgroundColor: settings?.card_background_color || '#ffffff',
@@ -258,16 +266,6 @@ const CustomerDisplay = () => {
             statusColors={statusColors}
           />
         )}
-
-        <CustomerStatusIndicator
-          isAllPacked={isAllPacked}
-          settings={settings}
-        />
-
-        <CustomerProgressBar
-          customerPackingData={customerPackingData}
-          settings={settings}
-        />
 
 
         <div className="text-center">

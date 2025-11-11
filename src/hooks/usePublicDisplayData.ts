@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer } from '@/types/database';
+import { Customer, PackingSession } from '@/types/database';
 import { DisplaySettings } from '@/types/displaySettings';
 import { PackingCustomer } from './usePackingData';
 import { format } from 'date-fns';
@@ -342,6 +342,43 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached packing data due to fetch failure');
+      return false;
+    },
+  });
+};
+
+// Hook to get packing session by date without authentication
+export const usePublicPackingSession = (bakeryId?: string, date?: string) => {
+  return useQuery({
+    queryKey: ['public-packing-session', bakeryId, date],
+    queryFn: async () => {
+      if (!bakeryId || !date) return null;
+
+      console.log('Fetching public packing session for:', { bakeryId, date });
+
+      const { data, error } = await supabase
+        .from('packing_sessions')
+        .select('*')
+        .eq('bakery_id', bakeryId)
+        .eq('session_date', date)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching public packing session:', error);
+        throw error;
+      }
+
+      console.log('Found public packing session:', data);
+      return data as PackingSession | null;
+    },
+    enabled: !!bakeryId && !!date,
+    staleTime: 10000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached packing session due to fetch failure');
       return false;
     },
   });
