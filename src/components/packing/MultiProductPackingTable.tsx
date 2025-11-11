@@ -93,24 +93,30 @@ const MultiProductPackingTable = ({
   return (
     <div className="space-y-6">
       <Tabs defaultValue={products[0]?.id} className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 bg-transparent p-2">
+        <TabsList className="flex flex-wrap gap-3 mb-6 bg-transparent p-0 h-auto">
           {products.map((product) => {
             const progress = getProductProgress(product);
             return (
               <TabsTrigger 
                 key={product.id} 
                 value={product.id} 
-                className="flex flex-col gap-2 py-5 px-6 rounded-lg border-3 transition-all duration-200 
+                className="flex-1 min-w-[200px] max-w-[350px] flex flex-col gap-2 py-5 px-6 rounded-xl border-2 transition-all duration-200 
                            data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
-                           data-[state=active]:shadow-lg data-[state=active]:scale-105 data-[state=active]:border-primary
-                           data-[state=inactive]:bg-muted/50 data-[state=inactive]:border-border 
-                           data-[state=inactive]:hover:bg-muted data-[state=inactive]:hover:border-muted-foreground"
+                           data-[state=active]:shadow-xl data-[state=active]:scale-[1.02] data-[state=active]:border-primary data-[state=active]:ring-2 data-[state=active]:ring-primary/50
+                           data-[state=inactive]:bg-card data-[state=inactive]:text-card-foreground data-[state=inactive]:border-border 
+                           data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:border-accent-foreground data-[state=inactive]:hover:shadow-md
+                           cursor-pointer"
               >
-                <div className="font-semibold text-base">{product.name}</div>
-                <div className="text-sm opacity-90">
+                <div className="font-bold text-lg leading-tight">{product.name}</div>
+                {product.productNumber && (
+                  <div className="text-xs opacity-80 font-medium">
+                    Varenr: {product.productNumber}
+                  </div>
+                )}
+                <div className="text-sm font-medium mt-1">
                   {progress.packed}/{progress.total} pakket
                 </div>
-                <div className="text-xs opacity-75">
+                <div className="text-xs opacity-90 font-semibold">
                   {progress.percentage}% ferdig
                 </div>
               </TabsTrigger>
