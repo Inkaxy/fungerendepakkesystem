@@ -10,7 +10,6 @@ import CustomerHeader from '@/components/display/CustomerHeader';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
-import { CompletionCelebration } from '@/components/display/CompletionCelebration';
 import { 
   usePublicCustomerByDisplayUrl, 
   usePublicDisplaySettings, 
@@ -133,21 +132,6 @@ const CustomerDisplay = () => {
 
   const sessionProgress = getSessionProgress();
 
-  // Show celebration animation when completed and setting is enabled
-  const [showCelebration, setShowCelebration] = React.useState(false);
-
-  React.useEffect(() => {
-    const shouldShowCelebration = 
-      settings?.show_completion_celebration && 
-      sessionProgress.isCompleted &&
-      customerPackingData && 
-      customerPackingData.products.length > 0;
-
-    if (shouldShowCelebration !== showCelebration) {
-      setShowCelebration(shouldShowCelebration);
-    }
-  }, [settings?.show_completion_celebration, sessionProgress.isCompleted, customerPackingData]);
-
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
@@ -228,8 +212,6 @@ const CustomerDisplay = () => {
               </p>
             </CardContent>
           </Card>
-        ) : showCelebration ? (
-          <CompletionCelebration compact={true} loop={true} />
         ) : (
           <CustomerProductsList
             customerPackingData={customerPackingData}

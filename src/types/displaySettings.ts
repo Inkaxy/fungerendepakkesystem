@@ -76,7 +76,6 @@ export interface DisplaySettings {
   animation_speed: 'slow' | 'normal' | 'fast';
   fade_transitions: boolean;
   progress_animation: boolean;
-  show_completion_celebration: boolean;
   // Customer name display setting
   always_show_customer_name: boolean;
   // Shared display settings
