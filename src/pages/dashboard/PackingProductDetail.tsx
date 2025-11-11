@@ -353,7 +353,7 @@ const PackingProductDetail = () => {
           totalProducts={selectedProducts.length}
           onBack={handleBack}
           onPrevious={() => {}}
-          onNext={() => {}}
+          onNext={handleFinishPacking}
           canGoBack={false}
           isLastProduct={true}
         />
