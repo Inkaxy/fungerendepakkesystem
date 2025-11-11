@@ -29,14 +29,18 @@ const CustomerDisplay = () => {
   const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
   const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(displayUrl || '');
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
+  
+  // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
+  const displayDate = activePackingDate || format(new Date(), 'yyyy-MM-dd');
+  
   const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
     customer?.id, 
     customer?.bakery_id, 
-    activePackingDate || undefined
+    displayDate
   );
   const { data: packingSession } = usePublicPackingSession(
     customer?.bakery_id, 
-    activePackingDate || undefined
+    displayDate
   );
   
   // Add real-time listener for immediate updates
@@ -128,40 +132,6 @@ const CustomerDisplay = () => {
 
   const sessionProgress = getSessionProgress();
 
-  // If no active packing date, show message that no products are selected
-  if (!activePackingDate) {
-    return (
-      <div className="min-h-screen p-8" style={displayStyles}>
-        <div className="max-w-4xl mx-auto space-y-8">
-          <CustomerHeader
-            customerName={customer.name}
-            showRefresh={true}
-            onRefresh={triggerRefresh}
-            settings={settings}
-          />
-
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="text-center p-12">
-              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
-              <p 
-                className="text-xl mb-6"
-                style={{ color: settings?.text_color || '#6b7280' }}
-              >
-                Ingen produkter valgt for pakking
-              </p>
-              <p 
-                className="text-sm"
-                style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
-              >
-                Gå til Pakking-siden for å velge produkter som skal pakkes
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
       <div className="max-w-4xl mx-auto space-y-8">
@@ -172,6 +142,7 @@ const CustomerDisplay = () => {
           settings={settings}
         />
 
+        {/* Date card - vises alltid */}
         <Card
           style={{
             backgroundColor: settings?.card_background_color || '#ffffff',
@@ -189,20 +160,20 @@ const CustomerDisplay = () => {
                 }}
               >
                 {!isToday && 'PAKKING FOR: '}
-                {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+                {format(new Date(displayDate), 'dd.MM.yyyy', { locale: nb })}
                 {!isToday && ' (ikke i dag)'}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* STATUS BAR - ALLTID SYNLIG når det er en session */}
+        {/* STATUS BAR - ALLTID SYNLIG */}
         <CustomerStatusIndicator
           isAllPacked={sessionProgress.isCompleted}
           settings={settings}
         />
 
-        {/* PROGRESS BAR - ALLTID SYNLIG når det er en session */}
+        {/* PROGRESS BAR - ALLTID SYNLIG */}
         <CustomerProgressBar
           customerPackingData={
             customerPackingData || {
@@ -229,7 +200,10 @@ const CustomerDisplay = () => {
                 className="text-xl mb-6"
                 style={{ color: settings?.text_color || '#6b7280' }}
               >
-                {customer.name} har ingen aktive produkter valgt for pakking
+                {!activePackingDate 
+                  ? 'Ingen produkter valgt for pakking i dag'
+                  : `${customer.name} har ingen aktive produkter valgt for pakking`
+                }
                 {activePackingDate && !isToday && (
                   <span className="block text-sm mt-2 font-bold" style={{ color: '#dc2626' }}>
                     for {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
@@ -240,7 +214,10 @@ const CustomerDisplay = () => {
                 className="text-sm"
                 style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
               >
-                Produkter valgt for andre kunder vises ikke på denne kundespesifikke skjermen
+                {!activePackingDate 
+                  ? 'Gå til Pakking-siden for å velge produkter som skal pakkes'
+                  : 'Produkter valgt for andre kunder vises ikke på denne kundespesifikke skjermen'
+                }
               </p>
             </CardContent>
           </Card>
