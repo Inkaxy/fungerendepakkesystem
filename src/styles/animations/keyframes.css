@@ -128,3 +128,53 @@
   51% { transform: translateX(calc(100vw - 100px)) scaleX(-1); }
   100% { transform: translateX(-100px) scaleX(-1); }
 }
+
+/* === LOAF & LOAD COMPLETION ANIMATION === */
+
+/* Worker pickup animation - bounce up and down */
+@keyframes worker-pickup-bread {
+  0% { 
+    transform: translateY(0) scale(1);
+  }
+  50% { 
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% { 
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Bread disappears into truck */
+@keyframes bread-load-into-truck {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) scale(0.8);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-40px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Worker waves goodbye */
+@keyframes worker-wave-goodbye {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  75% { transform: rotate(-15deg); }
+}
+
+/* Truck drives away */
+@keyframes truck-drive-away {
+  0% { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateX(200px);
+    opacity: 0;
+  }
+}

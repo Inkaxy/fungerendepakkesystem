@@ -69,7 +69,8 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
         ...data,
         screen_type: data.screen_type || 'shared',
         packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
-        packing_status_completed_color: data.status_completed_color || '#10b981'
+        packing_status_completed_color: data.status_completed_color || '#10b981',
+        show_completion_celebration: (data as any).show_completion_celebration ?? false
       } as DisplaySettings;
 
       console.log('Found public display settings:', mappedSettings);

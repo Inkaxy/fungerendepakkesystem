@@ -172,6 +172,24 @@ const AdvancedSettingsTab = ({ settings, onUpdate }: AdvancedSettingsTabProps) =
               onCheckedChange={(checked) => onUpdate({ show_status_badges: checked })}
             />
           </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="show-completion-celebration" className="text-base font-medium">
+                Vis "Loaf & Load" ferdig-animasjon
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Når en kunde er 100% ferdig pakket, vises en morsom gjentagende animasjon der en mann laster brød inn i varebilen
+              </p>
+            </div>
+            <Switch
+              id="show-completion-celebration"
+              checked={settings.show_completion_celebration}
+              onCheckedChange={(checked) => onUpdate({ show_completion_celebration: checked })}
+            />
+          </div>
         </CardContent>
       </Card>
 
