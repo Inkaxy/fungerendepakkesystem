@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, Clock, ArrowRight } from 'lucide-react';
+import { Package, Clock, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
-import { useActivePackingProducts } from '@/hooks/useActivePackingProducts';
+import { useActivePackingProducts, useClearActivePackingProducts } from '@/hooks/useActivePackingProducts';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -11,6 +11,7 @@ const ContinuePackingButton = () => {
   const navigate = useNavigate();
   const { data: activeDate, isLoading: dateLoading } = useActivePackingDate();
   const { data: activeProducts, isLoading: productsLoading } = useActivePackingProducts(activeDate || undefined);
+  const clearActiveProducts = useClearActivePackingProducts();
 
   // Ikke vis noe hvis vi laster eller ikke har aktive produkter
   if (dateLoading || productsLoading || !activeDate || !activeProducts || activeProducts.length === 0) {
@@ -23,6 +24,12 @@ const ContinuePackingButton = () => {
     navigate(`/dashboard/orders/packing/${activeDate}/${productIds[0]}`, {
       state: { selectedProducts: productIds }
     });
+  };
+
+  const handleEndPacking = () => {
+    if (activeDate) {
+      clearActiveProducts.mutate(activeDate);
+    }
   };
 
   const formattedDate = format(new Date(activeDate), 'dd. MMMM yyyy', { locale: nb });
@@ -47,15 +54,27 @@ const ContinuePackingButton = () => {
               </p>
             </div>
           </div>
-          <Button 
-            onClick={handleContinuePacking}
-            size="lg"
-            className="bg-orange-600 hover:bg-orange-700 text-white"
-          >
-            <Package className="mr-2 h-5 w-5" />
-            Fortsett pakking
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={handleEndPacking}
+              size="lg"
+              variant="outline"
+              className="border-orange-600 text-orange-600 hover:bg-orange-50"
+              disabled={clearActiveProducts.isPending}
+            >
+              <X className="mr-2 h-5 w-5" />
+              Avslutt
+            </Button>
+            <Button 
+              onClick={handleContinuePacking}
+              size="lg"
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <Package className="mr-2 h-5 w-5" />
+              Fortsett pakking
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
