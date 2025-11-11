@@ -167,30 +167,6 @@ const CustomerDisplay = () => {
           </CardContent>
         </Card>
 
-        {/* STATUS BAR - ALLTID SYNLIG */}
-        <CustomerStatusIndicator
-          isAllPacked={sessionProgress.isCompleted}
-          settings={settings}
-        />
-
-        {/* PROGRESS BAR - ALLTID SYNLIG */}
-        <CustomerProgressBar
-          customerPackingData={
-            customerPackingData || {
-              id: customer.id,
-              name: customer.name,
-              products: [],
-              overall_status: packingSession?.status === 'completed' ? 'completed' : 'ongoing',
-              progress_percentage: sessionProgress.percentage,
-              total_line_items: 0,
-              packed_line_items: 0,
-              total_line_items_all: 0,
-              packed_line_items_all: 0,
-            }
-          }
-          settings={settings}
-        />
-
         {/* Content area - conditional basert på state */}
         {!customerPackingData || customerPackingData.products.length === 0 ? (
           <Card className="max-w-2xl mx-auto">
@@ -244,6 +220,29 @@ const CustomerDisplay = () => {
           />
         )}
 
+        {/* STATUS BAR - ALLTID SYNLIG */}
+        <CustomerStatusIndicator
+          isAllPacked={sessionProgress.isCompleted}
+          settings={settings}
+        />
+
+        {/* PROGRESS BAR - ALLTID SYNLIG */}
+        <CustomerProgressBar
+          customerPackingData={
+            customerPackingData || {
+              id: customer.id,
+              name: customer.name,
+              products: [],
+              overall_status: packingSession?.status === 'completed' ? 'completed' : 'ongoing',
+              progress_percentage: sessionProgress.percentage,
+              total_line_items: 0,
+              packed_line_items: 0,
+              total_line_items_all: 0,
+              packed_line_items_all: 0,
+            }
+          }
+          settings={settings}
+        />
 
         <div className="text-center">
           <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
