@@ -96,7 +96,7 @@ const MultiProductPackingTable = ({
         <TabsList className="flex flex-wrap gap-2 mb-4 bg-transparent p-0 h-auto sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-3 border-b">
           {products.map((product) => {
             const progress = getProductProgress(product);
-            const circumference = 2 * Math.PI * 14;
+            const circumference = 2 * Math.PI * 20;
             const strokeDashoffset = circumference * (1 - progress.percentage / 100);
             
             return (
@@ -109,30 +109,30 @@ const MultiProductPackingTable = ({
                            flex items-center gap-2"
               >
                 {/* Circular progress indicator */}
-                <div className="relative w-8 h-8 flex items-center justify-center">
-                  <svg className="w-8 h-8 -rotate-90">
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
                     <circle
-                      cx="16"
-                      cy="16"
-                      r="14"
+                      cx="24"
+                      cy="24"
+                      r="20"
                       stroke="currentColor"
-                      strokeWidth="3"
+                      strokeWidth="4"
                       fill="none"
                       opacity="0.2"
                     />
                     <circle
-                      cx="16"
-                      cy="16"
-                      r="14"
+                      cx="24"
+                      cy="24"
+                      r="20"
                       stroke="currentColor"
-                      strokeWidth="3"
+                      strokeWidth="4"
                       fill="none"
                       strokeDasharray={circumference}
                       strokeDashoffset={strokeDashoffset}
                       className="transition-all duration-300"
                     />
                   </svg>
-                  <span className="absolute text-xs font-bold">{progress.percentage}%</span>
+                  <span className="absolute text-sm font-bold">{progress.percentage}%</span>
                 </div>
                 
                 <div className="flex flex-col items-start">
