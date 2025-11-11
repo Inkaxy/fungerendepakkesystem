@@ -10,8 +10,6 @@ interface CustomerStatusIndicatorProps {
 }
 
 const CustomerStatusIndicator = ({ isAllPacked, settings }: CustomerStatusIndicatorProps) => {
-  if (!settings?.show_status_indicator) return null;
-
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
   return (

@@ -10,8 +10,6 @@ interface CustomerProgressBarProps {
 }
 
 const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgressBarProps) => {
-  if (!settings?.show_progress_bar) return null;
-
   return (
     <Card
       style={{
