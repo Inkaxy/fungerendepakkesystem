@@ -2,8 +2,10 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, Palette, Layout, Activity, Sparkles, Zap, Settings, Monitor, Sliders } from 'lucide-react';
+import { Save, Eye, RefreshCw, Palette, Layout, Activity, Sparkles, Zap, Settings, Monitor, Sliders } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
+import { useAuthStore } from '@/stores/authStore';
 import LayoutBackgroundTab from '@/components/display-settings/LayoutBackgroundTab';
 import ProductColorsTab from '@/components/display-settings/ProductColorsTab';
 import StatusProgressTab from '@/components/display-settings/StatusProgressTab';
@@ -21,6 +23,8 @@ const DisplaySettings = () => {
   const updateSettings = useUpdateDisplaySettings();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { profile } = useAuthStore();
+  const { broadcastRefresh } = useDisplayRefreshBroadcast(profile?.bakery_id);
   const [localSettings, setLocalSettings] = React.useState(settings);
 
   React.useEffect(() => {
@@ -72,6 +76,14 @@ const DisplaySettings = () => {
           <Button variant="outline" onClick={handlePreview}>
             <Eye className="h-4 w-4 mr-2" />
             Forhåndsvis
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={broadcastRefresh}
+            className="bg-orange-50 hover:bg-orange-100 text-orange-600 border-orange-300"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Oppdater alle displays
           </Button>
           <Button 
             onClick={handleSave} 

@@ -18,6 +18,7 @@ import {
   usePublicPackingSession
 } from '@/hooks/usePublicDisplayData';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
+import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -45,6 +46,9 @@ const CustomerDisplay = () => {
   
   // Add real-time listener for immediate updates
   const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
+  
+  // Lytt på refresh broadcasts fra admin
+  useDisplayRefreshBroadcast(customer?.bakery_id, true);
 
   // Debug logging
   console.log('🔍 CustomerDisplay render:', {

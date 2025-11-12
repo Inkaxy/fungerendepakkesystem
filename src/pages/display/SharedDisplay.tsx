@@ -9,6 +9,7 @@ import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
+import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
@@ -36,6 +37,9 @@ const SharedDisplay = () => {
   // Add real-time listener for public displays
   const bakeryId = customers?.[0]?.bakery_id;
   useRealTimePublicDisplay(bakeryId);
+  
+  // Lytt på refresh broadcasts fra admin
+  useDisplayRefreshBroadcast(bakeryId, true);
 
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
