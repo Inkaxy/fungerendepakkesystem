@@ -173,14 +173,17 @@ const LayoutBackgroundTab = ({ settings, onUpdate }: LayoutBackgroundTabProps) =
           <CardTitle className="text-lg">Display Alternativer</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <SliderControl
-            label="Automatisk oppdatering (sekunder)"
-            value={settings.auto_refresh_interval}
-            min={10}
-            max={120}
-            step={5}
-            onChange={(value) => onUpdate({ auto_refresh_interval: value })}
-          />
+          <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
+            <div className="flex items-start gap-2">
+              <div className="text-primary mt-0.5">💡</div>
+              <div>
+                <p className="text-sm font-medium">Live oppdateringer aktivert</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Displayene oppdateres automatisk via websockets - ingen forsinkelse!
+                </p>
+              </div>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
