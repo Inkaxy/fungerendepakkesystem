@@ -167,7 +167,7 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     },
     enabled: !!bakeryId && !!date,
     refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache er alltid fersk via websockets
+    staleTime: 30000, // 30 sekunder - tillater re-fetch ved behov
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -181,10 +181,10 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
 // Hook to get packing data for a specific customer without authentication
 export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string) => {
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
-  const { data: activeProducts } = usePublicActivePackingProducts(bakeryId, targetDate);
+  const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(bakeryId, targetDate);
 
   return useQuery({
-    queryKey: ['public-packing-data', customerId, bakeryId, targetDate, activeProducts?.length || 0],
+    queryKey: ['public-packing-data', customerId, bakeryId, targetDate, activeProducts?.map(ap => ap.product_id).sort().join(',') || 'none'],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
@@ -192,7 +192,11 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         customerId,
         bakeryId,
         targetDate,
-        activeProductsCount: activeProducts?.length || 0
+        activeProductsCount: activeProducts?.length || 0,
+        activeProductDetails: activeProducts?.map(ap => ({
+          id: ap.product_id,
+          name: ap.product_name
+        })) || []
       });
 
       const { data: orders, error } = await supabase
@@ -334,9 +338,9 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId,
+    enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined,
     refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache er alltid fersk via websockets
+    staleTime: 30000, // 30 sekunder - tillater re-fetch ved behov
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
