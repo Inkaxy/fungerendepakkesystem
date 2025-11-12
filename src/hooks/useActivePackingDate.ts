@@ -73,8 +73,8 @@ export const useActivePackingDate = () => {
         return null;
       }
     },
-    refetchInterval: 10000, // More frequent updates for better responsiveness
-    staleTime: 5000, // Consider data stale after 5 seconds for immediate updates
+    refetchInterval: false, // Kun websockets - ingen polling
+    staleTime: Infinity, // Cache alltid fersk via websockets
     retry: 3,
     retryDelay: 1000,
   });

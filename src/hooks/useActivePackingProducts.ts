@@ -42,8 +42,8 @@ export const useActivePackingProducts = (sessionDate?: string) => {
       }
     },
     enabled: !!sessionDate,
-    staleTime: 2000, // Consider data stale after 2 seconds for immediate updates
-    refetchInterval: 5000, // More frequent updates
+    refetchInterval: false, // Kun websockets - ingen polling
+    staleTime: Infinity, // Cache alltid fersk via websockets
     retry: 3,
     retryDelay: 1000,
   });
