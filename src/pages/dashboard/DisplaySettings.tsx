@@ -42,7 +42,7 @@ const DisplaySettings = () => {
   };
 
   const handlePreview = () => {
-    navigate('/display/shared');
+    navigate('/dashboard/display/shared');
   };
 
   if (isLoading || !localSettings) {
