@@ -184,7 +184,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
   const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(bakeryId, targetDate);
 
   return useQuery({
-    queryKey: ['public-packing-data', customerId, bakeryId, targetDate, activeProducts?.map(ap => ap.product_id).sort().join(',') || 'none'],
+    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate, activeProducts?.map(ap => ap.product_id).sort().join(',') || 'none'],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
@@ -229,6 +229,9 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         activeProducts.forEach(ap => {
           activeProductIds.add(ap.product_id);
         });
+        console.log('✅ Active product IDs filter aktivert:', Array.from(activeProductIds));
+      } else {
+        console.warn('⚠️ INGEN active products funnet - ALLE produkter vil vises!');
       }
 
       // Create product color map based on active products order
@@ -273,9 +276,16 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
           }
 
           // Only include active products
-          const shouldIncludeProduct = activeProductIds.has(op.product_id);
+          const shouldIncludeProduct = activeProductIds.size === 0 || activeProductIds.has(op.product_id);
           
-          if (!shouldIncludeProduct) return;
+          if (!shouldIncludeProduct) {
+            console.log(`🚫 Filtrerer bort produkt: ${op.product.name} (ID: ${op.product_id})`);
+            return;
+          }
+
+          if (activeProductIds.size > 0) {
+            console.log(`✅ Inkluderer produkt: ${op.product.name} (ID: ${op.product_id})`);
+          }
 
           const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
           
@@ -340,7 +350,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined,
     refetchInterval: false, // Kun websockets
-    staleTime: 30000, // 30 sekunder - tillater re-fetch ved behov
+    staleTime: 1000, // 1 sekund - tvinger nesten alltid re-fetch
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
