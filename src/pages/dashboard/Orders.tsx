@@ -3,22 +3,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Package, Upload, Calendar as CalendarIcon, Users, Clock, Loader2 } from 'lucide-react';
+import { Package, Upload, Calendar as CalendarIcon, Users, Clock, Loader2, Trash2, ChevronDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { useOrders, useOrdersByDateRange } from '@/hooks/useOrders';
 import { usePackingSessions } from '@/hooks/usePackingSessions';
+import { useDeleteOrdersForDate, useDeleteOldOrders } from '@/hooks/useDeleteOrders';
 import OrderDetailsModal from '@/components/orders/OrderDetailsModal';
 import DataUploadModal from '@/components/orders/DataUploadModal';
+import DeleteOrdersDialog from '@/components/orders/DeleteOrdersDialog';
 import PackingDateDetails from '@/components/orders/PackingDateDetails';
 import ContinuePackingButton from '@/components/orders/ContinuePackingButton';
 import { Order } from '@/types/database';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Orders = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showDataUpload, setShowDataUpload] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteMode, setDeleteMode] = useState<'date' | 'old'>('date');
   
   const currentMonth = format(selectedDate, 'yyyy-MM');
   const monthStart = format(startOfMonth(selectedDate), 'yyyy-MM-dd');
@@ -27,6 +38,8 @@ const Orders = () => {
   const { data: monthOrders, isLoading: ordersLoading } = useOrdersByDateRange(monthStart, monthEnd);
   const { data: selectedDateOrders, isLoading: dayOrdersLoading } = useOrders(format(selectedDate, 'yyyy-MM-dd'));
   const { data: packingSessions } = usePackingSessions();
+  const deleteOrdersForDate = useDeleteOrdersForDate();
+  const deleteOldOrders = useDeleteOldOrders();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -50,6 +63,14 @@ const Orders = () => {
   const handleOrderDetails = (order: any) => {
     setSelectedOrder(order);
     setShowOrderDetails(true);
+  };
+
+  const handleDeleteOrders = () => {
+    if (deleteMode === 'date') {
+      deleteOrdersForDate.mutate(format(selectedDate, 'yyyy-MM-dd'));
+    } else {
+      deleteOldOrders.mutate();
+    }
   };
 
   // Create calendar modifiers for packing days
@@ -101,10 +122,45 @@ const Orders = () => {
             Administrer ordrer og planlegg pakkedager
           </p>
         </div>
-        <Button onClick={() => setShowDataUpload(true)}>
-          <Upload className="mr-2 h-4 w-4" />
-          Last opp data
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowDataUpload(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Last opp data
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Slett ordre
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => {
+                  setDeleteMode('date');
+                  setShowDeleteDialog(true);
+                }}
+                className="text-orange-600"
+              >
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                Slett ordre for valgt dato
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => {
+                  setDeleteMode('old');
+                  setShowDeleteDialog(true);
+                }}
+                className="text-red-600"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Slett alle gamle ordre
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Fortsett pakking knapp - vises kun når det er aktiv pakking */}
@@ -269,6 +325,15 @@ const Orders = () => {
       <DataUploadModal
         isOpen={showDataUpload}
         onClose={() => setShowDataUpload(false)}
+      />
+
+      <DeleteOrdersDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        mode={deleteMode}
+        selectedDate={deleteMode === 'date' ? format(selectedDate, 'dd.MM.yyyy', { locale: nb }) : undefined}
+        onConfirm={handleDeleteOrders}
+        isLoading={deleteOrdersForDate.isPending || deleteOldOrders.isPending}
       />
     </div>
   );
