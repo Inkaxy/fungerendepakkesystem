@@ -37,6 +37,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
 
   return useQuery({
     queryKey: ['packing-data', profile?.bakery_id, customerId, targetDate, activeOnly, activeProducts?.map(ap => ap.product_id).sort().join(',') || 'none'],
+    enabled: !activeOnly || (!activeProductsLoading && activeProducts !== undefined),
     queryFn: async () => {
       console.log('🔍 Starting packing data fetch:', {
         customerId,
@@ -258,7 +259,6 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
       
       return result;
     },
-    enabled: !activeOnly || !activeProductsLoading,
     refetchInterval: false, // Kun websockets
     staleTime: Infinity, // Cache er alltid fersk via websockets
   });
