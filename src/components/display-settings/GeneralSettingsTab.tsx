@@ -72,16 +72,17 @@ const GeneralSettingsTab = ({ settings, onUpdate }: GeneralSettingsTabProps) => 
             />
           </div>
 
-          <SliderControl
-            label="Automatisk oppdateringsintervall"
-            value={settings.auto_refresh_interval}
-            onChange={(value) => onUpdate({ auto_refresh_interval: value })}
-            min={10}
-            max={300}
-            step={5}
-            unit="sekunder"
-            description="Hvor ofte skjermen oppdateres automatisk"
-          />
+          <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+            <div className="flex items-start gap-2">
+              <div className="text-primary mt-0.5">💡</div>
+              <div>
+                <p className="text-sm font-medium">Live oppdateringer aktivert</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Displayene oppdateres automatisk via websockets - ingen forsinkelse!
+                </p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
