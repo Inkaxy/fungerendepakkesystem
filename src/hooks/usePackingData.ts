@@ -36,7 +36,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
   const { data: activeProducts, isLoading: activeProductsLoading } = useActivePackingProducts(activeOnly ? targetDate : undefined);
 
   return useQuery({
-    queryKey: ['packing-data', profile?.bakery_id, customerId, targetDate, activeOnly, activeProducts?.length || 0],
+    queryKey: ['packing-data', profile?.bakery_id, customerId, targetDate, activeOnly, activeProducts?.map(ap => ap.product_id).sort().join(',') || 'none'],
     queryFn: async () => {
       console.log('🔍 Starting packing data fetch:', {
         customerId,
