@@ -10,11 +10,10 @@ import { nb } from 'date-fns/locale';
 interface SharedDisplayHeaderProps {
   settings: DisplaySettings | undefined;
   connectionStatus: 'connected' | 'connecting' | 'disconnected';
-  onRefresh: () => void;
   activePackingDate: string | undefined;
 }
 
-const SharedDisplayHeader = ({ settings, connectionStatus, onRefresh, activePackingDate }: SharedDisplayHeaderProps) => {
+const SharedDisplayHeader = ({ settings, connectionStatus, activePackingDate }: SharedDisplayHeaderProps) => {
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : true;
 
   return (
@@ -56,14 +55,6 @@ const SharedDisplayHeader = ({ settings, connectionStatus, onRefresh, activePack
       </div>
       <div className="flex flex-col items-end gap-2">
         <ConnectionStatus status={connectionStatus} />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Oppdater
-        </Button>
       </div>
     </div>
   );

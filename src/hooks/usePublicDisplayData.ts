@@ -27,8 +27,8 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
       console.log('Found public customer:', data);
       return data as Customer;
     },
-    staleTime: 10000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -76,8 +76,8 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
       return mappedSettings;
     },
     enabled: !!customer?.bakery_id,
-    staleTime: 10000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -130,8 +130,8 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
       return sessionData[0].session_date;
     },
     enabled: !!bakeryId,
-    staleTime: 10000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -166,8 +166,8 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
       return data;
     },
     enabled: !!bakeryId && !!date,
-    staleTime: 10000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -335,8 +335,8 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       return result;
     },
     enabled: !!customerId && !!bakeryId,
-    refetchInterval: 30000,
-    staleTime: 10000,
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -372,8 +372,8 @@ export const usePublicPackingSession = (bakeryId?: string, date?: string) => {
       return data as PackingSession | null;
     },
     enabled: !!bakeryId && !!date,
-    staleTime: 10000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {

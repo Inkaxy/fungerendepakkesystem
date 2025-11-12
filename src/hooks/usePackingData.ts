@@ -259,7 +259,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
       return result;
     },
     enabled: !activeOnly || !activeProductsLoading,
-    refetchInterval: 5000, // More frequent updates for better responsiveness
-    staleTime: 1000, // Consider data stale after 1 second for better reactivity
+    refetchInterval: false, // Kun websockets
+    staleTime: Infinity, // Cache er alltid fersk via websockets
   });
 };

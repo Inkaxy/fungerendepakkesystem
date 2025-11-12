@@ -1,7 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
+import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
+import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
+import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
+import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
+import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
 import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
@@ -10,10 +14,6 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { usePackingData } from '@/hooks/usePackingData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
-import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
-import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
-import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
-import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -36,11 +36,6 @@ const SharedDisplay = () => {
   // Add real-time listener for public displays
   const bakeryId = customers?.[0]?.bakery_id;
   useRealTimePublicDisplay(bakeryId);
-  
-  const { triggerRefresh } = useDisplayRefresh({
-    enabled: true, 
-    interval: (settings?.auto_refresh_interval || 30) * 1000 
-  });
 
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
@@ -102,12 +97,11 @@ const SharedDisplay = () => {
       style={displayStyles}
     >
       <div className="max-w-7xl mx-auto">
-        <SharedDisplayHeader
-          settings={settings}
-          connectionStatus={connectionStatus}
-          onRefresh={triggerRefresh}
-          activePackingDate={activePackingDate}
-        />
+      <SharedDisplayHeader 
+        settings={settings}
+        connectionStatus={connectionStatus}
+        activePackingDate={activePackingDate}
+      />
 
         {dateLoading && (
           <Card
@@ -189,14 +183,9 @@ const SharedDisplay = () => {
         )}
 
         <div className="text-center mt-8">
-          <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
-            Sist oppdatert: {format(new Date(), 'HH:mm:ss', { locale: nb })}
-          </p>
-          <p 
-            className="text-xs mt-1"
-            style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}
-          >
-            Automatisk oppdatering hvert {settings?.auto_refresh_interval || 30}. sekund
+          <ConnectionStatus status={connectionStatus} />
+          <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+            Automatiske oppdateringer via websockets
           </p>
         </div>
       </div>

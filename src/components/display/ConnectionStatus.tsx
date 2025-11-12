@@ -1,47 +1,41 @@
 
-import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 
 interface ConnectionStatusProps {
   status: 'connected' | 'connecting' | 'disconnected';
   className?: string;
 }
 
-const ConnectionStatus = ({ status, className = '' }: ConnectionStatusProps) => {
-  const getStatusConfig = () => {
-    switch (status) {
-      case 'connected':
-        return {
-          icon: Wifi,
-          text: 'Tilkoblet',
-          variant: 'default' as const,
-          bgColor: 'bg-green-500'
-        };
-      case 'connecting':
-        return {
-          icon: Loader2,
-          text: 'Kobler til...',
-          variant: 'secondary' as const,
-          bgColor: 'bg-yellow-500'
-        };
-      case 'disconnected':
-        return {
-          icon: WifiOff,
-          text: 'Frakoblet',
-          variant: 'destructive' as const,
-          bgColor: 'bg-red-500'
-        };
+export const ConnectionStatus = ({ status, className = '' }: ConnectionStatusProps) => {
+  const statusConfig = {
+    connected: {
+      icon: Wifi,
+      label: 'Live',
+      badge: 'default' as const
+    },
+    connecting: {
+      icon: RefreshCw,
+      label: 'Kobler til...',
+      badge: 'secondary' as const
+    },
+    disconnected: {
+      icon: WifiOff,
+      label: 'Frakoblet',
+      badge: 'destructive' as const
     }
   };
 
-  const config = getStatusConfig();
+  const config = statusConfig[status];
   const Icon = config.icon;
 
   return (
-    <Badge variant={config.variant} className={`flex items-center gap-1 ${className}`}>
+    <Badge 
+      variant={config.badge}
+      className={`flex items-center gap-2 ${className}`}
+    >
       <Icon className={`h-3 w-3 ${status === 'connecting' ? 'animate-spin' : ''}`} />
-      <span className="text-xs">{config.text}</span>
+      {config.label}
     </Badge>
   );
 };

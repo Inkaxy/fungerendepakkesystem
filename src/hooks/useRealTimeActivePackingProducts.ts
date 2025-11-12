@@ -27,65 +27,41 @@ export const useRealTimeActivePackingProducts = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('🔔 Active packing products changed for bakery:', profile.bakery_id);
+          console.log('⚡ WebSocket: Active packing products changed');
           
-          // Invalidate bakery-specific queries
-          queryClient.invalidateQueries({ queryKey: ['active-packing-products', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['active-packing-date', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['packing-sessions', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['public-active-packing-products'] });
-          queryClient.invalidateQueries({ queryKey: ['public-active-packing-date'] });
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
+          // ONLY invalidate queries that need updating
+          const queriesToInvalidate = [
+            ['active-packing-products', profile.bakery_id],
+            ['packing-data', profile.bakery_id]
+          ];
 
-          // Force immediate refetch
-          queryClient.refetchQueries({ queryKey: ['active-packing-date', profile.bakery_id] });
-          queryClient.refetchQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          queriesToInvalidate.forEach(queryKey => {
+            queryClient.invalidateQueries({ queryKey, exact: false });
+          });
 
-          // Enhanced notifications for product selection changes
+          // Toast notifications
           if (payload.eventType === 'INSERT') {
             const product = payload.new as any;
-            console.log('➕ Product activated for packing:', product.product_name);
             toast({
-              title: "Produkt aktivert for pakking",
-              description: `${product.product_name} er nå valgt for pakking`,
-              duration: 3000,
+              title: "Produkt aktivert",
+              description: `${product.product_name} valgt for pakking`,
+              duration: 2000,
             });
           } else if (payload.eventType === 'DELETE') {
-            console.log('➖ Active packing products cleared');
             toast({
               title: "Produktvalg oppdatert",
-              description: "Aktive produkter for pakking er endret",
-              duration: 2000,
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            const product = payload.new as any;
-            console.log('🔄 Active packing product updated:', product.product_name);
-            toast({
-              title: "Produktinformasjon oppdatert",
-              description: `${product.product_name} informasjon er oppdatert`,
-              duration: 2000,
+              description: "Aktive produkter endret",
+              duration: 1500,
             });
           }
         }
       )
       .subscribe((status) => {
-        console.log('🔗 Active packing products connection status:', status);
         setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 
                            status === 'CHANNEL_ERROR' ? 'disconnected' : 'connecting');
         
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Active packing products real-time connection established');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Active packing products real-time connection error');
-          
-          // Retry connection after a delay
-          setTimeout(() => {
-            console.log('🔄 Retrying active packing products connection...');
-            channel.unsubscribe();
-            // The useEffect will re-run and create a new connection
-          }, 5000);
+          console.log('✅ WebSocket: Auth connection established');
         }
       });
 

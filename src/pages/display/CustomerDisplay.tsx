@@ -4,12 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
-import { useDisplayRefresh } from '@/hooks/useDisplayRefresh';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
 import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
+import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { 
   usePublicCustomerByDisplayUrl, 
   usePublicDisplaySettings, 
@@ -44,9 +44,7 @@ const CustomerDisplay = () => {
   );
   
   // Add real-time listener for immediate updates
-  useRealTimePublicDisplay(customer?.bakery_id);
-  
-  const { triggerRefresh } = useDisplayRefresh({ enabled: true, interval: 30000 });
+  const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
 
   // Debug logging
   console.log('🔍 CustomerDisplay render:', {
@@ -137,8 +135,7 @@ const CustomerDisplay = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         <CustomerHeader
           customerName={customer.name}
-          showRefresh={true}
-          onRefresh={triggerRefresh}
+          showRefresh={false}
           settings={settings}
         />
 
@@ -245,14 +242,9 @@ const CustomerDisplay = () => {
         />
 
         <div className="text-center">
-          <p style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
-            Sist oppdatert: {format(new Date(), 'HH:mm:ss')}
-          </p>
-          <p 
-            className="text-sm mt-1"
-            style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}
-          >
-            Automatisk oppdatering hvert 30. sekund
+          <ConnectionStatus status={connectionStatus} />
+          <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+            Automatiske oppdateringer via websockets
           </p>
         </div>
       </div>

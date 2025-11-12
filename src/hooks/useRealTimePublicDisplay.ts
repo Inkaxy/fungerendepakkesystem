@@ -1,18 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useRealTimePublicDisplay = (bakeryId?: string) => {
   const queryClient = useQueryClient();
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
 
   useEffect(() => {
     if (!bakeryId) return;
 
-    console.log('🔄 Setting up PUBLIC real-time listener for bakery:', bakeryId);
+    console.log('🔄 WebSocket: Setting up real-time for bakery:', bakeryId);
 
-    // Listen to active_packing_products changes
-    const productsChannel = supabase
-      .channel(`public-active-products-${bakeryId}`)
+    const channel = supabase
+      .channel(`public-display-${bakeryId}`)
       .on(
         'postgres_changes',
         {
@@ -22,27 +22,40 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           filter: `bakery_id=eq.${bakeryId}`
         },
         (payload) => {
-          console.log('🔔 PUBLIC: Active packing products changed!', payload.eventType);
+          const startTime = performance.now();
+          console.log('⚡ WebSocket: Active products changed', payload.eventType);
           
-          // Invalidate and immediately refetch all relevant public queries
-          queryClient.invalidateQueries({ queryKey: ['public-active-packing-products'] });
-          queryClient.invalidateQueries({ queryKey: ['public-active-packing-date'] });
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
+          // Direct cache update - no refetch needed
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            queryClient.setQueryData(
+              ['public-active-packing-products', bakeryId, (payload.new as any).session_date],
+              (oldData: any[] | undefined) => {
+                if (!oldData) return [payload.new];
+                
+                const index = oldData.findIndex(item => item.id === (payload.new as any).id);
+                if (index >= 0) {
+                  const newData = [...oldData];
+                  newData[index] = payload.new;
+                  return newData;
+                }
+                return [...oldData, payload.new];
+              }
+            );
+          } else if (payload.eventType === 'DELETE') {
+            queryClient.setQueryData(
+              ['public-active-packing-products', bakeryId],
+              (oldData: any[] | undefined) => 
+                oldData?.filter(item => item.id !== (payload.old as any).id) || []
+            );
+          }
           
-          // Force immediate refetch
-          queryClient.refetchQueries({ queryKey: ['public-active-packing-products'] });
-          queryClient.refetchQueries({ queryKey: ['public-packing-data'] });
+          // Only invalidate dependent queries (packing data needs recalculation)
+          queryClient.invalidateQueries({ queryKey: ['public-packing-data'], exact: false });
+          
+          const endTime = performance.now();
+          console.log(`⚡ Update completed in ${(endTime - startTime).toFixed(2)}ms`);
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ PUBLIC real-time connection established');
-        }
-      });
-
-    // Listen to order_products changes (packing status updates)
-    const orderProductsChannel = supabase
-      .channel(`public-order-products-${bakeryId}`)
       .on(
         'postgres_changes',
         {
@@ -51,19 +64,28 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           table: 'order_products'
         },
         (payload) => {
-          console.log('🔔 PUBLIC: Order product updated (packing status)');
+          console.log('⚡ WebSocket: Order product status updated');
           
-          // Invalidate packing data to show updated status
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
-          queryClient.refetchQueries({ queryKey: ['public-packing-data'] });
+          // Direct packing data invalidation for status changes
+          queryClient.invalidateQueries({ queryKey: ['public-packing-data'], exact: false });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 
+                           status === 'CHANNEL_ERROR' ? 'disconnected' : 'connecting');
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ WebSocket: Connected');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ WebSocket: Connection error');
+        }
+      });
 
     return () => {
-      console.log('🧹 Cleaning up PUBLIC real-time listeners');
-      supabase.removeChannel(productsChannel);
-      supabase.removeChannel(orderProductsChannel);
+      console.log('🧹 WebSocket: Cleaning up');
+      supabase.removeChannel(channel);
     };
   }, [queryClient, bakeryId]);
+
+  return { connectionStatus };
 };
