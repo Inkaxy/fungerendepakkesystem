@@ -26,21 +26,27 @@ export const useRealTimePackingSessions = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('⚡ Session changed:', payload.eventType);
+          const updatedSession = payload.new as any;
+          console.log('⚡ Session changed:', payload.eventType, updatedSession?.id);
           
-          // Refetch only active queries immediately
-          queryClient.refetchQueries({ 
-            queryKey: ['packing-sessions', profile.bakery_id],
-            type: 'active'
-          });
-          queryClient.refetchQueries({ 
-            queryKey: ['active-packing-date', profile.bakery_id],
-            type: 'active'
-          });
-          queryClient.refetchQueries({ 
-            queryKey: ['packing-data', profile.bakery_id],
-            type: 'active'
-          });
+          // Direct cache update for packing sessions
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            queryClient.setQueryData(['packing-sessions', profile.bakery_id], (old: any[] | undefined) => {
+              if (!old) return [updatedSession];
+              const exists = old.find(s => s.id === updatedSession.id);
+              if (exists) {
+                return old.map(s => s.id === updatedSession.id ? updatedSession : s);
+              }
+              return [...old, updatedSession];
+            });
+          }
+          
+          // Update active packing date if status is in_progress
+          if (updatedSession?.status === 'in_progress') {
+            queryClient.setQueryData(['active-packing-date', profile.bakery_id], 
+              updatedSession.session_date
+            );
+          }
 
           // Show notification for session status changes
           if (payload.eventType === 'UPDATE') {
@@ -64,7 +70,7 @@ export const useRealTimePackingSessions = () => {
             }
           }
           
-          console.log('✅ Sessions refetched INSTANTLY');
+          console.log('✅ Session cache updated instantly - 0ms delay');
         }
       )
       .subscribe();

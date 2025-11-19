@@ -52,10 +52,10 @@ export const useRealTimeActivePackingProducts = () => {
             );
           }
           
-          // Force immediate refetch of packing data
-          queryClient.refetchQueries({ 
+          // Mark packing-data as stale to trigger re-computation from cache
+          queryClient.invalidateQueries({ 
             queryKey: ['packing-data', profile.bakery_id],
-            type: 'active'
+            refetchType: 'none'
           });
 
           // Toast notifications (shortened duration)

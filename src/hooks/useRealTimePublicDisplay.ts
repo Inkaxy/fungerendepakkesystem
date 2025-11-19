@@ -48,11 +48,11 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             );
           }
           
-          // Force immediate refetch of active queries (no invalidation delay)
-          queryClient.refetchQueries({ 
-            queryKey: ['public-packing-data-v2'], 
+          // Mark public-packing-data as stale to trigger re-computation from cache
+          queryClient.invalidateQueries({ 
+            queryKey: ['public-packing-data-v2'],
             exact: false,
-            type: 'active'
+            refetchType: 'none'
           });
           
           console.log('✅ Active products cache updated, display refreshing...');
