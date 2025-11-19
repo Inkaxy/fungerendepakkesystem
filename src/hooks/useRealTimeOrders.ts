@@ -27,14 +27,23 @@ export const useRealTimeOrders = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('Order changed for bakery:', profile.bakery_id);
+          console.log('⚡ Order changed:', payload.eventType);
           
-          // Invalidate bakery-specific queries
-          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['order-counts', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['public-display-orders'] });
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
+          // Refetch only active queries immediately
+          queryClient.refetchQueries({ 
+            queryKey: ['orders', profile.bakery_id],
+            type: 'active'
+          });
+          queryClient.refetchQueries({ 
+            queryKey: ['order-counts', profile.bakery_id],
+            type: 'active'
+          });
+          queryClient.refetchQueries({ 
+            queryKey: ['packing-data', profile.bakery_id],
+            type: 'active'
+          });
+          
+          console.log('✅ Orders refetched INSTANTLY');
         }
       )
       .on(
@@ -45,27 +54,58 @@ export const useRealTimeOrders = () => {
           table: 'order_products'
         },
         (payload) => {
-          console.log('Order product changed for bakery:', profile.bakery_id);
+          const updatedProduct = payload.new as any;
+          console.log('⚡ Order product changed', {
+            id: updatedProduct.id,
+            status: updatedProduct.packing_status
+          });
           
-          // Invalidate bakery-specific queries
-          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['public-display-orders'] });
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
-
-          // Show notification for packing status changes
-          if (payload.eventType === 'UPDATE') {
-            const oldStatus = payload.old?.packing_status;
-            const newStatus = payload.new?.packing_status;
-            
-            if (oldStatus !== newStatus && newStatus === 'packed') {
-              toast({
-                title: "Vare pakket",
-                description: "En vare er markert som pakket",
-                duration: 2000,
-              });
+          // Optimistic cache update for packing data
+          queryClient.setQueriesData(
+            { queryKey: ['packing-data', profile.bakery_id], exact: false },
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              return oldData.map((customer: any) => ({
+                ...customer,
+                products: customer.products?.map((product: any) => {
+                  const updatedOrderItems = product.order_items?.map((item: any) => 
+                    item.order_product_id === updatedProduct.id
+                      ? { ...item, packing_status: updatedProduct.packing_status }
+                      : item
+                  );
+                  
+                  if (updatedOrderItems !== product.order_items) {
+                    const allPacked = updatedOrderItems?.every((item: any) => 
+                      item.packing_status === 'packed' || item.packing_status === 'completed'
+                    );
+                    return {
+                      ...product,
+                      order_items: updatedOrderItems,
+                      packing_status: allPacked ? 'packed' : 'in_progress'
+                    };
+                  }
+                  return product;
+                })
+              }));
             }
+          );
+          
+          // Force refetch of active queries only
+          queryClient.refetchQueries({ 
+            queryKey: ['orders', profile.bakery_id],
+            type: 'active'
+          });
+
+          // Toast for packed items
+          if (payload.eventType === 'UPDATE' && payload.new?.packing_status === 'packed') {
+            toast({
+              title: "Vare pakket",
+              description: "Oppdatering sendt til displays",
+              duration: 1500,
+            });
           }
+          
+          console.log('✅ Cache updated INSTANTLY');
         }
       )
       .on(
@@ -76,12 +116,20 @@ export const useRealTimeOrders = () => {
           table: 'packing_sessions',
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
-        () => {
-          // Invalidate bakery-specific queries
-          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'] });
-          queryClient.invalidateQueries({ queryKey: ['public-active-packing-date'] });
+        (payload) => {
+          console.log('⚡ Packing session changed:', payload.eventType);
+          
+          // Refetch only active queries immediately
+          queryClient.refetchQueries({ 
+            queryKey: ['packing-data', profile.bakery_id],
+            type: 'active'
+          });
+          queryClient.refetchQueries({ 
+            queryKey: ['orders', profile.bakery_id],
+            type: 'active'
+          });
+          
+          console.log('✅ Session data refetched INSTANTLY');
         }
       )
       .subscribe((status) => {

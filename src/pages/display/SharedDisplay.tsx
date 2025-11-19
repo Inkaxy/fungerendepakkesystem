@@ -6,8 +6,6 @@ import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
-import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
@@ -31,12 +29,9 @@ const SharedDisplay = () => {
     true
   );
   
-  const { connectionStatus } = useRealTimeDisplay();
-  useRealTimeActivePackingProducts();
-  
-  // Add real-time listener for public displays
+  // Kun én real-time listener - public display bruker optimalisert cache-update
   const bakeryId = customers?.[0]?.bakery_id;
-  useRealTimePublicDisplay(bakeryId);
+  const { connectionStatus } = useRealTimePublicDisplay(bakeryId);
   
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
