@@ -22,7 +22,6 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           filter: `bakery_id=eq.${bakeryId}`
         },
         (payload) => {
-          const startTime = performance.now();
           console.log('⚡ WebSocket: Active products changed', payload.eventType);
           
           // Direct cache update - no refetch needed
@@ -49,11 +48,14 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             );
           }
           
-          // Only invalidate dependent queries (packing data needs recalculation)
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'], exact: false });
+          // Force immediate refetch of active queries (no invalidation delay)
+          queryClient.refetchQueries({ 
+            queryKey: ['public-packing-data-v2'], 
+            exact: false,
+            type: 'active'
+          });
           
-          const endTime = performance.now();
-          console.log(`⚡ Update completed in ${(endTime - startTime).toFixed(2)}ms`);
+          console.log('✅ Active products cache updated, display refreshing...');
         }
       )
       .on(
@@ -64,10 +66,57 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           table: 'order_products'
         },
         (payload) => {
-          console.log('⚡ WebSocket: Order product status updated');
+          const updatedProduct = payload.new as any;
+          console.log('⚡ WebSocket: Order product status updated', {
+            order_product_id: updatedProduct.id,
+            new_status: updatedProduct.packing_status,
+            product_id: updatedProduct.product_id
+          });
           
-          // Direct packing data invalidation for status changes
-          queryClient.invalidateQueries({ queryKey: ['public-packing-data'], exact: false });
+          // Optimistic cache update - update display data directly from WebSocket
+          queryClient.setQueriesData(
+            { queryKey: ['public-packing-data-v2'], exact: false },
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              // oldData is the array of customer packing data
+              return oldData.map((customer: any) => ({
+                ...customer,
+                products: customer.products?.map((product: any) => {
+                  // Find if this product has order items that match the updated order_product
+                  const updatedOrderItems = product.order_items?.map((item: any) => {
+                    if (item.order_product_id === updatedProduct.id) {
+                      return {
+                        ...item,
+                        packing_status: updatedProduct.packing_status
+                      };
+                    }
+                    return item;
+                  });
+                  
+                  // Recalculate product-level status if any items changed
+                  if (updatedOrderItems !== product.order_items) {
+                    const allPacked = updatedOrderItems?.every((item: any) => 
+                      item.packing_status === 'packed' || item.packing_status === 'completed'
+                    );
+                    const somePacked = updatedOrderItems?.some((item: any) => 
+                      item.packing_status === 'packed' || item.packing_status === 'completed'
+                    );
+                    
+                    return {
+                      ...product,
+                      order_items: updatedOrderItems,
+                      packing_status: allPacked ? 'packed' : somePacked ? 'in_progress' : 'pending'
+                    };
+                  }
+                  
+                  return product;
+                })
+              }));
+            }
+          );
+          
+          console.log('✅ Status oppdatert i cache UMIDDELBART');
         }
       )
       .subscribe((status) => {
