@@ -27,23 +27,37 @@ export const useRealTimeOrders = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('⚡ Order changed:', payload.eventType);
+          const updatedOrder = payload.new as any;
+          console.log('⚡ Order changed:', payload.eventType, updatedOrder?.id);
           
-          // Refetch only active queries immediately
-          queryClient.refetchQueries({ 
-            queryKey: ['orders', profile.bakery_id],
-            type: 'active'
-          });
-          queryClient.refetchQueries({ 
-            queryKey: ['order-counts', profile.bakery_id],
-            type: 'active'
-          });
-          queryClient.refetchQueries({ 
-            queryKey: ['packing-data', profile.bakery_id],
-            type: 'active'
-          });
+          // Direct cache update for orders
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            queryClient.setQueryData(['orders', profile.bakery_id], (oldOrders: any[] | undefined) => {
+              if (!oldOrders) return [updatedOrder];
+              const exists = oldOrders.find(o => o.id === updatedOrder.id);
+              if (exists) {
+                return oldOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+              }
+              return [...oldOrders, updatedOrder];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            queryClient.setQueryData(['orders', profile.bakery_id], (oldOrders: any[] | undefined) =>
+              oldOrders?.filter(o => o.id !== (payload.old as any)?.id) || []
+            );
+          }
           
-          console.log('✅ Orders refetched INSTANTLY');
+          // Recalculate order counts from cache
+          const orders = queryClient.getQueryData(['orders', profile.bakery_id]) as any[];
+          if (orders) {
+            queryClient.setQueryData(['order-counts', profile.bakery_id], {
+              total: orders.length,
+              pending: orders.filter(o => o.status === 'pending').length,
+              packed: orders.filter(o => o.status === 'packed').length,
+              completed: orders.filter(o => o.status === 'completed').length,
+            });
+          }
+          
+          console.log('✅ Orders updated from WebSocket - 0ms delay');
         }
       )
       .on(
@@ -90,11 +104,7 @@ export const useRealTimeOrders = () => {
             }
           );
           
-          // Force refetch of active queries only
-          queryClient.refetchQueries({ 
-            queryKey: ['orders', profile.bakery_id],
-            type: 'active'
-          });
+          // No refetch needed - cache already updated optimistically
 
           // Toast for packed items
           if (payload.eventType === 'UPDATE' && payload.new?.packing_status === 'packed') {
@@ -117,19 +127,29 @@ export const useRealTimeOrders = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('⚡ Packing session changed:', payload.eventType);
+          const updatedSession = payload.new as any;
+          console.log('⚡ Packing session changed:', payload.eventType, updatedSession?.id);
           
-          // Refetch only active queries immediately
-          queryClient.refetchQueries({ 
-            queryKey: ['packing-data', profile.bakery_id],
-            type: 'active'
-          });
-          queryClient.refetchQueries({ 
-            queryKey: ['orders', profile.bakery_id],
-            type: 'active'
-          });
+          // Direct cache update for packing sessions
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            queryClient.setQueryData(['packing-sessions', profile.bakery_id], (old: any[] | undefined) => {
+              if (!old) return [updatedSession];
+              const exists = old.find(s => s.id === updatedSession.id);
+              if (exists) {
+                return old.map(s => s.id === updatedSession.id ? updatedSession : s);
+              }
+              return [...old, updatedSession];
+            });
+          }
           
-          console.log('✅ Session data refetched INSTANTLY');
+          // Update active packing date if status is in_progress
+          if (updatedSession?.status === 'in_progress') {
+            queryClient.setQueryData(['active-packing-date', profile.bakery_id], 
+              updatedSession.session_date
+            );
+          }
+          
+          console.log('✅ Session updated from WebSocket - 0ms delay');
         }
       )
       .subscribe((status) => {
