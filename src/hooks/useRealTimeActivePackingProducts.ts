@@ -27,33 +27,47 @@ export const useRealTimeActivePackingProducts = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('⚡ WebSocket: Active packing products changed');
+          console.log('⚡ Active products changed:', payload.eventType);
           
-          // ONLY invalidate queries that need updating
-          const queriesToInvalidate = [
-            ['active-packing-products', profile.bakery_id],
-            ['packing-data', profile.bakery_id]
-          ];
-
-          queriesToInvalidate.forEach(queryKey => {
-            queryClient.invalidateQueries({ queryKey, exact: false });
+          // Direct cache update for active products
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            queryClient.setQueryData(
+              ['active-packing-products', profile.bakery_id, (payload.new as any).session_date],
+              (oldData: any[] | undefined) => {
+                if (!oldData) return [payload.new];
+                const index = oldData.findIndex(item => item.id === (payload.new as any).id);
+                if (index >= 0) {
+                  const newData = [...oldData];
+                  newData[index] = payload.new;
+                  return newData;
+                }
+                return [...oldData, payload.new];
+              }
+            );
+          } else if (payload.eventType === 'DELETE') {
+            queryClient.setQueryData(
+              ['active-packing-products', profile.bakery_id],
+              (oldData: any[] | undefined) => 
+                oldData?.filter(item => item.id !== (payload.old as any).id) || []
+            );
+          }
+          
+          // Force immediate refetch of packing data
+          queryClient.refetchQueries({ 
+            queryKey: ['packing-data', profile.bakery_id],
+            type: 'active'
           });
 
-          // Toast notifications
+          // Toast notifications (shortened duration)
           if (payload.eventType === 'INSERT') {
-            const product = payload.new as any;
             toast({
               title: "Produkt aktivert",
-              description: `${product.product_name} valgt for pakking`,
-              duration: 2000,
-            });
-          } else if (payload.eventType === 'DELETE') {
-            toast({
-              title: "Produktvalg oppdatert",
-              description: "Aktive produkter endret",
+              description: `Sendt til displays`,
               duration: 1500,
             });
           }
+          
+          console.log('✅ Products updated INSTANTLY');
         }
       )
       .subscribe((status) => {

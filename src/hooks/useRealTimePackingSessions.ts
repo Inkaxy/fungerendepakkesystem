@@ -26,13 +26,21 @@ export const useRealTimePackingSessions = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('Packing session changed for bakery:', profile.bakery_id);
+          console.log('⚡ Session changed:', payload.eventType);
           
-          // Invalidate bakery-specific queries
-          queryClient.invalidateQueries({ queryKey: ['packing-sessions', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['active-packing-date', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
-          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
+          // Refetch only active queries immediately
+          queryClient.refetchQueries({ 
+            queryKey: ['packing-sessions', profile.bakery_id],
+            type: 'active'
+          });
+          queryClient.refetchQueries({ 
+            queryKey: ['active-packing-date', profile.bakery_id],
+            type: 'active'
+          });
+          queryClient.refetchQueries({ 
+            queryKey: ['packing-data', profile.bakery_id],
+            type: 'active'
+          });
 
           // Show notification for session status changes
           if (payload.eventType === 'UPDATE') {
@@ -43,30 +51,20 @@ export const useRealTimePackingSessions = () => {
               if (newStatus === 'in_progress') {
                 toast({
                   title: "Pakking startet",
-                  description: "Pakkesession er nå aktiv",
-                  duration: 3000,
+                  description: "Displays oppdatert",
+                  duration: 2000,
                 });
               } else if (newStatus === 'completed') {
-                // Check if this was an auto-close (status changed from in_progress to completed)
-                if (oldStatus === 'in_progress') {
-                  const sessionDate = payload.old?.session_date;
-                  toast({
-                    title: "Pakkesesjon avsluttet",
-                    description: sessionDate 
-                      ? `Sesjonen for ${new Date(sessionDate).toLocaleDateString('nb-NO')} ble automatisk avsluttet`
-                      : "En aktiv pakkesesjon ble automatisk avsluttet",
-                    duration: 5000,
-                  });
-                } else {
-                  toast({
-                    title: "Pakking fullført",
-                    description: "Pakkesession er ferdigstilt",
-                    duration: 3000,
-                  });
-                }
+                toast({
+                  title: "Pakking fullført",
+                  description: "Displays oppdatert",
+                  duration: 2000,
+                });
               }
             }
           }
+          
+          console.log('✅ Sessions refetched INSTANTLY');
         }
       )
       .subscribe();

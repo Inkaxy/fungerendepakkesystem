@@ -350,7 +350,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined,
     refetchInterval: false, // Kun websockets
-    staleTime: 1000, // 1 sekund - tvinger nesten alltid re-fetch
+    staleTime: Infinity, // Cache oppdateres kun via WebSocket
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
