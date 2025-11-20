@@ -8,39 +8,42 @@ import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
-import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { usePackingData } from '@/hooks/usePackingData';
+import { usePublicActivePackingDate, usePublicPackingData } from '@/hooks/usePublicDisplayData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
-  // For SharedDisplay, we still use the authenticated hooks since it's not customer-specific
   const { data: customers } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
-  const { data: activePackingDate, isLoading: dateLoading } = useActivePackingDate();
+  // Bruk public hooks for konsistent oppførsel med CustomerDisplay
+  const bakeryId = customers?.[0]?.bakery_id;
+  const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(bakeryId);
   
-  const { data: packingData, isLoading: packingLoading } = usePackingData(
-    undefined, 
-    activePackingDate || undefined,
-    true
+  // Filter shared display customers
+  const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
+  
+  // Fetch packing data for each shared display customer using public hook
+  const packingDataResults = sharedDisplayCustomers.map(customer => 
+    usePublicPackingData(customer.id, bakeryId, activePackingDate)
   );
   
-  // Kun én real-time listener - public display bruker optimalisert cache-update
-  const bakeryId = customers?.[0]?.bakery_id;
+  const packingLoading = dateLoading || packingDataResults.some(r => r.isLoading);
+  const packingData = packingDataResults
+    .map(r => r.data)
+    .filter(Boolean)
+    .flat();
+  
+  // Real-time listener for cache updates
   const { connectionStatus } = useRealTimePublicDisplay(bakeryId);
   
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
 
-  const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
-  
-  let sharedDisplayPackingData = packingData?.filter(data => 
-    sharedDisplayCustomers.some(customer => customer.id === data.id)
-  ) || [];
+  let sharedDisplayPackingData = packingData || [];
 
   // Apply customer sorting based on settings
   if (settings?.customer_sort_order && sharedDisplayPackingData.length > 0) {
