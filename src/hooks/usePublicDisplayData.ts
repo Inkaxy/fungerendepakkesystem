@@ -229,9 +229,16 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         activeProducts.forEach(ap => {
           activeProductIds.add(ap.product_id);
         });
-        console.log('✅ Active product IDs filter aktivert:', Array.from(activeProductIds));
+        console.log('✅ Active product IDs filter aktivert:', {
+          count: activeProductIds.size,
+          ids: Array.from(activeProductIds),
+          products: activeProducts.map(ap => ap.product_name)
+        });
       } else {
-        console.warn('⚠️ INGEN active products funnet - ALLE produkter vil vises!');
+        console.error('❌ KRITISK: Query kjører uten active products! Dette skal IKKE skje!', {
+          activeProducts,
+          activeProductsLoading
+        });
       }
 
       // Create product color map based on active products order
