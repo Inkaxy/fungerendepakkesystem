@@ -127,9 +127,13 @@ export const useSetActivePackingProducts = () => {
       ];
 
       queriesToInvalidate.forEach(queryKey => {
-        queryClient.invalidateQueries({ queryKey });
-        queryClient.refetchQueries({ queryKey });
+        queryClient.invalidateQueries({ 
+          queryKey,
+          refetchType: 'none' // ✅ Marker stale, men IKKE refetch - WebSocket oppdaterer
+        });
       });
+      
+      console.log('✅ Active products cache marked stale - WebSocket vil oppdatere');
 
       toast({
         title: "Aktive produkter oppdatert",
@@ -189,9 +193,13 @@ export const useClearActivePackingProducts = () => {
       ];
 
       queriesToInvalidate.forEach(queryKey => {
-        queryClient.invalidateQueries({ queryKey });
-        queryClient.refetchQueries({ queryKey });
+        queryClient.invalidateQueries({ 
+          queryKey,
+          refetchType: 'none' // ✅ Marker stale, men IKKE refetch - WebSocket oppdaterer
+        });
       });
+      
+      console.log('✅ Active products cleared - WebSocket vil oppdatere');
 
       toast({
         title: "Pakking avsluttet",
