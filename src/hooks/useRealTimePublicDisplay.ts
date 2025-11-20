@@ -86,7 +86,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'order_products'
+          table: 'order_products',
+          filter: `order_id=in.(select id from orders where bakery_id='${bakeryId}')`
         },
         (payload) => {
           const wsReceiveTime = performance.now();
@@ -146,6 +147,15 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           
           const cacheUpdateTime = performance.now();
           console.log('✅ Status oppdatert ØYEBLIKKELIG - Total tid:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
+          
+          // ✅ KRITISK: Tving React Query til å re-render komponenter
+          queryClient.invalidateQueries({
+            queryKey: ['public-packing-data-v2'],
+            exact: false,
+            refetchType: 'none' // Ikke refetch, kun re-render med oppdatert cache
+          });
+          
+          console.log('🔄 Tvunget re-render av display etter statusendring');
         }
       )
       .subscribe((status) => {
