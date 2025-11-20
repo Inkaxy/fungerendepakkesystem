@@ -275,8 +275,8 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
             customer!.packed_line_items_all += 1;
           }
 
-          // Only include active products
-          const shouldIncludeProduct = activeProductIds.size === 0 || activeProductIds.has(op.product_id);
+          // Only include active products - hvis ingen aktive produkter finnes, vis INGEN produkter
+          const shouldIncludeProduct = activeProductIds.size > 0 && activeProductIds.has(op.product_id);
           
           if (!shouldIncludeProduct) {
             console.log(`🚫 Filtrerer bort produkt: ${op.product.name} (ID: ${op.product_id})`);
