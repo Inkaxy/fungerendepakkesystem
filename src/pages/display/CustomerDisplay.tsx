@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const CustomerDisplay = () => {
+  const queryClient = useQueryClient();
   const { displayUrl } = useParams();
   const navigate = useNavigate();
   
@@ -49,6 +51,19 @@ const CustomerDisplay = () => {
   
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(customer?.bakery_id, true);
+
+  // Force reset av packing data når aktiv dato endres
+  React.useEffect(() => {
+    if (customer?.bakery_id && activePackingDate) {
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === 'public-packing-data-v2' && query.queryKey[3] !== activePackingDate;
+        }
+      });
+      console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
+    }
+  }, [customer?.bakery_id, activePackingDate]);
 
   // Debug logging for re-renders
   React.useEffect(() => {

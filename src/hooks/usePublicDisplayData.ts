@@ -131,7 +131,7 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
     },
     enabled: !!bakeryId,
     refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache er alltid fersk via websockets
+    staleTime: 10000, // 10 sekunder - sjekk dato regelmessig
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -167,7 +167,7 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     },
     enabled: !!bakeryId && !!date,
     refetchInterval: false, // Kun websockets
-    staleTime: 30000, // 30 sekunder - tillater re-fetch ved behov
+    staleTime: 0, // Alltid refetch når queryKey endres
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -184,7 +184,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
   const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(bakeryId, targetDate);
 
   return useQuery({
-    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate, activeProducts?.map(ap => ap.product_id).sort().join(',') || 'none'],
+    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
@@ -357,7 +357,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined,
     refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache oppdateres kun via WebSocket
+    staleTime: 5000, // 5 sekunder - tillat refetch ved cache invalidering
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
