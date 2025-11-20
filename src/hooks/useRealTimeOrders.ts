@@ -65,7 +65,8 @@ export const useRealTimeOrders = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'order_products'
+          table: 'order_products',
+          filter: `order_id=in.(select id from orders where bakery_id='${profile.bakery_id}')`
         },
         (payload) => {
           const updatedProduct = payload.new as any;
@@ -104,7 +105,14 @@ export const useRealTimeOrders = () => {
             }
           );
           
-          // No refetch needed - cache already updated optimistically
+          // ✅ KRITISK: Tving React Query til å re-render komponenter
+          queryClient.invalidateQueries({
+            queryKey: ['packing-data', profile.bakery_id],
+            exact: false,
+            refetchType: 'none' // Ikke refetch, kun re-render med oppdatert cache
+          });
+          
+          console.log('✅ Cache updated INSTANTLY - tvunget re-render');
 
           // Toast for packed items
           if (payload.eventType === 'UPDATE' && payload.new?.packing_status === 'packed') {
@@ -114,8 +122,6 @@ export const useRealTimeOrders = () => {
               duration: 1500,
             });
           }
-          
-          console.log('✅ Cache updated INSTANTLY');
         }
       )
       .on(
