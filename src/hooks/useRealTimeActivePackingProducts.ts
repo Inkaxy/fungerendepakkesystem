@@ -27,7 +27,12 @@ export const useRealTimeActivePackingProducts = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
-          console.log('⚡ Active products changed:', payload.eventType);
+          const eventTime = performance.now();
+          console.log('⚡ Active products changed:', {
+            eventType: payload.eventType,
+            timestamp: eventTime.toFixed(2),
+            data: payload.eventType === 'DELETE' ? payload.old : payload.new
+          });
           
           // Direct cache update for active products
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -45,10 +50,17 @@ export const useRealTimeActivePackingProducts = () => {
               }
             );
           } else if (payload.eventType === 'DELETE') {
+            const deletedItem = payload.old as any;
+            console.log('🗑️ Deleting active product from cache:', {
+              id: deletedItem.id,
+              session_date: deletedItem.session_date,
+              product_name: deletedItem.product_name
+            });
+            
             queryClient.setQueryData(
-              ['active-packing-products', profile.bakery_id],
+              ['active-packing-products', deletedItem.session_date],
               (oldData: any[] | undefined) => 
-                oldData?.filter(item => item.id !== (payload.old as any).id) || []
+                oldData?.filter(item => item.id !== deletedItem.id) || []
             );
           }
           
@@ -57,6 +69,15 @@ export const useRealTimeActivePackingProducts = () => {
             queryKey: ['packing-data', profile.bakery_id],
             refetchType: 'none'
           });
+
+          // Invalider også public cache for konsistens
+          queryClient.invalidateQueries({
+            queryKey: ['public-packing-data-v2'],
+            exact: false,
+            refetchType: 'none'
+          });
+
+          console.log('🔄 Invalidated both authenticated and public packing caches');
 
           // Toast notifications (shortened duration)
           if (payload.eventType === 'INSERT') {
