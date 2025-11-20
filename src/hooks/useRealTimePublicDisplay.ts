@@ -69,8 +69,18 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             exact: false,
             refetchType: 'none'
           });
+
+          // ✅ VIKTIG: Fjern også gammel cache med 'none' key
+          queryClient.removeQueries({
+            queryKey: ['public-packing-data-v2'],
+            exact: false,
+            predicate: (query) => {
+              const key = query.queryKey as any[];
+              return key[key.length - 1] === 'none'; // Fjern queries med 'none' suffix
+            }
+          });
           
-          console.log('✅ Active products cache updated, display refreshing...');
+          console.log('✅ Active products cache updated, old cache removed, display refreshing...');
         }
       )
       .on(
