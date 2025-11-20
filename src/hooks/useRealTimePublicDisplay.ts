@@ -68,7 +68,14 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               queryKey: ['public-packing-data-v2'],
               exact: false
             });
-            console.log('🧹 Fjernet alle gamle packing-data cacher - tvinger refetch med nye produkter');
+            
+            // ✅ KRITISK: Invalider active-packing-products for å trigge refetch
+            queryClient.invalidateQueries({
+              queryKey: ['public-active-packing-products', bakeryId, deletedProduct.session_date],
+              refetchType: 'active' // Force refetch av aktive queries
+            });
+            
+            console.log('🧹 Fjernet alle gamle packing-data cacher + invalidert active products');
           }
           
           // Mark public-packing-data as stale and force refetch for INSERT/UPDATE

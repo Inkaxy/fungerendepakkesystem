@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
@@ -16,6 +17,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
+  const queryClient = useQueryClient();
   const { data: customers } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
@@ -42,6 +44,19 @@ const SharedDisplay = () => {
   
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
+
+  // Force reset av packing data når aktiv dato endres
+  React.useEffect(() => {
+    if (bakeryId && activePackingDate) {
+      queryClient.removeQueries({
+        predicate: (query: any) => {
+          const key = query.queryKey[0];
+          return key === 'public-packing-data-v2' && query.queryKey[3] !== activePackingDate;
+        }
+      });
+      console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
+    }
+  }, [bakeryId, activePackingDate, queryClient]);
 
   let sharedDisplayPackingData = packingData || [];
 
