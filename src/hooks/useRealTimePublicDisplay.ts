@@ -81,8 +81,9 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           table: 'order_products'
         },
         (payload) => {
+          const wsReceiveTime = performance.now();
           const updatedProduct = payload.new as any;
-          console.log('⚡ WebSocket: Order product status updated', {
+          console.log('⚡ WebSocket RECEIVED: order_products UPDATE at', wsReceiveTime.toFixed(2), 'ms', {
             order_product_id: updatedProduct.id,
             new_status: updatedProduct.packing_status,
             product_id: updatedProduct.product_id
@@ -131,7 +132,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             }
           );
           
-          console.log('✅ Status oppdatert i cache UMIDDELBART');
+          const cacheUpdateTime = performance.now();
+          console.log('✅ Cache updated INSTANTLY - Total processing time:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
         }
       )
       .subscribe((status) => {

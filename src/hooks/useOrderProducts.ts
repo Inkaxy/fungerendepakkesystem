@@ -22,8 +22,9 @@ export const useUpdateOrderProductPackingStatus = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    onSuccess: (data) => {
+      // ✅ WebSocket håndterer cache-oppdatering automatisk via useRealTimeOrders
+      console.log('✅ Order product status updated - WebSocket vil oppdatere cache', data);
     },
     onError: (error) => {
       toast({
@@ -64,8 +65,9 @@ export const useUpdateMultipleOrderProductsPackingStatus = () => {
 
       return results.map(result => result.data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    onSuccess: (data) => {
+      // ✅ WebSocket håndterer cache-oppdatering automatisk via useRealTimeOrders
+      console.log('✅ Multiple order products updated - WebSocket vil oppdatere cache', { count: data.length });
     },
     onError: (error) => {
       toast({
