@@ -41,10 +41,25 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               }
             );
           } else if (payload.eventType === 'DELETE') {
+            const deletedProduct = payload.old as any;
+            console.log('🗑️ WebSocket DELETE: Fjerner produkt fra cache', {
+              product_id: deletedProduct.product_id,
+              product_name: deletedProduct.product_name,
+              session_date: deletedProduct.session_date,
+              cache_key: ['public-active-packing-products', bakeryId, deletedProduct.session_date]
+            });
+            
             queryClient.setQueryData(
-              ['public-active-packing-products', bakeryId],
-              (oldData: any[] | undefined) => 
-                oldData?.filter(item => item.id !== (payload.old as any).id) || []
+              ['public-active-packing-products', bakeryId, deletedProduct.session_date],
+              (oldData: any[] | undefined) => {
+                const filtered = oldData?.filter(item => item.id !== deletedProduct.id) || [];
+                console.log('✅ Cache etter DELETE:', {
+                  before: oldData?.length || 0,
+                  after: filtered.length,
+                  removed: deletedProduct.product_name
+                });
+                return filtered;
+              }
             );
           }
           
