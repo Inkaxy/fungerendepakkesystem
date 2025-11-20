@@ -58,26 +58,33 @@ export const useRealTimeActivePackingProducts = () => {
             });
             
             queryClient.setQueryData(
-              ['active-packing-products', deletedItem.session_date],
+              ['active-packing-products', profile.bakery_id, deletedItem.session_date],
               (oldData: any[] | undefined) => 
                 oldData?.filter(item => item.id !== deletedItem.id) || []
             );
+            
+            // ✅ KRITISK FIX: Fjern ALLE gamle packing-data cacher når active products endres
+            queryClient.removeQueries({
+              queryKey: ['packing-data', profile.bakery_id],
+              exact: false
+            });
+            console.log('🧹 Fjernet alle gamle autentiserte packing-data cacher');
           }
           
-          // Mark packing-data as stale to trigger re-computation from cache
+          // Force refetch for authenticated caches
           queryClient.invalidateQueries({ 
             queryKey: ['packing-data', profile.bakery_id],
-            refetchType: 'none'
+            refetchType: 'active'
           });
 
-          // Invalider også public cache for konsistens
+          // Force refetch for public caches
           queryClient.invalidateQueries({
             queryKey: ['public-packing-data-v2'],
             exact: false,
-            refetchType: 'none'
+            refetchType: 'active'
           });
 
-          console.log('🔄 Invalidated both authenticated and public packing caches');
+          console.log('🔄 Tvunget refetch av både autentiserte og public cacher');
 
           // Toast notifications (shortened duration)
           if (payload.eventType === 'INSERT') {

@@ -61,26 +61,24 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
                 return filtered;
               }
             );
+            
+            // ✅ KRITISK FIX: Fjern ALLE gamle packing-data cacher når active products endres
+            // Dette tvinger komponenter til å refetch med oppdatert activeProducts-liste
+            queryClient.removeQueries({
+              queryKey: ['public-packing-data-v2'],
+              exact: false
+            });
+            console.log('🧹 Fjernet alle gamle packing-data cacher - tvinger refetch med nye produkter');
           }
           
-          // Mark public-packing-data as stale to trigger re-computation from cache
+          // Mark public-packing-data as stale and force refetch for INSERT/UPDATE
           queryClient.invalidateQueries({ 
             queryKey: ['public-packing-data-v2'],
             exact: false,
-            refetchType: 'none'
-          });
-
-          // ✅ VIKTIG: Fjern også gammel cache med 'none' key
-          queryClient.removeQueries({
-            queryKey: ['public-packing-data-v2'],
-            exact: false,
-            predicate: (query) => {
-              const key = query.queryKey as any[];
-              return key[key.length - 1] === 'none'; // Fjern queries med 'none' suffix
-            }
+            refetchType: 'active' // ✅ Force refetch for active queries
           });
           
-          console.log('✅ Active products cache updated, old cache removed, display refreshing...');
+          console.log('✅ Active products cache updated, forcing display refetch...');
         }
       )
       .on(
@@ -99,7 +97,10 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             product_id: updatedProduct.product_id
           });
           
-          // Optimistic cache update - update display data directly from WebSocket
+          // Optimistic cache update - update ALL matching caches instantly
+          const allCaches = queryClient.getQueriesData({ queryKey: ['public-packing-data-v2'], exact: false });
+          console.log(`🔄 Oppdaterer ${allCaches.length} cache(s) optimistisk for order_product ${updatedProduct.id}`);
+          
           queryClient.setQueriesData(
             { queryKey: ['public-packing-data-v2'], exact: false },
             (oldData: any) => {
@@ -112,6 +113,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
                   // Find if this product has order items that match the updated order_product
                   const updatedOrderItems = product.order_items?.map((item: any) => {
                     if (item.order_product_id === updatedProduct.id) {
+                      console.log(`✅ Oppdaterer order_product ${updatedProduct.id} status til ${updatedProduct.packing_status}`);
                       return {
                         ...item,
                         packing_status: updatedProduct.packing_status
@@ -143,7 +145,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           );
           
           const cacheUpdateTime = performance.now();
-          console.log('✅ Cache updated INSTANTLY - Total processing time:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
+          console.log('✅ Status oppdatert ØYEBLIKKELIG - Total tid:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
         }
       )
       .subscribe((status) => {
