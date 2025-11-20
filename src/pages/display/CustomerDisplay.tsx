@@ -16,7 +16,8 @@ import {
   usePublicDisplaySettings, 
   usePublicActivePackingDate, 
   usePublicPackingData,
-  usePublicPackingSession
+  usePublicPackingSession,
+  usePublicActivePackingProducts
 } from '@/hooks/usePublicDisplayData';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
@@ -27,6 +28,31 @@ const CustomerDisplay = () => {
   const queryClient = useQueryClient();
   const { displayUrl } = useParams();
   const navigate = useNavigate();
+  
+  // ✅ KRITISK FIX: HARD RESET av ALL cache ved mount
+  React.useEffect(() => {
+    console.log('🔄 CustomerDisplay mounted - HARD RESET av display cache');
+    
+    // Fjern ALL public-active-packing-products cache
+    queryClient.removeQueries({
+      queryKey: ['public-active-packing-products'],
+      exact: false
+    });
+    
+    // Fjern ALL public-packing-data-v2 cache
+    queryClient.removeQueries({
+      queryKey: ['public-packing-data-v2'],
+      exact: false
+    });
+    
+    // Fjern public-active-packing-date cache
+    queryClient.removeQueries({
+      queryKey: ['public-active-packing-date'],
+      exact: false
+    });
+    
+    console.log('✅ Display cache RESATT - vil fetche fresh data');
+  }, []); // Kjør KUN ved første mount
   
   // Use public hooks that don't require authentication
   const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
@@ -43,6 +69,12 @@ const CustomerDisplay = () => {
   );
   const { data: packingSession } = usePublicPackingSession(
     customer?.bakery_id, 
+    displayDate
+  );
+  
+  // ✅ NYTT: Hent activeProducts direkte for å sjekke om de er klare
+  const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(
+    customer?.bakery_id,
     displayDate
   );
   
@@ -189,7 +221,14 @@ const CustomerDisplay = () => {
         </Card>
 
         {/* Content area - conditional basert på state */}
-        {!customerPackingData || customerPackingData.products.length === 0 ? (
+        {activeProductsLoading ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p style={{ color: settings?.text_color || '#6b7280' }}>Henter aktive produkter...</p>
+            </CardContent>
+          </Card>
+        ) : !customerPackingData || customerPackingData.products.length === 0 ? (
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
               <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />

@@ -168,6 +168,8 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     enabled: !!bakeryId && !!date,
     refetchInterval: false, // Kun websockets
     staleTime: 0, // Alltid refetch når queryKey endres
+    gcTime: 5000, // ✅ ENDRET: Kun 5 sekunder cache
+    refetchOnMount: 'always', // ✅ NYTT: Alltid refetch ved mount
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -237,8 +239,12 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       } else {
         console.error('❌ KRITISK: Query kjører uten active products! Dette skal IKKE skje!', {
           activeProducts,
-          activeProductsLoading
+          activeProductsLoading,
+          enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined
         });
+        // ✅ RETURNER TOM ARRAY for å unngå å vise alle produkter
+        console.warn('🚫 Returnerer tom array fordi ingen active products');
+        return [];
       }
 
       // Create product color map based on active products order
@@ -355,9 +361,11 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined,
+    enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts),
     refetchInterval: false, // Kun websockets
-    staleTime: 5000, // 5 sekunder - tillat refetch ved cache invalidering
+    staleTime: 0, // ✅ ENDRET: Alltid stale
+    gcTime: 5000, // ✅ ENDRET: Kun 5 sekunder cache
+    refetchOnMount: 'always', // ✅ NYTT: Alltid refetch ved mount
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
