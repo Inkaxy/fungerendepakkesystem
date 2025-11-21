@@ -136,23 +136,6 @@ const CustomerDisplay = () => {
     }
   }, [customer?.bakery_id, activePackingDate]);
 
-  // Debug logging for re-renders
-  React.useEffect(() => {
-    const customerPackingData = packingData?.find(data => data.id === customer?.id);
-    console.log('🎨 CustomerDisplay RE-RENDERED:', {
-      displayUrl,
-      customer: customer ? { id: customer.id, name: customer.name } : null,
-      customerPackingData: customerPackingData ? {
-        products: customerPackingData.products.map(p => ({
-          name: p.product_name,
-          status: p.packing_status,
-          packed: `${p.packed_line_items}/${p.total_line_items}`
-        }))
-      } : null,
-      timestamp: new Date().toISOString()
-    });
-  }, [packingData, customer, displayUrl]);
-
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
   // Only wait for customer loading initially, then settings if customer exists
