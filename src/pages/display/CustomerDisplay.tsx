@@ -56,7 +56,7 @@ const CustomerDisplay = () => {
   
   // Use public hooks that don't require authentication
   const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
-  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(displayUrl || '');
+  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
   
   // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
