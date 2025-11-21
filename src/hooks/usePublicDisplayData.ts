@@ -40,22 +40,20 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
 };
 
 // Hook to get display settings for a bakery without authentication
-export const usePublicDisplaySettings = (displayUrl: string) => {
-  const { data: customer } = usePublicCustomerByDisplayUrl(displayUrl);
-  
+export const usePublicDisplaySettings = (bakeryId?: string) => {
   return useQuery({
-    queryKey: ['public-display-settings', customer?.bakery_id],
+    queryKey: ['public-display-settings', bakeryId],
     queryFn: async () => {
-      if (!customer?.bakery_id) {
-        throw new Error('No bakery found for customer');
+      if (!bakeryId) {
+        throw new Error('No bakery_id provided');
       }
 
-      console.log('Fetching public display settings for bakery:', customer.bakery_id);
+      console.log('Fetching public display settings for bakery:', bakeryId);
 
       const { data, error } = await supabase
         .from('display_settings')
         .select('*')
-        .eq('bakery_id', customer.bakery_id)
+        .eq('bakery_id', bakeryId)
         .eq('screen_type', 'shared')
         .maybeSingle();
 
@@ -75,7 +73,7 @@ export const usePublicDisplaySettings = (displayUrl: string) => {
       console.log('Found public display settings:', mappedSettings);
       return mappedSettings;
     },
-    enabled: !!customer?.bakery_id,
+    enabled: !!bakeryId,
     refetchInterval: false, // Kun websockets
     staleTime: Infinity, // Cache er alltid fersk via websockets
     refetchOnWindowFocus: false,
