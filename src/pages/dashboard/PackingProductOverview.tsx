@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText } from 'lucide-react';
@@ -22,6 +22,7 @@ const PackingProductOverview = () => {
   const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showReport, setShowReport] = useState(false);
+  const isMountedRef = useRef(true);
   
   const { data: orders } = useOrders(date);
   const { data: existingSession } = usePackingSessionByDate(date || '');
@@ -33,14 +34,23 @@ const PackingProductOverview = () => {
 
   // Effect to force query updates when products are selected
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (selectedProducts.length > 0) {
       console.log('🔄 Products selected, forcing immediate query updates:', selectedProducts);
-      // Immediate invalidation and refetch of critical queries
-      queryClient.invalidateQueries({ queryKey: ['packing-data'] });
-      queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
-      queryClient.refetchQueries({ queryKey: ['packing-data'] });
-      queryClient.refetchQueries({ queryKey: ['active-packing-products'] });
+      
+      // Only update if component is still mounted
+      if (isMountedRef.current) {
+        queryClient.invalidateQueries({ queryKey: ['packing-data'] });
+        queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
+        queryClient.refetchQueries({ queryKey: ['packing-data'] });
+        queryClient.refetchQueries({ queryKey: ['active-packing-products'] });
+      }
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [selectedProducts, queryClient]);
 
   // Calculate product statistics with category from products table
