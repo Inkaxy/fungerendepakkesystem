@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -9,8 +9,11 @@ export const useRealTimeDisplaySettings = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { profile } = useAuthStore();
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (!profile?.bakery_id) return;
 
     console.log('Setting up real-time listener for bakery:', profile.bakery_id);
@@ -26,6 +29,11 @@ export const useRealTimeDisplaySettings = () => {
           filter: `bakery_id=eq.${profile.bakery_id}`
         },
         (payload) => {
+          if (!isMountedRef.current) {
+            console.log('⏸️ WebSocket: Ignorer display_settings oppdatering, komponent er unmounted');
+            return;
+          }
+          
           console.log('Display settings changed for bakery:', profile.bakery_id);
           
           // Invalidate bakery-specific queries
@@ -46,6 +54,7 @@ export const useRealTimeDisplaySettings = () => {
 
     return () => {
       console.log('Cleaning up display settings listener for bakery:', profile.bakery_id);
+      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [queryClient, toast, profile?.bakery_id]);

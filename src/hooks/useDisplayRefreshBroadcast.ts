@@ -1,13 +1,16 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false) => {
   const { toast } = useToast();
+  const isMountedRef = useRef(true);
 
   // Lytt på refresh broadcasts (kun for displays)
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (!bakeryId || !isDisplay) return;
 
     console.log('📡 Setting up refresh broadcast listener for bakery:', bakeryId);
@@ -15,6 +18,11 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
     const channel = supabase
       .channel(`display-refresh-${bakeryId}`)
       .on('broadcast', { event: 'force-refresh' }, (payload) => {
+        if (!isMountedRef.current) {
+          console.log('⏸️ WebSocket: Ignorer refresh broadcast, komponent er unmounted');
+          return;
+        }
+        
         console.log('🔄 Refresh signal mottatt, reloader display...');
         
         // Vent kort så logger går gjennom, deretter reload
@@ -25,6 +33,7 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
       .subscribe();
 
     return () => {
+      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [bakeryId, isDisplay]);
