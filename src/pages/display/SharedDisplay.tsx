@@ -39,6 +39,9 @@ const SharedDisplay = () => {
     .filter(Boolean)
     .flat();
   
+  // ✅ GUARD: Sjekk om vi venter på aktive produkter
+  const activeProductsLoading = packingDataResults.some(r => r.isLoading);
+  
   // Real-time listener for cache updates
   const { connectionStatus } = useRealTimePublicDisplay(bakeryId);
   
@@ -132,6 +135,23 @@ const SharedDisplay = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p style={{ color: settings?.text_color || '#6b7280' }}>
                 Laster pakkeinformasjon...
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {!dateLoading && activeProductsLoading && (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="text-center p-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p style={{ color: settings?.text_color || '#6b7280' }}>
+                Henter aktive produkter...
               </p>
             </CardContent>
           </Card>

@@ -78,6 +78,46 @@ const CustomerDisplay = () => {
     displayDate
   );
   
+  // ✅ GUARD: Ikke fortsett før activeProducts er lastet
+  if (activeProductsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={settings ? generateDisplayStyles(settings) : {}}>
+        <Card className="max-w-md">
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p>Henter aktive produkter...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ✅ GUARD: Hvis ingen active products, vis tom state
+  if (!activeProducts || activeProducts.length === 0) {
+    return (
+      <div className="min-h-screen p-8" style={settings ? generateDisplayStyles(settings) : {}}>
+        <div className="max-w-4xl mx-auto">
+          <CustomerHeader
+            customerName={customer?.name || ''}
+            showRefresh={false}
+            settings={settings}
+          />
+          <Card className="mt-8">
+            <CardContent className="text-center p-12">
+              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
+              <p className="text-xl mb-4">Ingen produkter valgt for pakking i dag</p>
+              <p className="text-sm text-gray-500">
+                Gå til Pakking-siden for å velge produkter som skal pakkes
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+  
   // Add real-time listener for immediate updates
   const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
   
