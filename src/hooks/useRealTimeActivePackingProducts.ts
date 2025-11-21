@@ -111,7 +111,7 @@ export const useRealTimeActivePackingProducts = () => {
       console.log('🧹 Cleaning up active packing products listener for bakery:', profile.bakery_id);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast, profile?.bakery_id]);
+  }, [profile?.bakery_id]);
 
   return { connectionStatus };
 };
