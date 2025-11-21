@@ -773,6 +773,7 @@ export type Database = {
       }
       order_products: {
         Row: {
+          bakery_id: string
           created_at: string | null
           id: string
           order_id: string
@@ -783,6 +784,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          bakery_id: string
           created_at?: string | null
           id?: string
           order_id: string
@@ -793,6 +795,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          bakery_id?: string
           created_at?: string | null
           id?: string
           order_id?: string
@@ -803,6 +806,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_order_products_bakery"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_products_order_id_fkey"
             columns: ["order_id"]

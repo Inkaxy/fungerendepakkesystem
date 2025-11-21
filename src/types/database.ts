@@ -47,6 +47,7 @@ export interface OrderProduct {
   id: string;
   order_id: string;
   product_id: string;
+  bakery_id?: string; // Optional - auto-populated by database trigger
   quantity: number;
   unit_price?: number;
   packing_status: string; // Changed from union type to string to match database

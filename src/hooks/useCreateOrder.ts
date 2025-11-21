@@ -43,11 +43,12 @@ export const useCreateOrder = () => {
         product_id: product.product_id,
         quantity: product.quantity,
         packing_status: product.packing_status,
+        // bakery_id is auto-populated by database trigger
       }));
 
       const { error: productsError } = await supabase
         .from('order_products')
-        .insert(orderProducts);
+        .insert(orderProducts as any); // Cast to any since bakery_id is set by trigger
 
       if (productsError) throw productsError;
 

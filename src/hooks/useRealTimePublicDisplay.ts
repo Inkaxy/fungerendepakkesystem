@@ -94,7 +94,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           event: 'UPDATE',
           schema: 'public',
           table: 'order_products',
-          filter: `order_id=in.(select id from orders where bakery_id='${bakeryId}')`
+          filter: `bakery_id=eq.${bakeryId}` // ✅ FIKSET: Enkelt filter som Realtime støtter
         },
         (payload) => {
           const wsReceiveTime = performance.now();
@@ -102,7 +102,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           console.log('⚡ WebSocket RECEIVED: order_products UPDATE at', wsReceiveTime.toFixed(2), 'ms', {
             order_product_id: updatedProduct.id,
             new_status: updatedProduct.packing_status,
-            product_id: updatedProduct.product_id
+            product_id: updatedProduct.product_id,
+            bakery_id: updatedProduct.bakery_id // ✅ Vis bakery_id for debugging
           });
           
           // Optimistic cache update - update ALL matching caches instantly
