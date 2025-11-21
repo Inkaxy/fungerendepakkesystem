@@ -7,7 +7,10 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
 
   useEffect(() => {
-    if (!bakeryId) return;
+    if (!bakeryId) {
+      console.log('⏸️ WebSocket: Ingen bakeryId, hopper over tilkobling');
+      return;
+    }
 
     console.log('🔄 WebSocket: Setting up real-time for bakery:', bakeryId);
 
@@ -183,7 +186,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
       console.log('🧹 WebSocket: Cleaning up');
       supabase.removeChannel(channel);
     };
-  }, [queryClient, bakeryId]);
+  }, [bakeryId]); // queryClient er stabilt, trenger ikke være dependency
 
   return { connectionStatus };
 };
