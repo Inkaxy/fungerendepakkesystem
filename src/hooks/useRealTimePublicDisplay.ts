@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useRealTimePublicDisplay = (bakeryId?: string) => {
   const queryClient = useQueryClient();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (!bakeryId) {
       console.log('⏸️ WebSocket: Ingen bakeryId, hopper over tilkobling');
       return;
@@ -25,6 +28,11 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           filter: `bakery_id=eq.${bakeryId}`
         },
         (payload) => {
+          if (!isMountedRef.current) {
+            console.log('⏸️ WebSocket: Ignorer active_packing_products oppdatering, komponent er unmounted');
+            return;
+          }
+          
           console.log('⚡ WebSocket: Active products changed', payload.eventType);
           
           // Direct cache update - no refetch needed
@@ -100,6 +108,11 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           filter: `bakery_id=eq.${bakeryId}` // ✅ FIKSET: Enkelt filter som Realtime støtter
         },
         (payload) => {
+          if (!isMountedRef.current) {
+            console.log('⏸️ WebSocket: Ignorer order_products oppdatering, komponent er unmounted');
+            return;
+          }
+          
           const wsReceiveTime = performance.now();
           const updatedProduct = payload.new as any;
           console.log('⚡ WebSocket RECEIVED: order_products UPDATE at', wsReceiveTime.toFixed(2), 'ms', {
@@ -172,6 +185,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
         }
       )
       .subscribe((status) => {
+        if (!isMountedRef.current) return;
+        
         setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 
                            status === 'CHANNEL_ERROR' ? 'disconnected' : 'connecting');
         
@@ -184,6 +199,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
 
     return () => {
       console.log('🧹 WebSocket: Cleaning up');
+      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [bakeryId]); // queryClient er stabilt, trenger ikke være dependency
