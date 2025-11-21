@@ -78,6 +78,11 @@ const CustomerDisplay = () => {
     displayDate
   );
   
+  // ✅ KRITISK: Real-time hooks MÅ kalles FØR noen conditional returns
+  // Dette sikrer at WebSocket kobles til umiddelbart ved mount
+  const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
+  useDisplayRefreshBroadcast(customer?.bakery_id, true);
+  
   // ✅ GUARD: Ikke fortsett før activeProducts er lastet
   if (activeProductsLoading) {
     return (
@@ -117,12 +122,6 @@ const CustomerDisplay = () => {
       </div>
     );
   }
-  
-  // Add real-time listener for immediate updates
-  const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
-  
-  // Lytt på refresh broadcasts fra admin
-  useDisplayRefreshBroadcast(customer?.bakery_id, true);
 
   // Force reset av packing data når aktiv dato endres
   React.useEffect(() => {
