@@ -106,56 +106,58 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           });
           
           // Optimistic cache update - update ALL matching caches instantly
-          const allCaches = queryClient.getQueriesData({ queryKey: ['public-packing-data-v2'], exact: false });
-          console.log(`🔄 Oppdaterer ${allCaches.length} cache(s) optimistisk for order_product ${updatedProduct.id}`);
-          
-          queryClient.setQueriesData(
-            { queryKey: ['public-packing-data-v2'], exact: false },
-            (oldData: any) => {
-              if (!oldData) return oldData;
-              
-              // oldData is the array of customer packing data
-              return oldData.map((customer: any) => ({
-                ...customer,
-                products: customer.products?.map((product: any) => {
-                  // Find if this product has order items that match the updated order_product
-                  const updatedOrderItems = product.order_items?.map((item: any) => {
-                    if (item.order_product_id === updatedProduct.id) {
-                      console.log(`✅ Oppdaterer order_product ${updatedProduct.id} status til ${updatedProduct.packing_status}`);
-                      return {
-                        ...item,
-                        packing_status: updatedProduct.packing_status
-                      };
-                    }
-                    return item;
-                  });
-                  
-                  // Recalculate product-level status if any items changed
-                  if (updatedOrderItems !== product.order_items) {
-                    const allPacked = updatedOrderItems?.every((item: any) => 
-                      item.packing_status === 'packed' || item.packing_status === 'completed'
-                    );
-                    const somePacked = updatedOrderItems?.some((item: any) => 
-                      item.packing_status === 'packed' || item.packing_status === 'completed'
-                    );
-                    
+          const allCaches = queryClient.getQueryCache().findAll({ 
+            queryKey: ['public-packing-data-v2'], 
+            exact: false 
+          });
+
+          console.log(`🔄 Fant ${allCaches.length} cache(s) å oppdatere for order_product ${updatedProduct.id}`);
+
+          allCaches.forEach(query => {
+            const oldData = query.state.data as any;
+            if (!oldData) return;
+            
+            const newData = oldData.map((customer: any) => ({
+              ...customer,
+              products: customer.products?.map((product: any) => {
+                const updatedOrderItems = product.order_items?.map((item: any) => {
+                  if (item.order_product_id === updatedProduct.id) {
+                    console.log(`✅ Oppdaterer order_product ${updatedProduct.id} status til ${updatedProduct.packing_status}`);
                     return {
-                      ...product,
-                      order_items: updatedOrderItems,
-                      packing_status: allPacked ? 'packed' : somePacked ? 'in_progress' : 'pending'
+                      ...item,
+                      packing_status: updatedProduct.packing_status
                     };
                   }
+                  return item;
+                });
+                
+                // Recalculate product-level status if any items changed
+                if (updatedOrderItems && updatedOrderItems !== product.order_items) {
+                  const allPacked = updatedOrderItems.every((item: any) => 
+                    item.packing_status === 'packed' || item.packing_status === 'completed'
+                  );
+                  const somePacked = updatedOrderItems.some((item: any) => 
+                    item.packing_status === 'packed' || item.packing_status === 'completed'
+                  );
                   
-                  return product;
-                })
-              }));
-            }
-          );
-          
+                  return {
+                    ...product,
+                    order_items: updatedOrderItems,
+                    packing_status: allPacked ? 'packed' : somePacked ? 'in_progress' : 'pending'
+                  };
+                }
+                
+                return product;
+              })
+            }));
+            
+            queryClient.setQueryData(query.queryKey, newData);
+          });
+
           const cacheUpdateTime = performance.now();
-          console.log('✅ Status oppdatert ØYEBLIKKELIG - Total tid:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
-          
-          // ✅ KRITISK: Tving React Query til å re-render komponenter
+          console.log('✅ Alle cacher oppdatert - Total tid:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
+
+          // ✅ Tving React Query til å re-render komponenter UMIDDELBART
           queryClient.invalidateQueries({
             queryKey: ['public-packing-data-v2'],
             exact: false,

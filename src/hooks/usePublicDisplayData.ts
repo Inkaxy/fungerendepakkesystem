@@ -240,7 +240,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         console.error('❌ KRITISK: Query kjører uten active products! Dette skal IKKE skje!', {
           activeProducts,
           activeProductsLoading,
-          enabled: !!customerId && !!bakeryId && !activeProductsLoading && activeProducts !== undefined
+          enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts) && activeProducts.length > 0
         });
         // ✅ RETURNER TOM ARRAY for å unngå å vise alle produkter
         console.warn('🚫 Returnerer tom array fordi ingen active products');
@@ -361,7 +361,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts),
+    enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts) && activeProducts.length > 0,
     refetchInterval: false, // Kun websockets
     staleTime: 0, // ✅ ENDRET: Alltid stale
     gcTime: 5000, // ✅ ENDRET: Kun 5 sekunder cache
