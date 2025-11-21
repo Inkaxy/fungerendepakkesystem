@@ -167,9 +167,9 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     },
     enabled: !!bakeryId && !!date,
     refetchInterval: false, // Kun websockets
-    staleTime: 0, // Alltid refetch når queryKey endres
-    gcTime: 5000, // ✅ ENDRET: Kun 5 sekunder cache
-    refetchOnMount: 'always', // ✅ NYTT: Alltid refetch ved mount
+    staleTime: 30000, // 30 sekunder - WebSocket håndterer invalidering
+    gcTime: 60000, // 1 minutt cache
+    refetchOnMount: false, // La WebSocket håndtere oppdateringer
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -363,9 +363,9 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts) && activeProducts.length > 0,
     refetchInterval: false, // Kun websockets
-    staleTime: 0, // ✅ ENDRET: Alltid stale
-    gcTime: 5000, // ✅ ENDRET: Kun 5 sekunder cache
-    refetchOnMount: 'always', // ✅ NYTT: Alltid refetch ved mount
+    staleTime: 30000, // 30 sekunder - WebSocket håndterer invalidering
+    gcTime: 60000, // 1 minutt cache
+    refetchOnMount: false, // La WebSocket håndtere oppdateringer
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
