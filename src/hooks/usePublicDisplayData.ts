@@ -1,5 +1,5 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, PackingSession } from '@/types/database';
 import { DisplaySettings } from '@/types/displaySettings';
@@ -182,23 +182,31 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
 
 // Hook to get packing data for a specific customer without authentication
 export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string) => {
+  const queryClient = useQueryClient();
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
-  const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(bakeryId, targetDate);
 
   return useQuery({
     queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
+      // Hent activeProducts fra cache inne i queryFn i stedet for som nested hook
+      const activeProducts = queryClient.getQueryData<any[]>(['public-active-packing-products', bakeryId, targetDate]);
+      
+      if (!activeProducts || activeProducts.length === 0) {
+        console.warn('🚫 Ingen active products funnet i cache, returnerer tom array');
+        return [];
+      }
+
       console.log('🔍 Fetching public packing data:', {
         customerId,
         bakeryId,
         targetDate,
-        activeProductsCount: activeProducts?.length || 0,
-        activeProductDetails: activeProducts?.map(ap => ({
+        activeProductsCount: activeProducts.length,
+        activeProductDetails: activeProducts.map(ap => ({
           id: ap.product_id,
           name: ap.product_name
-        })) || []
+        }))
       });
 
       const { data: orders, error } = await supabase
@@ -236,15 +244,6 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
           ids: Array.from(activeProductIds),
           products: activeProducts.map(ap => ap.product_name)
         });
-      } else {
-        console.error('❌ KRITISK: Query kjører uten active products! Dette skal IKKE skje!', {
-          activeProducts,
-          activeProductsLoading,
-          enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts) && activeProducts.length > 0
-        });
-        // ✅ RETURNER TOM ARRAY for å unngå å vise alle produkter
-        console.warn('🚫 Returnerer tom array fordi ingen active products');
-        return [];
       }
 
       // Create product color map based on active products order
@@ -361,7 +360,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId && !activeProductsLoading && Array.isArray(activeProducts) && activeProducts.length > 0,
+    enabled: !!customerId && !!bakeryId,
     refetchInterval: false, // Kun websockets
     staleTime: 30000, // 30 sekunder - WebSocket håndterer invalidering
     gcTime: 60000, // 1 minutt cache
