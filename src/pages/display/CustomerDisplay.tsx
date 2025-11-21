@@ -134,7 +134,7 @@ const CustomerDisplay = () => {
       });
       console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
     }
-  }, [customer?.bakery_id, activePackingDate]);
+  }, [customer?.bakery_id, activePackingDate, queryClient]);
 
   // Debug logging for re-renders
   React.useEffect(() => {
