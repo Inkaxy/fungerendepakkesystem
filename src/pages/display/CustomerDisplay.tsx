@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,31 +28,41 @@ const CustomerDisplay = () => {
   const queryClient = useQueryClient();
   const { displayUrl } = useParams();
   const navigate = useNavigate();
+  const isMountedRef = useRef(true);
   
   // ✅ KRITISK FIX: HARD RESET av ALL cache ved mount
   React.useEffect(() => {
-    console.log('🔄 CustomerDisplay mounted - HARD RESET av display cache');
+    isMountedRef.current = true;
     
-    // Fjern ALL public-active-packing-products cache
-    queryClient.removeQueries({
-      queryKey: ['public-active-packing-products'],
-      exact: false
-    });
+    if (isMountedRef.current) {
+      console.log('🔄 CustomerDisplay mounted - HARD RESET av display cache');
+      
+      // Fjern ALL public-active-packing-products cache
+      queryClient.removeQueries({
+        queryKey: ['public-active-packing-products'],
+        exact: false
+      });
+      
+      // Fjern ALL public-packing-data-v2 cache
+      queryClient.removeQueries({
+        queryKey: ['public-packing-data-v2'],
+        exact: false
+      });
+      
+      // Fjern public-active-packing-date cache
+      queryClient.removeQueries({
+        queryKey: ['public-active-packing-date'],
+        exact: false
+      });
+      
+      console.log('✅ Display cache RESATT - vil fetche fresh data');
+    }
     
-    // Fjern ALL public-packing-data-v2 cache
-    queryClient.removeQueries({
-      queryKey: ['public-packing-data-v2'],
-      exact: false
-    });
-    
-    // Fjern public-active-packing-date cache
-    queryClient.removeQueries({
-      queryKey: ['public-active-packing-date'],
-      exact: false
-    });
-    
-    console.log('✅ Display cache RESATT - vil fetche fresh data');
-  }, []); // Kjør KUN ved første mount
+    return () => {
+      isMountedRef.current = false;
+      console.log('🧹 CustomerDisplay: Cleanup - marking as unmounted');
+    };
+  }, [queryClient]); // Kjør KUN ved første mount
   
   // Use public hooks that don't require authentication
   const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
@@ -125,7 +135,7 @@ const CustomerDisplay = () => {
 
   // Force reset av packing data når aktiv dato endres
   React.useEffect(() => {
-    if (customer?.bakery_id && activePackingDate) {
+    if (isMountedRef.current && customer?.bakery_id && activePackingDate) {
       queryClient.removeQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
@@ -134,7 +144,7 @@ const CustomerDisplay = () => {
       });
       console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
     }
-  }, [customer?.bakery_id, activePackingDate]);
+  }, [customer?.bakery_id, activePackingDate, queryClient]);
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
