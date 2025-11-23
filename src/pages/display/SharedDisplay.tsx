@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
@@ -18,6 +18,7 @@ import { nb } from 'date-fns/locale';
 
 const SharedDisplay = () => {
   const queryClient = useQueryClient();
+  const isMountedRef = useRef(true);
   const { data: customers } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
@@ -48,9 +49,19 @@ const SharedDisplay = () => {
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
 
+  // ✅ Cleanup hook
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    
+    return () => {
+      isMountedRef.current = false;
+      console.log('🧹 SharedDisplay: Cleanup - marking as unmounted');
+    };
+  }, []);
+
   // Force reset av packing data når aktiv dato endres
   React.useEffect(() => {
-    if (bakeryId && activePackingDate) {
+    if (isMountedRef.current && bakeryId && activePackingDate) {
       queryClient.removeQueries({
         predicate: (query: any) => {
           const key = query.queryKey[0];

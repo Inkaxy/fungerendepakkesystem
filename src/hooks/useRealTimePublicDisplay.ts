@@ -37,6 +37,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           
           // Direct cache update - no refetch needed
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            if (!isMountedRef.current) return;
+            
             queryClient.setQueryData(
               ['public-active-packing-products', bakeryId, (payload.new as any).session_date],
               (oldData: any[] | undefined) => {
@@ -60,6 +62,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               cache_key: ['public-active-packing-products', bakeryId, deletedProduct.session_date]
             });
             
+            if (!isMountedRef.current) return;
+            
             queryClient.setQueryData(
               ['public-active-packing-products', bakeryId, deletedProduct.session_date],
               (oldData: any[] | undefined) => {
@@ -73,12 +77,16 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               }
             );
             
+            if (!isMountedRef.current) return;
+            
             // ✅ KRITISK FIX: Fjern ALLE gamle packing-data cacher når active products endres
             // Dette tvinger komponenter til å refetch med oppdatert activeProducts-liste
             queryClient.removeQueries({
               queryKey: ['public-packing-data-v2'],
               exact: false
             });
+            
+            if (!isMountedRef.current) return;
             
             // ✅ KRITISK: Invalider active-packing-products for å trigge refetch
             queryClient.invalidateQueries({
@@ -89,8 +97,10 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             console.log('🧹 Fjernet alle gamle packing-data cacher + invalidert active products');
           }
           
+          if (!isMountedRef.current) return;
+          
           // Mark public-packing-data as stale and force refetch for INSERT/UPDATE
-          queryClient.invalidateQueries({ 
+          queryClient.invalidateQueries({
             queryKey: ['public-packing-data-v2'],
             exact: false,
             refetchType: 'active' // ✅ Force refetch for active queries
@@ -131,6 +141,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           console.log(`🔄 Fant ${allCaches.length} cache(s) å oppdatere for order_product ${updatedProduct.id}`);
 
           allCaches.forEach(query => {
+            if (!isMountedRef.current) return;
+            
             const oldData = query.state.data as any;
             if (!oldData) return;
             
@@ -168,11 +180,15 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               })
             }));
             
+            if (!isMountedRef.current) return;
+            
             queryClient.setQueryData(query.queryKey, newData);
           });
 
           const cacheUpdateTime = performance.now();
           console.log('✅ Alle cacher oppdatert - Total tid:', (cacheUpdateTime - wsReceiveTime).toFixed(2), 'ms');
+
+          if (!isMountedRef.current) return;
 
           // ✅ Tving React Query til å re-render komponenter UMIDDELBART
           queryClient.invalidateQueries({
