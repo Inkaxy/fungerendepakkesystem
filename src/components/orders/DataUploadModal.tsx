@@ -1,17 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import { useToast } from '@/hooks/use-toast';
+import { useCreateProduct, useProducts } from '@/hooks/useProducts';
+import { useCreateCustomer, useCustomers } from '@/hooks/useCustomers';
+import { useCreateOrder } from '@/hooks/useCreateOrder';
 import { UploadStatus, IdMapping, UploadResults } from './upload/types';
 import DebugInfo from './upload/DebugInfo';
 import AccessWarning from './upload/AccessWarning';
 import UploadInstructions from './upload/UploadInstructions';
 import SimultaneousFileUpload from './upload/SimultaneousFileUpload';
-import { useProductUpload } from './upload/useProductUpload';
-import { useCustomerUpload } from './upload/useCustomerUpload';
-import { useOrderUpload } from './upload/useOrderUpload';
+import { createProductUploadHandler } from './upload/productUploadHandler';
+import { createCustomerUploadHandler } from './upload/customerUploadHandler';
+import { createOrderUploadHandler } from './upload/orderUploadHandler';
 
 interface DataUploadModalProps {
   isOpen: boolean;
@@ -37,27 +41,53 @@ const DataUploadModal = ({ isOpen, onClose }: DataUploadModalProps) => {
   const { profile } = useAuthStore();
   const hasBakeryAccess = !!profile?.bakery_id;
 
-  const { handleProductUpload } = useProductUpload(
-    profile, 
-    setUploadStatus, 
-    setProductIdMapping, 
-    setUploadResults
+  // Call all hooks at the top level
+  const { toast } = useToast();
+  const createProduct = useCreateProduct();
+  const { data: existingProducts } = useProducts();
+  const createCustomer = useCreateCustomer();
+  const { data: existingCustomers } = useCustomers();
+  const createOrder = useCreateOrder();
+
+  // Create stable handler functions using useMemo
+  const handleProductUpload = useMemo(
+    () => createProductUploadHandler(
+      profile,
+      toast,
+      createProduct,
+      existingProducts,
+      setUploadStatus,
+      setProductIdMapping,
+      setUploadResults
+    ),
+    [profile, toast, createProduct, existingProducts, setUploadStatus, setProductIdMapping, setUploadResults]
   );
 
-  const { handleCustomerUpload } = useCustomerUpload(
-    profile, 
-    setUploadStatus, 
-    setCustomerIdMapping, 
-    setUploadResults
+  const handleCustomerUpload = useMemo(
+    () => createCustomerUploadHandler(
+      profile,
+      toast,
+      createCustomer,
+      existingCustomers,
+      setUploadStatus,
+      setCustomerIdMapping,
+      setUploadResults
+    ),
+    [profile, toast, createCustomer, existingCustomers, setUploadStatus, setCustomerIdMapping, setUploadResults]
   );
 
-  const { handleOrderUpload } = useOrderUpload(
-    profile,
-    uploadStatus,
-    productIdMapping,
-    customerIdMapping,
-    setUploadStatus,
-    setUploadResults
+  const handleOrderUpload = useMemo(
+    () => createOrderUploadHandler(
+      profile,
+      toast,
+      createOrder,
+      uploadStatus,
+      productIdMapping,
+      customerIdMapping,
+      setUploadStatus,
+      setUploadResults
+    ),
+    [profile, toast, createOrder, uploadStatus, productIdMapping, customerIdMapping, setUploadStatus, setUploadResults]
   );
 
   return (

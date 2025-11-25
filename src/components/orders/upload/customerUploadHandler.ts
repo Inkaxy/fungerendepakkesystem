@@ -1,21 +1,17 @@
-
-import { useToast } from '@/hooks/use-toast';
-import { useCreateCustomer, useCustomers } from '@/hooks/useCustomers';
 import { parseCustomerFile } from '@/utils/fileParser';
 import { IdMapping, UploadResults, UploadStatus } from './types';
 import { UserProfile } from '@/stores/authStore';
 
-export const useCustomerUpload = (
+export const createCustomerUploadHandler = (
   profile: UserProfile | null,
+  toast: any,
+  createCustomer: any,
+  existingCustomers: any[] | undefined,
   setUploadStatus: React.Dispatch<React.SetStateAction<UploadStatus>>,
   setCustomerIdMapping: React.Dispatch<React.SetStateAction<IdMapping>>,
   setUploadResults: React.Dispatch<React.SetStateAction<UploadResults>>
 ) => {
-  const { toast } = useToast();
-  const createCustomer = useCreateCustomer();
-  const { data: existingCustomers } = useCustomers();
-
-  const handleCustomerUpload = async (file: File) => {
+  return async (file: File) => {
     if (!profile?.bakery_id) {
       toast({
         title: "Feil",
@@ -154,6 +150,4 @@ export const useCustomerUpload = (
       });
     }
   };
-
-  return { handleCustomerUpload };
 };
