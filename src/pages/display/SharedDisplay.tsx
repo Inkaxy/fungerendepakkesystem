@@ -4,14 +4,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
-import CustomerPackingCard from '@/components/display/shared/CustomerPackingCard';
+import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { usePublicActivePackingDate, usePublicPackingData } from '@/hooks/usePublicDisplayData';
+import { usePublicActivePackingDate } from '@/hooks/usePublicDisplayData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
@@ -28,20 +28,6 @@ const SharedDisplay = () => {
   
   // Filter shared display customers
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
-  
-  // Fetch packing data for each shared display customer using public hook
-  const packingDataResults = sharedDisplayCustomers.map(customer => 
-    usePublicPackingData(customer.id, bakeryId, activePackingDate)
-  );
-  
-  const packingLoading = dateLoading || packingDataResults.some(r => r.isLoading);
-  const packingData = packingDataResults
-    .map(r => r.data)
-    .filter(Boolean)
-    .flat();
-  
-  // ✅ GUARD: Sjekk om vi venter på aktive produkter
-  const activeProductsLoading = packingDataResults.some(r => r.isLoading);
   
   // Real-time listener for cache updates
   const { connectionStatus } = useRealTimePublicDisplay(bakeryId);
@@ -72,30 +58,17 @@ const SharedDisplay = () => {
     }
   }, [bakeryId, activePackingDate, queryClient]);
 
-  let sharedDisplayPackingData = packingData || [];
-
   // Apply customer sorting based on settings
-  if (settings?.customer_sort_order && sharedDisplayPackingData.length > 0) {
+  let sortedCustomers = [...sharedDisplayCustomers];
+  if (settings?.customer_sort_order) {
     switch (settings.customer_sort_order) {
       case 'alphabetical':
-        sharedDisplayPackingData = sharedDisplayPackingData.sort((a, b) => {
-          const customerA = sharedDisplayCustomers.find(c => c.id === a.id);
-          const customerB = sharedDisplayCustomers.find(c => c.id === b.id);
-          return (customerA?.name || '').localeCompare(customerB?.name || '');
-        });
-        break;
-      case 'status':
-        sharedDisplayPackingData = sharedDisplayPackingData.sort((a, b) => {
-          if (a.overall_status === b.overall_status) return 0;
-          if (a.overall_status === 'completed') return 1;
-          if (b.overall_status === 'completed') return -1;
-          return 0;
-        });
-        break;
-      case 'progress':
-        sharedDisplayPackingData = sharedDisplayPackingData.sort((a, b) => 
-          b.progress_percentage - a.progress_percentage
+        sortedCustomers = sortedCustomers.sort((a, b) => 
+          a.name.localeCompare(b.name)
         );
+        break;
+      // Status og progress sorting vil skje per kunde i CustomerDataLoader
+      default:
         break;
     }
   }
@@ -151,23 +124,6 @@ const SharedDisplay = () => {
           </Card>
         )}
 
-        {!dateLoading && activeProductsLoading && (
-          <Card
-            style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent className="text-center p-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p style={{ color: settings?.text_color || '#6b7280' }}>
-                Henter aktive produkter...
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
         {!dateLoading && !activePackingDate && (
           <EmptyPackingState
             settings={settings}
@@ -176,59 +132,31 @@ const SharedDisplay = () => {
           />
         )}
 
-        {!dateLoading && activePackingDate && settings?.show_stats_cards && (
-          <SharedDisplayStats
-            settings={settings}
-            sharedDisplayPackingData={sharedDisplayPackingData}
-          />
-        )}
-
-        {!dateLoading && activePackingDate && (packingLoading ? (
-          <Card
-            style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <CardContent className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p style={{ color: settings?.text_color || '#6b7280' }}>
-                Oppdaterer kundekort...
-              </p>
-            </CardContent>
-          </Card>
-        ) : sharedDisplayPackingData.length > 0 ? (
+        {!dateLoading && activePackingDate && sortedCustomers.length > 0 ? (
           <div 
             className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
               gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
             }}
           >
-            {sharedDisplayPackingData.map((customerData) => {
-              const customer = sharedDisplayCustomers.find(c => c.id === customerData.id);
-              if (!customer) return null;
-
-              return (
-                <CustomerPackingCard
-                  key={customer.id}
-                  customerData={customerData}
-                  customer={customer}
-                  settings={settings}
-                  statusColors={statusColors}
-                />
-              );
-            })}
+            {sortedCustomers.map((customer) => (
+              <CustomerDataLoader
+                key={customer.id}
+                customer={customer}
+                bakeryId={bakeryId}
+                activePackingDate={activePackingDate}
+                settings={settings}
+                statusColors={statusColors}
+              />
+            ))}
           </div>
-        ) : null)}
-
-        {!dateLoading && activePackingDate && sharedDisplayPackingData.length === 0 && (
+        ) : !dateLoading && activePackingDate && sortedCustomers.length === 0 ? (
           <EmptyPackingState
             settings={settings}
             activePackingDate={activePackingDate}
             isToday={isToday}
           />
-        )}
+        ) : null}
 
         <div className="text-center mt-8">
           <ConnectionStatus status={connectionStatus} />
