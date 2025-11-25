@@ -1,22 +1,18 @@
-
-import { useToast } from '@/hooks/use-toast';
-import { useCreateOrder } from '@/hooks/useCreateOrder';
 import { parseOrderFile } from '@/utils/fileParser';
 import { IdMapping, UploadResults, UploadStatus } from './types';
 import { UserProfile } from '@/stores/authStore';
 
-export const useOrderUpload = (
+export const createOrderUploadHandler = (
   profile: UserProfile | null,
+  toast: any,
+  createOrder: any,
   uploadStatus: UploadStatus,
   productIdMapping: IdMapping,
   customerIdMapping: IdMapping,
   setUploadStatus: React.Dispatch<React.SetStateAction<UploadStatus>>,
   setUploadResults: React.Dispatch<React.SetStateAction<UploadResults>>
 ) => {
-  const { toast } = useToast();
-  const createOrder = useCreateOrder();
-
-  const handleOrderUpload = async (file: File) => {
+  return async (file: File) => {
     if (!profile?.bakery_id) {
       toast({
         title: "Feil",
@@ -54,10 +50,10 @@ export const useOrderUpload = (
       
       for (const order of orders) {
         console.log(`\n=== Processing order ${order.order_number} ===`);
-        console.log(`Looking for customer ID: "${order.customer_id}"`); // Updated field name
+        console.log(`Looking for customer ID: "${order.customer_id}"`);
         console.log(`Available customer mapping keys:`, Object.keys(customerIdMapping));
         
-        const customerUuid = customerIdMapping[order.customer_id]; // Updated field name
+        const customerUuid = customerIdMapping[order.customer_id];
         console.log(`Customer mapping result: ${order.customer_id} -> ${customerUuid}`);
         
         if (!customerUuid) {
@@ -142,6 +138,4 @@ export const useOrderUpload = (
       });
     }
   };
-
-  return { handleOrderUpload };
 };

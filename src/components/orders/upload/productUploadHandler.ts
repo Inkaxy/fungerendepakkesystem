@@ -1,21 +1,17 @@
-
-import { useToast } from '@/hooks/use-toast';
-import { useCreateProduct, useProducts } from '@/hooks/useProducts';
 import { parseProductFile } from '@/utils/fileParser';
 import { IdMapping, UploadResults, UploadStatus } from './types';
 import { UserProfile } from '@/stores/authStore';
 
-export const useProductUpload = (
+export const createProductUploadHandler = (
   profile: UserProfile | null,
+  toast: any,
+  createProduct: any,
+  existingProducts: any[] | undefined,
   setUploadStatus: React.Dispatch<React.SetStateAction<UploadStatus>>,
   setProductIdMapping: React.Dispatch<React.SetStateAction<IdMapping>>,
   setUploadResults: React.Dispatch<React.SetStateAction<UploadResults>>
 ) => {
-  const { toast } = useToast();
-  const createProduct = useCreateProduct();
-  const { data: existingProducts } = useProducts();
-
-  const handleProductUpload = async (file: File) => {
+  return async (file: File) => {
     console.log('Product upload started with bakery_id:', profile?.bakery_id);
     
     if (!profile?.bakery_id) {
@@ -129,6 +125,4 @@ export const useProductUpload = (
       });
     }
   };
-
-  return { handleProductUpload };
 };
