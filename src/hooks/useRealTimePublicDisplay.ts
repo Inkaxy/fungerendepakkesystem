@@ -53,6 +53,17 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
                 return [...oldData, payload.new];
               }
             );
+            
+            // ✅ KRITISK: Ved INSERT - fjern ALLE gamle packing-data cacher
+            if (payload.eventType === 'INSERT') {
+              if (!isMountedRef.current) return;
+              
+              console.log('🧹 INSERT detected - fjerner ALLE gamle packing-data cacher');
+              queryClient.removeQueries({
+                queryKey: ['public-packing-data-v2'],
+                exact: false
+              });
+            }
           } else if (payload.eventType === 'DELETE') {
             const deletedProduct = payload.old as any;
             console.log('🗑️ WebSocket DELETE: Fjerner produkt fra cache', {

@@ -35,15 +35,21 @@ const SharedDisplay = () => {
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
 
-  // ✅ Cleanup hook
+  // ✅ Force cache clearing ved mount
   React.useEffect(() => {
     isMountedRef.current = true;
+    
+    if (bakeryId) {
+      console.log('🧹 SharedDisplay: Clearing cache ved mount');
+      queryClient.removeQueries({ queryKey: ['public-active-packing-products'], exact: false });
+      queryClient.removeQueries({ queryKey: ['public-packing-data-v2'], exact: false });
+    }
     
     return () => {
       isMountedRef.current = false;
       console.log('🧹 SharedDisplay: Cleanup - marking as unmounted');
     };
-  }, []);
+  }, [bakeryId, queryClient]);
 
   // Force reset av packing data når aktiv dato endres
   React.useEffect(() => {

@@ -164,11 +164,11 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
       return data;
     },
     enabled: !!bakeryId && !!date,
-    refetchInterval: false, // Kun websockets
-    staleTime: 5000, // ✅ 5 sekunder - raskere oppdatering
-    gcTime: 60000, // 1 minutt cache
-    refetchOnMount: true, // ✅ Hent ferske data ved mount
-    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    staleTime: 0,        // ✅ Alltid stale - tving refetch
+    gcTime: 0,           // ✅ Ingen cache
+    refetchOnMount: 'always', // ✅ Alltid refetch ved mount
+    refetchOnWindowFocus: true, // ✅ Refetch når brukeren kommer tilbake
     refetchOnReconnect: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
@@ -359,11 +359,11 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       return result;
     },
     enabled: !!customerId && !!bakeryId && !!activeProducts && activeProducts.length > 0,
-    refetchInterval: false, // Kun websockets
-    staleTime: 5000, // ✅ 5 sekunder - raskere oppdatering
-    gcTime: 60000, // 1 minutt cache
-    refetchOnMount: true, // ✅ Hent ferske data ved mount
-    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    staleTime: 0,        // ✅ Alltid stale - tving refetch
+    gcTime: 0,           // ✅ Ingen cache
+    refetchOnMount: 'always', // ✅ Alltid refetch ved mount
+    refetchOnWindowFocus: true, // ✅ Refetch når brukeren kommer tilbake
     refetchOnReconnect: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
