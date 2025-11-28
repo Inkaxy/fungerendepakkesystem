@@ -165,9 +165,9 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     },
     enabled: !!bakeryId && !!date,
     refetchInterval: false, // Kun websockets
-    staleTime: 30000, // 30 sekunder - WebSocket håndterer invalidering
+    staleTime: 5000, // ✅ 5 sekunder - raskere oppdatering
     gcTime: 60000, // 1 minutt cache
-    refetchOnMount: false, // La WebSocket håndtere oppdateringer
+    refetchOnMount: true, // ✅ Hent ferske data ved mount
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
@@ -181,9 +181,12 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
 // Hook to get packing data for a specific customer without authentication
 export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string, activeProducts?: any[]) => {
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
+  
+  // ✅ Inkluder faktiske produkt-ID-er i queryKey for korrekt cache-invalidering
+  const activeProductIds = activeProducts?.map(ap => ap.product_id).sort().join(',') || '';
 
   return useQuery({
-    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate, activeProducts?.length || 0],
+    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate, activeProductIds],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
@@ -357,9 +360,9 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId && !!activeProducts && activeProducts.length > 0,
     refetchInterval: false, // Kun websockets
-    staleTime: 30000, // 30 sekunder - WebSocket håndterer invalidering
+    staleTime: 5000, // ✅ 5 sekunder - raskere oppdatering
     gcTime: 60000, // 1 minutt cache
-    refetchOnMount: false, // La WebSocket håndtere oppdateringer
+    refetchOnMount: true, // ✅ Hent ferske data ved mount
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount) => {
