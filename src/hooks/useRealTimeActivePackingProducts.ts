@@ -87,7 +87,7 @@ export const useRealTimeActivePackingProducts = () => {
 
           // Force refetch for public caches
           queryClient.invalidateQueries({
-            queryKey: ['public-packing-data-v2'],
+            queryKey: ['public-packing-data-v3'],
             exact: false,
             refetchType: 'active'
           });

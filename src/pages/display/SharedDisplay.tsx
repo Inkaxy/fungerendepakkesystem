@@ -42,7 +42,7 @@ const SharedDisplay = () => {
     if (bakeryId) {
       console.log('🧹 SharedDisplay: Clearing cache ved mount');
       queryClient.removeQueries({ queryKey: ['public-active-packing-products'], exact: false });
-      queryClient.removeQueries({ queryKey: ['public-packing-data-v2'], exact: false });
+      queryClient.removeQueries({ queryKey: ['public-packing-data-v3'], exact: false });
     }
     
     return () => {

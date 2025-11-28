@@ -43,9 +43,9 @@ const CustomerDisplay = () => {
         exact: false
       });
       
-      // Fjern ALL public-packing-data-v2 cache
+      // Fjern ALL public-packing-data-v3 cache
       queryClient.removeQueries({
-        queryKey: ['public-packing-data-v2'],
+        queryKey: ['public-packing-data-v3'],
         exact: false
       });
       
@@ -75,7 +75,7 @@ const CustomerDisplay = () => {
       queryClient.removeQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
-          return key === 'public-packing-data-v2' && query.queryKey[3] !== activePackingDate;
+          return key === 'public-packing-data-v3' && query.queryKey[3] !== activePackingDate;
         }
       });
       console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
@@ -227,6 +227,25 @@ const CustomerDisplay = () => {
           showRefresh={false}
           settings={settings}
         />
+
+        {/* DEBUG PANEL - Midlertidig for feilsøking */}
+        <Card className="border-2 border-yellow-500 bg-yellow-50">
+          <CardContent className="p-3 text-sm space-y-1">
+            <p className="font-bold text-yellow-900">🔍 DEBUG INFO:</p>
+            <p className="text-yellow-800">
+              <strong>Aktive produkter i DB:</strong> {activeProducts?.length || 0}
+            </p>
+            <p className="text-yellow-800">
+              <strong>Fra DB:</strong> {activeProducts?.map(ap => ap.product_name).join(', ') || 'Ingen'}
+            </p>
+            <p className="text-yellow-800">
+              <strong>Vises på display:</strong> {customerPackingData?.products.map(p => p.product_name).join(', ') || 'Ingen'}
+            </p>
+            <p className="text-yellow-800">
+              <strong>Antall viste:</strong> {customerPackingData?.products.length || 0}
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Date card - vises alltid */}
         <Card
