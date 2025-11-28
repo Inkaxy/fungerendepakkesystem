@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRealTimeOrders } from './useRealTimeOrders';
 import { useRealTimeActivePackingProducts } from './useRealTimeActivePackingProducts';
 import { useRealTimePackingSessions } from './useRealTimePackingSessions';
@@ -7,6 +7,7 @@ import { useRealTimeDisplaySettings } from './useRealTimeDisplaySettings';
 
 export const useRealTimeDisplay = () => {
   const [overallStatus, setOverallStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
+  const isMountedRef = useRef(true);
   
   const { connectionStatus: ordersStatus } = useRealTimeOrders();
   const { connectionStatus: productsStatus } = useRealTimeActivePackingProducts();
@@ -16,8 +17,12 @@ export const useRealTimeDisplay = () => {
   useRealTimeDisplaySettings();
 
   useEffect(() => {
+    isMountedRef.current = true;
+    
     // Determine overall connection status based on individual statuses
     const statuses = [ordersStatus, productsStatus];
+    
+    if (!isMountedRef.current) return;
     
     if (statuses.every(status => status === 'connected')) {
       setOverallStatus('connected');
@@ -29,6 +34,10 @@ export const useRealTimeDisplay = () => {
       setOverallStatus('connecting');
       console.log('🟡 Real-time connection: Connecting...', { ordersStatus, productsStatus });
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [ordersStatus, productsStatus]);
 
   return {

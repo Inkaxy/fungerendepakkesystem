@@ -39,6 +39,8 @@ export const useRealTimePackingSessions = () => {
           
           // Direct cache update for packing sessions
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            if (!isMountedRef.current) return;
+            
             queryClient.setQueryData(['packing-sessions', profile.bakery_id], (old: any[] | undefined) => {
               if (!old) return [updatedSession];
               const exists = old.find(s => s.id === updatedSession.id);
@@ -51,6 +53,8 @@ export const useRealTimePackingSessions = () => {
           
           // Update active packing date if status is in_progress
           if (updatedSession?.status === 'in_progress') {
+            if (!isMountedRef.current) return;
+            
             queryClient.setQueryData(['active-packing-date', profile.bakery_id], 
               updatedSession.session_date
             );
@@ -84,8 +88,8 @@ export const useRealTimePackingSessions = () => {
       .subscribe();
 
     return () => {
+      isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       console.log('Cleaning up packing sessions listener for bakery:', profile.bakery_id);
-      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [queryClient, toast, profile?.bakery_id]);

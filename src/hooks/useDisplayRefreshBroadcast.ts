@@ -33,7 +33,7 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
       .subscribe();
 
     return () => {
-      isMountedRef.current = false;
+      isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       supabase.removeChannel(channel);
     };
   }, [bakeryId, isDisplay]);

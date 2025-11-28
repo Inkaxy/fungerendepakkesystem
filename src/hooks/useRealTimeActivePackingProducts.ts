@@ -118,8 +118,8 @@ export const useRealTimeActivePackingProducts = () => {
       });
 
     return () => {
+      isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       console.log('🧹 Cleaning up active packing products listener for bakery:', profile.bakery_id);
-      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [profile?.bakery_id]);
