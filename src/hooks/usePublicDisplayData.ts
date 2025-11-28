@@ -186,7 +186,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
   const activeProductIds = activeProducts?.map(ap => ap.product_id).sort().join(',') || '';
 
   return useQuery({
-    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate, activeProductIds],
+    queryKey: ['public-packing-data-v3', customerId, bakeryId, targetDate, activeProductIds],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 

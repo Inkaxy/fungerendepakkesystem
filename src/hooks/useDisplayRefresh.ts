@@ -30,7 +30,7 @@ export const useDisplayRefresh = ({
         'active-packing-date',
         'public-active-packing-products',
         'public-active-packing-date',
-        'public-packing-data',
+        'public-packing-data-v3',
         'public-display-settings',
         'public-customer'
       ];
@@ -72,7 +72,7 @@ export const useDisplayRefresh = ({
       'active-packing-date',
       'public-active-packing-products',
       'public-active-packing-date',
-      'public-packing-data',
+      'public-packing-data-v3',
       'public-display-settings',
       'public-customer'
     ];

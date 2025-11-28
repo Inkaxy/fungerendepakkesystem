@@ -60,7 +60,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               
               console.log('🧹 INSERT detected - fjerner ALLE gamle packing-data cacher');
               queryClient.removeQueries({
-                queryKey: ['public-packing-data-v2'],
+                queryKey: ['public-packing-data-v3'],
                 exact: false
               });
             }
@@ -93,7 +93,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             // ✅ KRITISK FIX: Fjern ALLE gamle packing-data cacher når active products endres
             // Dette tvinger komponenter til å refetch med oppdatert activeProducts-liste
             queryClient.removeQueries({
-              queryKey: ['public-packing-data-v2'],
+              queryKey: ['public-packing-data-v3'],
               exact: false
             });
             
@@ -112,7 +112,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           
           // Mark public-packing-data as stale and force refetch for INSERT/UPDATE
           queryClient.invalidateQueries({
-            queryKey: ['public-packing-data-v2'],
+            queryKey: ['public-packing-data-v3'],
             exact: false,
             refetchType: 'active' // ✅ Force refetch for active queries
           });
@@ -145,7 +145,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           
           // Optimistic cache update - update ALL matching caches instantly
           const allCaches = queryClient.getQueryCache().findAll({ 
-            queryKey: ['public-packing-data-v2'], 
+            queryKey: ['public-packing-data-v3'], 
             exact: false 
           });
 
@@ -203,7 +203,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
 
           // ✅ Tving React Query til å re-render komponenter UMIDDELBART
           queryClient.invalidateQueries({
-            queryKey: ['public-packing-data-v2'],
+            queryKey: ['public-packing-data-v3'],
             exact: false,
             refetchType: 'none' // Ikke refetch, kun re-render med oppdatert cache
           });
