@@ -69,6 +69,19 @@ const CustomerDisplay = () => {
   const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
   
+  // ✅ Force reset av packing data når aktiv dato endres - MÅ KOMME FØR CONDITIONAL RETURNS
+  React.useEffect(() => {
+    if (isMountedRef.current && customer?.bakery_id && activePackingDate) {
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === 'public-packing-data-v2' && query.queryKey[3] !== activePackingDate;
+        }
+      });
+      console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
+    }
+  }, [customer?.bakery_id, activePackingDate, queryClient]);
+  
   // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
   const displayDate = activePackingDate || format(new Date(), 'yyyy-MM-dd');
   
@@ -132,19 +145,6 @@ const CustomerDisplay = () => {
       </div>
     );
   }
-
-  // Force reset av packing data når aktiv dato endres
-  React.useEffect(() => {
-    if (isMountedRef.current && customer?.bakery_id && activePackingDate) {
-      queryClient.removeQueries({
-        predicate: (query) => {
-          const key = query.queryKey[0];
-          return key === 'public-packing-data-v2' && query.queryKey[3] !== activePackingDate;
-        }
-      });
-      console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
-    }
-  }, [customer?.bakery_id, activePackingDate, queryClient]);
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
