@@ -214,8 +214,8 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
       });
 
     return () => {
+      isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       console.log('🧹 WebSocket: Cleaning up');
-      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [bakeryId]); // queryClient er stabilt, trenger ikke være dependency

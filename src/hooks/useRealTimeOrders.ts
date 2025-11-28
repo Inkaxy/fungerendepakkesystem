@@ -197,8 +197,8 @@ export const useRealTimeOrders = () => {
       });
 
     return () => {
+      isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       console.log('Cleaning up orders listener for bakery:', profile.bakery_id);
-      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [queryClient, toast, profile?.bakery_id]);

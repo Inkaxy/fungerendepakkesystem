@@ -36,10 +36,21 @@ export const useRealTimeDisplaySettings = () => {
           
           console.log('Display settings changed for bakery:', profile.bakery_id);
           
+          if (!isMountedRef.current) return;
+          
           // Invalidate bakery-specific queries
           queryClient.invalidateQueries({ queryKey: ['display-settings', profile.bakery_id] });
+          
+          if (!isMountedRef.current) return;
+          
           queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          
+          if (!isMountedRef.current) return;
+          
           queryClient.invalidateQueries({ queryKey: ['customers', profile.bakery_id] });
+          
+          if (!isMountedRef.current) return;
+          
           queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
 
           // Show a subtle notification that settings were updated
@@ -53,8 +64,8 @@ export const useRealTimeDisplaySettings = () => {
       .subscribe();
 
     return () => {
+      isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       console.log('Cleaning up display settings listener for bakery:', profile.bakery_id);
-      isMountedRef.current = false;
       supabase.removeChannel(channel);
     };
   }, [queryClient, toast, profile?.bakery_id]);
