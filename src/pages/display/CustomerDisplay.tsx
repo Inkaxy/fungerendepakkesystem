@@ -85,19 +85,20 @@ const CustomerDisplay = () => {
   // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
   const displayDate = activePackingDate || format(new Date(), 'yyyy-MM-dd');
   
-  const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
-    customer?.id, 
-    customer?.bakery_id, 
-    displayDate
-  );
-  const { data: packingSession } = usePublicPackingSession(
-    customer?.bakery_id, 
+  // ✅ Hent activeProducts FØR usePublicPackingData
+  const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(
+    customer?.bakery_id,
     displayDate
   );
   
-  // ✅ NYTT: Hent activeProducts direkte for å sjekke om de er klare
-  const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(
-    customer?.bakery_id,
+  const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
+    customer?.id, 
+    customer?.bakery_id, 
+    displayDate,
+    activeProducts // ✅ KRITISK: Send activeProducts som parameter
+  );
+  const { data: packingSession } = usePublicPackingSession(
+    customer?.bakery_id, 
     displayDate
   );
   
