@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePublicPackingData } from '@/hooks/usePublicDisplayData';
+import { usePublicPackingData, usePublicActivePackingProducts } from '@/hooks/usePublicDisplayData';
 import CustomerPackingCard from './CustomerPackingCard';
 import { Customer } from '@/types/database';
 import { DisplaySettings } from '@/types/displaySettings';
@@ -19,14 +19,21 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
   settings,
   statusColors,
 }) => {
-  // ✅ Hook kalles på topp-nivå i denne komponenten - lovlig!
-  const { data: packingData, isLoading } = usePublicPackingData(
-    customer.id,
+  // ✅ NYTT: Hent activeProducts FØRST
+  const { data: activeProducts, isLoading: activeLoading } = usePublicActivePackingProducts(
     bakeryId,
     activePackingDate
   );
 
-  if (isLoading) {
+  // ✅ Send activeProducts til usePublicPackingData
+  const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
+    customer.id,
+    bakeryId,
+    activePackingDate,
+    activeProducts // ✅ KRITISK: Send som parameter
+  );
+
+  if (activeLoading || packingLoading) {
     return (
       <div 
         className="animate-pulse rounded-lg h-48"
@@ -35,6 +42,11 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
         }}
       />
     );
+  }
+
+  // ✅ Returner null hvis ingen active products
+  if (!activeProducts || activeProducts.length === 0) {
+    return null;
   }
 
   // Finn customerData fra packingData

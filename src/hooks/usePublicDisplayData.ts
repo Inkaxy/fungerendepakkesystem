@@ -179,20 +179,17 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
 };
 
 // Hook to get packing data for a specific customer without authentication
-export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string) => {
-  const queryClient = useQueryClient();
+export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string, activeProducts?: any[]) => {
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
 
   return useQuery({
-    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate],
+    queryKey: ['public-packing-data-v2', customerId, bakeryId, targetDate, activeProducts?.length || 0],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
-      // Hent activeProducts fra cache inne i queryFn i stedet for som nested hook
-      const activeProducts = queryClient.getQueryData<any[]>(['public-active-packing-products', bakeryId, targetDate]);
-      
+      // ✅ Bruk activeProducts parameter direkte - ingen cache lookup
       if (!activeProducts || activeProducts.length === 0) {
-        console.warn('🚫 Ingen active products funnet i cache, returnerer tom array');
+        console.warn('🚫 Ingen active products mottatt som parameter, returnerer tom array');
         return [];
       }
 
@@ -358,7 +355,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId,
+    enabled: !!customerId && !!bakeryId && !!activeProducts && activeProducts.length > 0,
     refetchInterval: false, // Kun websockets
     staleTime: 30000, // 30 sekunder - WebSocket håndterer invalidering
     gcTime: 60000, // 1 minutt cache
