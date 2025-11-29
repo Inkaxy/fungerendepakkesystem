@@ -141,9 +141,9 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             exact: false 
           });
 
-          console.log(`🔄 Fant ${allCaches.length} cache(s) å oppdatere for order_product ${updatedProduct.id}`);
+          console.log(`🔄 Fant ${allCaches.length} cache(s) å oppdatere for product_id ${updatedProduct.product_id}`);
 
-          console.log('🔍 Leter etter order_product_id:', updatedProduct.id);
+          console.log('🔍 Leter etter product_id:', updatedProduct.product_id, 'order_product_id:', updatedProduct.id);
           
           allCaches.forEach(query => {
             if (!isMountedRef.current) return;
@@ -152,22 +152,39 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             if (!oldData) return;
 
             console.log('📦 Produkter i cache:', oldData?.flatMap((c: any) => 
-              c.products?.map((p: any) => ({ id: p.id, name: p.product_name }))
+              c.products?.map((p: any) => ({ 
+                order_product_id: p.id, 
+                product_id: p.product_id, 
+                name: p.product_name 
+              }))
             ));
             
             const newData = oldData.map((customer: any) => {
-              // product.id ER order_product_id i denne strukturen
+              // ✅ KRITISK FIX: Match på product_id, ikke order_product_id
+              // Siden cachen aggregerer flere order_products til én rad
               const updatedProducts = customer.products?.map((product: any) => {
-                if (product.id === updatedProduct.id) {
+                if (product.product_id === updatedProduct.product_id) {
                   const isPacked = updatedProduct.packing_status === 'packed' || 
                                    updatedProduct.packing_status === 'completed';
+                  const wasPending = product.packing_status === 'pending';
                   
-                  console.log(`✅ Oppdaterer produkt ${product.product_name} status til ${updatedProduct.packing_status}`);
+                  console.log(`✅ MATCH! Oppdaterer ${product.product_name} - match på product_id ${product.product_id}`);
+                  
+                  // Optimistisk oppdatering: +1 til packed_line_items hvis status endres til packed
+                  let newPackedCount = product.packed_line_items || 0;
+                  if (isPacked && wasPending) {
+                    newPackedCount = Math.min(product.packed_line_items + 1, product.total_line_items);
+                    console.log(`📈 Øker packed_line_items: ${product.packed_line_items} → ${newPackedCount}`);
+                  }
+                  
+                  // Beregn ny status basert på tellingen
+                  const newStatus = newPackedCount >= product.total_line_items ? 'completed' : 
+                                    newPackedCount > 0 ? 'in_progress' : 'pending';
                   
                   return {
                     ...product,
-                    packing_status: updatedProduct.packing_status,
-                    packed_line_items: isPacked ? product.total_line_items : 0
+                    packed_line_items: newPackedCount,
+                    packing_status: newStatus
                   };
                 }
                 return product;
@@ -203,14 +220,14 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
 
           if (!isMountedRef.current) return;
 
-          // ✅ Tving React Query til å re-render komponenter UMIDDELBART
+          // ✅ HYBRID TILNÆRMING: Først optimistisk oppdatering, deretter refetch for nøyaktighet
           queryClient.invalidateQueries({
             queryKey: ['public-packing-data-v3'],
             exact: false,
-            refetchType: 'none' // Ikke refetch, kun re-render med oppdatert cache
+            refetchType: 'active' // ✅ KRITISK: Force refetch for å få nøyaktig packed_line_items telling
           });
           
-          console.log('🔄 Tvunget re-render av display etter statusendring');
+          console.log('🔄 Cache oppdatert optimistisk + tvinger refetch for nøyaktig telling');
         }
       )
       .subscribe((status) => {
