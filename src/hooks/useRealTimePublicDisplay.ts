@@ -151,45 +151,55 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
 
           console.log(`🔄 Fant ${allCaches.length} cache(s) å oppdatere for order_product ${updatedProduct.id}`);
 
+          console.log('🔍 Leter etter order_product_id:', updatedProduct.id);
+          
           allCaches.forEach(query => {
             if (!isMountedRef.current) return;
             
             const oldData = query.state.data as any;
             if (!oldData) return;
+
+            console.log('📦 Produkter i cache:', oldData?.flatMap((c: any) => 
+              c.products?.map((p: any) => ({ id: p.id, name: p.product_name }))
+            ));
             
-            const newData = oldData.map((customer: any) => ({
-              ...customer,
-              products: customer.products?.map((product: any) => {
-                const updatedOrderItems = product.order_items?.map((item: any) => {
-                  if (item.order_product_id === updatedProduct.id) {
-                    console.log(`✅ Oppdaterer order_product ${updatedProduct.id} status til ${updatedProduct.packing_status}`);
-                    return {
-                      ...item,
-                      packing_status: updatedProduct.packing_status
-                    };
-                  }
-                  return item;
-                });
-                
-                // Recalculate product-level status if any items changed
-                if (updatedOrderItems && updatedOrderItems !== product.order_items) {
-                  const allPacked = updatedOrderItems.every((item: any) => 
-                    item.packing_status === 'packed' || item.packing_status === 'completed'
-                  );
-                  const somePacked = updatedOrderItems.some((item: any) => 
-                    item.packing_status === 'packed' || item.packing_status === 'completed'
-                  );
+            const newData = oldData.map((customer: any) => {
+              // product.id ER order_product_id i denne strukturen
+              const updatedProducts = customer.products?.map((product: any) => {
+                if (product.id === updatedProduct.id) {
+                  const isPacked = updatedProduct.packing_status === 'packed' || 
+                                   updatedProduct.packing_status === 'completed';
+                  
+                  console.log(`✅ Oppdaterer produkt ${product.product_name} status til ${updatedProduct.packing_status}`);
                   
                   return {
                     ...product,
-                    order_items: updatedOrderItems,
-                    packing_status: allPacked ? 'packed' : somePacked ? 'in_progress' : 'pending'
+                    packing_status: updatedProduct.packing_status,
+                    packed_line_items: isPacked ? product.total_line_items : 0
                   };
                 }
-                
                 return product;
-              })
-            }));
+              });
+
+              // Recalculate customer progress if products were updated
+              if (updatedProducts !== customer.products) {
+                const totalLines = updatedProducts.reduce((sum: number, product: any) => 
+                  sum + (product.total_line_items || 0), 0);
+                const packedLines = updatedProducts.reduce((sum: number, product: any) => 
+                  sum + (product.packed_line_items || 0), 0);
+                const progress = totalLines > 0 ? Math.round((packedLines / totalLines) * 100) : 0;
+                
+                return {
+                  ...customer,
+                  products: updatedProducts,
+                  packed_line_items: packedLines,
+                  progress_percentage: progress,
+                  overall_status: progress >= 100 ? 'completed' : 'ongoing'
+                };
+              }
+
+              return customer;
+            });
             
             if (!isMountedRef.current) return;
             
