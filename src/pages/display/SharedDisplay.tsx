@@ -57,7 +57,7 @@ const SharedDisplay = () => {
       queryClient.removeQueries({
         predicate: (query: any) => {
           const key = query.queryKey[0];
-          return key === 'public-packing-data-v2' && query.queryKey[3] !== activePackingDate;
+          return key === 'public-packing-data-v3' && query.queryKey[3] !== activePackingDate;
         }
       });
       console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');

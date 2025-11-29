@@ -66,32 +66,23 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             }
           } else if (payload.eventType === 'DELETE') {
             const deletedProduct = payload.old as any;
-            console.log('🗑️ WebSocket DELETE: Fjerner produkt fra cache', {
-              product_id: deletedProduct.product_id,
-              product_name: deletedProduct.product_name,
-              session_date: deletedProduct.session_date,
-              cache_key: ['public-active-packing-products', bakeryId, deletedProduct.session_date]
+            console.log('🗑️ WebSocket DELETE: Fjerner ALLE cacher (payload.old kan være tom)', {
+              payload_old: deletedProduct,
+              has_data: !!deletedProduct?.id
             });
             
             if (!isMountedRef.current) return;
             
-            queryClient.setQueryData(
-              ['public-active-packing-products', bakeryId, deletedProduct.session_date],
-              (oldData: any[] | undefined) => {
-                const filtered = oldData?.filter(item => item.id !== deletedProduct.id) || [];
-                console.log('✅ Cache etter DELETE:', {
-                  before: oldData?.length || 0,
-                  after: filtered.length,
-                  removed: deletedProduct.product_name
-                });
-                return filtered;
-              }
-            );
+            // ✅ KRITISK FIX: Fjern ALLE cacher uavhengig av payload.old data
+            // Dette sikrer at displayet alltid refetcher fra databasen ved DELETE
+            queryClient.removeQueries({
+              queryKey: ['public-active-packing-products', bakeryId],
+              exact: false  // Matcher alle datoer
+            });
             
             if (!isMountedRef.current) return;
             
-            // ✅ KRITISK FIX: Fjern ALLE gamle packing-data cacher når active products endres
-            // Dette tvinger komponenter til å refetch med oppdatert activeProducts-liste
+            // Fjern ALLE packing-data cacher
             queryClient.removeQueries({
               queryKey: ['public-packing-data-v3'],
               exact: false
@@ -99,13 +90,14 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             
             if (!isMountedRef.current) return;
             
-            // ✅ KRITISK: Invalider active-packing-products for å trigge refetch
+            // ✅ Force invalidation med refetch for å hente ferske data
             queryClient.invalidateQueries({
-              queryKey: ['public-active-packing-products', bakeryId, deletedProduct.session_date],
+              queryKey: ['public-active-packing-products', bakeryId],
+              exact: false,
               refetchType: 'active' // Force refetch av aktive queries
             });
             
-            console.log('🧹 Fjernet alle gamle packing-data cacher + invalidert active products');
+            console.log('🧹 Fjernet ALLE cacher - tvinger fresh fetch fra database');
           }
           
           if (!isMountedRef.current) return;
