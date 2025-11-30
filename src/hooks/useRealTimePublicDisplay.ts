@@ -54,11 +54,18 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
               }
             );
             
-            // ✅ KRITISK: Ved INSERT - fjern ALLE gamle packing-data cacher
+            // ✅ KRITISK: Ved INSERT - fjern ALLE gamle packing-data cacher OG invalidér datoen
             if (payload.eventType === 'INSERT') {
               if (!isMountedRef.current) return;
               
-              console.log('🧹 INSERT detected - fjerner ALLE gamle packing-data cacher');
+              console.log('🧹 INSERT detected - fjerner ALLE gamle packing-data cacher og invaliderer aktiv dato');
+              
+              // Invalidér aktiv pakkingsdato slik at displayet henter ny dato
+              queryClient.invalidateQueries({
+                queryKey: ['public-active-packing-date', bakeryId],
+                refetchType: 'active'
+              });
+              
               queryClient.removeQueries({
                 queryKey: ['public-packing-data-v3'],
                 exact: false
@@ -89,6 +96,12 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             });
             
             if (!isMountedRef.current) return;
+            
+            // ✅ Invalidér aktiv pakkingsdato når produkter slettes
+            queryClient.invalidateQueries({
+              queryKey: ['public-active-packing-date', bakeryId],
+              refetchType: 'active'
+            });
             
             // ✅ Force invalidation med refetch for å hente ferske data
             queryClient.invalidateQueries({
