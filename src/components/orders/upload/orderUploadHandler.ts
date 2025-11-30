@@ -1,6 +1,7 @@
 import { parseOrderFile } from '@/utils/fileParser';
 import { IdMapping, UploadResults, UploadStatus } from './types';
 import { UserProfile } from '@/stores/authStore';
+import { supabase } from '@/integrations/supabase/client';
 
 export const createOrderUploadHandler = (
   profile: UserProfile | null,
@@ -22,7 +23,8 @@ export const createOrderUploadHandler = (
       return;
     }
 
-    if (uploadStatus.products !== 'success' || uploadStatus.customers !== 'success') {
+    // ✅ FIX: Sjekk ID mappings direkte i stedet for uploadStatus (unngår stale closure)
+    if (Object.keys(productIdMapping).length === 0 || Object.keys(customerIdMapping).length === 0) {
       toast({
         title: "Mangler forutsetninger",
         description: "Du må laste opp produkter og kunder først",
@@ -47,6 +49,7 @@ export const createOrderUploadHandler = (
       
       const createdOrders = [];
       let failedOrders = 0;
+      let skippedDuplicates = 0;
       
       for (const order of orders) {
         console.log(`\n=== Processing order ${order.order_number} ===`);
@@ -69,6 +72,20 @@ export const createOrderUploadHandler = (
         }
         
         console.log(`✓ Customer found: ${order.customer_id} -> ${customerUuid}`);
+        
+        // ✅ DUPLIKATSJEKK: Sjekk om ordre allerede eksisterer for denne kunden og datoen
+        const { data: existingOrders } = await supabase
+          .from('orders')
+          .select('id, order_number')
+          .eq('bakery_id', profile.bakery_id)
+          .eq('customer_id', customerUuid)
+          .eq('delivery_date', order.delivery_date);
+        
+        if (existingOrders && existingOrders.length > 0) {
+          console.log(`⚠️ Ordre eksisterer allerede for kunde ${order.customer_id} på dato ${order.delivery_date} (ordre: ${existingOrders[0].order_number})`);
+          skippedDuplicates++;
+          continue;
+        }
         
         const convertedOrderProducts = [];
         for (const orderProduct of order.order_products) {
@@ -119,9 +136,13 @@ export const createOrderUploadHandler = (
       setUploadResults(prev => ({ ...prev, orders: createdOrders }));
       setUploadStatus(prev => ({ ...prev, orders: 'success' }));
       
+      // ✅ Forbedret feedback med duplikatinfo
       let description = `${createdOrders.length} ordrer ble importert`;
+      if (skippedDuplicates > 0) {
+        description += `, ${skippedDuplicates} duplikater hoppet over`;
+      }
       if (failedOrders > 0) {
-        description += ` (${failedOrders} ordrer feilet)`;
+        description += `, ${failedOrders} ordrer feilet`;
       }
       
       toast({

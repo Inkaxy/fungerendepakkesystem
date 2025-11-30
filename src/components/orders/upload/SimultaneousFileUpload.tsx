@@ -91,6 +91,13 @@ const SimultaneousFileUpload = ({
       // Steg 3: Last opp ordrer
       await onOrderUpload(selectedFiles.orders);
       
+      // ✅ Tilbakestill state etter vellykket opplasting for å forhindre re-upload
+      setSelectedFiles({
+        products: null,
+        customers: null,
+        orders: null
+      });
+      
     } catch (error) {
       console.error('Batch upload error:', error);
     } finally {
