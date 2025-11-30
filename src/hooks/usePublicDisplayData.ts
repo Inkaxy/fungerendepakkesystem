@@ -129,8 +129,10 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
     },
     enabled: !!bakeryId,
     refetchInterval: false, // Kun websockets
-    staleTime: 10000, // 10 sekunder - sjekk dato regelmessig
-    refetchOnWindowFocus: false,
+    staleTime: 0, // ✅ Zero cache - displayet må alltid sjekke ny dato ved sesjonsbytter
+    gcTime: 0, // ✅ Ingen cache persistence
+    refetchOnMount: 'always', // ✅ Alltid hent ny dato ved mount
+    refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
