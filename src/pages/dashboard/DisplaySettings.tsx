@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, Eye, RefreshCw, Palette, Layout, Activity, Sparkles, Zap, Settings, Monitor, Sliders } from 'lucide-react';
-import { useDisplaySettings, useUpdateDisplaySettings } from '@/hooks/useDisplaySettings';
+import { useDisplaySettings, useUpdateDisplaySettings, DisplaySettings as DisplaySettingsType } from '@/hooks/useDisplaySettings';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useAuthStore } from '@/stores/authStore';
 import LayoutBackgroundTab from '@/components/display-settings/LayoutBackgroundTab';
@@ -25,7 +25,7 @@ const DisplaySettings = () => {
   const navigate = useNavigate();
   const { profile } = useAuthStore();
   const { broadcastRefresh } = useDisplayRefreshBroadcast(profile?.bakery_id);
-  const [localSettings, setLocalSettings] = React.useState(settings);
+  const [localSettings, setLocalSettings] = React.useState<DisplaySettingsType | null>(settings ?? null);
 
   React.useEffect(() => {
     if (settings) {
@@ -33,7 +33,7 @@ const DisplaySettings = () => {
     }
   }, [settings]);
 
-  const handleUpdate = (updates: any) => {
+  const handleUpdate = (updates: Partial<DisplaySettingsType>) => {
     if (localSettings) {
       setLocalSettings({ ...localSettings, ...updates });
     }
@@ -41,7 +41,22 @@ const DisplaySettings = () => {
 
   const handleSave = () => {
     if (localSettings) {
-      updateSettings.mutate(localSettings);
+      updateSettings.mutate(localSettings, {
+        onSuccess: () => {
+          toast({ 
+            title: 'Lagret', 
+            description: 'Innstillingene er oppdatert.' 
+          });
+          broadcastRefresh(); // Auto-refresh displays etter lagring
+        },
+        onError: () => {
+          toast({ 
+            title: 'Feil', 
+            description: 'Kunne ikke lagre innstillinger.', 
+            variant: 'destructive' 
+          });
+        }
+      });
     }
   };
 

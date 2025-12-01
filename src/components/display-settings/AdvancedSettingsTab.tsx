@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import SliderControl from './SliderControl';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
-import { Sliders, LayoutGrid, Type, Eye } from 'lucide-react';
+import { Sliders, LayoutGrid, Type, Eye, Package } from 'lucide-react';
 
 interface AdvancedSettingsTabProps {
   settings: DisplaySettings;
@@ -15,6 +15,29 @@ interface AdvancedSettingsTabProps {
 const AdvancedSettingsTab = ({ settings, onUpdate }: AdvancedSettingsTabProps) => {
   return (
     <div className="space-y-6">
+      {/* Product Display Controls */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center text-lg">
+            <Package className="h-5 w-5 mr-2" />
+            Produktvisning
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Kontroller hvor mange produkter som vises samtidig
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <SliderControl
+            label="Maks antall produkter per display"
+            value={settings.max_products_per_card ?? 3}
+            onChange={(value) => onUpdate({ max_products_per_card: value })}
+            min={1}
+            max={10}
+            description="Hvor mange produkter som vises samtidig på kundedisplayet"
+          />
+        </CardContent>
+      </Card>
+
       {/* Spacing & Layout */}
       <Card>
         <CardHeader>
