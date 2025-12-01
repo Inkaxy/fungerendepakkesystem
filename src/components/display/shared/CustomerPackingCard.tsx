@@ -49,7 +49,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     >
       <CardHeader className={getCardHeightClass()}>
         <div className="flex items-center justify-between mb-2">
-          {settings?.show_status_badges && (
+          {(settings?.show_status_badges ?? true) && (
             <Badge 
               variant="secondary"
               style={{
@@ -94,7 +94,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 {customerData.progress_percentage}%
               </span>
             </div>
-            {settings?.show_progress_bar && (
+            {(settings?.show_progress_bar ?? true) && (
               <div 
                 className="w-full rounded-full h-2 overflow-hidden"
                 style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
@@ -110,7 +110,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 />
               </div>
             )}
-            {settings?.show_line_items_count && (
+            {(settings?.show_line_items_count ?? true) && (
               <div className="text-xs text-center">
                 <span style={{ color: settings?.text_color || '#6b7280' }}>
                   {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
@@ -166,7 +166,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {settings?.show_line_items_count && (
+                    {(settings?.show_line_items_count ?? true) && (
                       <span 
                         className="text-xs"
                         style={{ color: getProductAccentColor(settings || {} as any, product.colorIndex ?? idx % 3) }}
@@ -174,7 +174,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                         {product.packed_line_items}/{product.total_line_items}
                       </span>
                     )}
-                    {settings?.show_status_badges && (
+                    {(settings?.show_status_badges ?? true) && (
                       <Badge 
                         variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
                         className="text-xs"
