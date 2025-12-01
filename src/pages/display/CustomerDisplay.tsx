@@ -252,24 +252,26 @@ const CustomerDisplay = () => {
           settings={settings}
         />
 
-        {/* DEBUG PANEL - Midlertidig for feilsøking */}
-        <Card className="border-2 border-yellow-500 bg-yellow-50">
-          <CardContent className="p-3 text-sm space-y-1">
-            <p className="font-bold text-yellow-900">🔍 DEBUG INFO:</p>
-            <p className="text-yellow-800">
-              <strong>Aktive produkter i DB:</strong> {activeProducts?.length || 0}
-            </p>
-            <p className="text-yellow-800">
-              <strong>Fra DB:</strong> {activeProducts?.map(ap => ap.product_name).join(', ') || 'Ingen'}
-            </p>
-            <p className="text-yellow-800">
-              <strong>Vises på display:</strong> {displayCustomerPackingData?.products.map(p => p.product_name).join(', ') || 'Ingen'}
-            </p>
-            <p className="text-yellow-800">
-              <strong>Antall viste:</strong> {displayCustomerPackingData?.products.length || 0}
-            </p>
-          </CardContent>
-        </Card>
+        {/* DEBUG PANEL - Kun i development */}
+        {isDebugMode && (
+          <Card className="border-2 border-yellow-500 bg-yellow-50">
+            <CardContent className="p-3 text-sm space-y-1">
+              <p className="font-bold text-yellow-900">🔍 DEBUG INFO:</p>
+              <p className="text-yellow-800">
+                <strong>Aktive produkter i DB:</strong> {activeProducts?.length || 0}
+              </p>
+              <p className="text-yellow-800">
+                <strong>Fra DB:</strong> {activeProducts?.map(ap => ap.product_name).join(', ') || 'Ingen'}
+              </p>
+              <p className="text-yellow-800">
+                <strong>Vises på display:</strong> {displayCustomerPackingData?.products.map(p => p.product_name).join(', ') || 'Ingen'}
+              </p>
+              <p className="text-yellow-800">
+                <strong>Antall viste:</strong> {displayCustomerPackingData?.products.length || 0}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Date card - vises alltid */}
         <Card
@@ -295,7 +297,6 @@ const CustomerDisplay = () => {
             </div>
           </CardContent>
         </Card>
-        )}
 
         {/* Content area - conditional basert på state */}
         {activeProductsLoading ? (
