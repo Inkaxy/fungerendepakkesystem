@@ -97,11 +97,14 @@ const CustomerDisplay = () => {
   useDisplayRefreshBroadcast(customer?.bakery_id, true);
 
   // 🔄 Ekstra sikkerhet: poll backend jevnlig i tilfelle websocket ikke treffer
+  // ✅ Smart polling - kun når WebSocket er disconnected
   React.useEffect(() => {
-    if (!customer?.bakery_id) return;
+    if (!customer?.bakery_id || connectionStatus === 'connected') return;
+
+    console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
     const interval = setInterval(() => {
-      console.log('🔄 Polling: Invalidating queries...');
+      console.log('🔄 Fallback polling: Invalidating queries...');
       
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
@@ -114,10 +117,10 @@ const CustomerDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
-    }, 2000);
+    }, 5000); // ✅ Lengre intervall siden det er fallback
 
     return () => clearInterval(interval);
-  }, [customer?.bakery_id, queryClient]);
+  }, [customer?.bakery_id, connectionStatus, queryClient]);
   
   // ✅ GUARD: Ikke fortsett før activeProducts er lastet
   if (activeProductsLoading) {
@@ -388,9 +391,11 @@ const CustomerDisplay = () => {
         />
 
         <div className="text-center">
-          <ConnectionStatus status={connectionStatus} pollingActive={true} />
+          <ConnectionStatus status={connectionStatus} pollingActive={connectionStatus !== 'connected'} />
           <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
-            Automatiske oppdateringer via websockets + 2s polling
+            {connectionStatus === 'connected' 
+              ? 'Automatiske oppdateringer via websockets' 
+              : 'Fallback polling aktivt (5s interval)'}
           </p>
         </div>
       </div>

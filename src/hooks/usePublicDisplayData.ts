@@ -168,10 +168,10 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
     },
     enabled: !!bakeryId && !!date,
     refetchInterval: false,
-    staleTime: 0,        // ✅ Alltid stale - tving refetch
-    gcTime: 0,           // ✅ Ingen cache
-    refetchOnMount: 'always', // ✅ Alltid refetch ved mount
-    refetchOnWindowFocus: true, // ✅ Refetch når brukeren kommer tilbake
+    staleTime: 0,                // ✅ Alltid stale - tving refetch
+    gcTime: 5 * 60 * 1000,       // ✅ Behold cache i 5 min
+    refetchOnMount: 'always',    // ✅ Alltid refetch ved mount
+    refetchOnWindowFocus: true,  // ✅ Refetch når brukeren kommer tilbake
     refetchOnReconnect: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
@@ -363,10 +363,10 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     },
     enabled: !!customerId && !!bakeryId && !!activeProducts && activeProducts.length > 0,
     refetchInterval: false,
-    staleTime: 0,        // ✅ Alltid stale - tving refetch
-    gcTime: 0,           // ✅ Ingen cache
-    refetchOnMount: 'always', // ✅ Alltid refetch ved mount
-    refetchOnWindowFocus: true, // ✅ Refetch når brukeren kommer tilbake
+    staleTime: 0,                // ✅ Alltid stale - tving refetch
+    gcTime: 5 * 60 * 1000,       // ✅ Behold cache i 5 min
+    refetchOnMount: 'always',    // ✅ Alltid refetch ved mount
+    refetchOnWindowFocus: true,  // ✅ Refetch når brukeren kommer tilbake
     refetchOnReconnect: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;

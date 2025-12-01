@@ -3,9 +3,53 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { QUERY_KEYS } from '@/lib/queryKeys';
 
+// ✅ TypeScript interfaces for better type safety
+interface OrderProductUpdate {
+  id: string;
+  product_id: string;
+  order_id: string;
+  quantity: number;
+  packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
+  bakery_id: string;
+}
+
+interface ActivePackingProduct {
+  id: string;
+  product_id: string;
+  session_date: string;
+  bakery_id: string;
+  product_name?: string;
+}
+
 export const useRealTimePublicDisplay = (bakeryId?: string) => {
   const queryClient = useQueryClient();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 5;
+
+  // ✅ WebSocket retry-logikk med exponential backoff
+  useEffect(() => {
+    if (connectionStatus === 'disconnected' && retryCount < maxRetries) {
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+      console.log(`🔄 WebSocket reconnect scheduled in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+      
+      const timer = setTimeout(() => {
+        console.log(`🔄 Attempting reconnect... (${retryCount + 1}/${maxRetries})`);
+        setRetryCount(prev => prev + 1);
+        setConnectionStatus('connecting');
+      }, delay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [connectionStatus, retryCount]);
+
+  // ✅ Reset retry count ved successful connection
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      setRetryCount(0);
+      console.log('✅ WebSocket connected - retry count reset');
+    }
+  }, [connectionStatus]);
 
   useEffect(() => {
     if (!bakeryId) {
@@ -28,73 +72,69 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
         (payload) => {
           console.log('⚡ WebSocket: Active products changed', payload.eventType);
           
-          // Direct cache update - no refetch needed
+          // ✅ FIX: Kun invalidate - ingen removeQueries (forhindrer race condition)
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const newProduct = payload.new as ActivePackingProduct;
+            
             queryClient.setQueryData(
-              [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId, (payload.new as any).session_date],
-              (oldData: any[] | undefined) => {
-                if (!oldData) return [payload.new];
+              [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId, newProduct.session_date],
+              (oldData: ActivePackingProduct[] | undefined) => {
+                if (!oldData) return [newProduct];
                 
-                const index = oldData.findIndex(item => item.id === (payload.new as any).id);
+                const index = oldData.findIndex(item => item.id === newProduct.id);
                 if (index >= 0) {
                   const newData = [...oldData];
-                  newData[index] = payload.new;
+                  newData[index] = newProduct;
                   return newData;
                 }
-                return [...oldData, payload.new];
+                return [...oldData, newProduct];
               }
             );
             
-            // ✅ KRITISK: Ved INSERT - fjern ALLE gamle packing-data cacher OG invalidér datoen
             if (payload.eventType === 'INSERT') {
-              console.log('🧹 INSERT detected - fjerner ALLE gamle packing-data cacher og invaliderer aktiv dato');
+              console.log('🧹 INSERT detected - invaliderer alle relaterte cacher (ingen removeQueries)');
               
-              // Invalidér aktiv pakkingsdato slik at displayet henter ny dato
+              // ✅ Kun invalidate med refetch - la React Query håndtere cachen
               queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0], bakeryId],
                 refetchType: 'active'
               });
               
-              queryClient.removeQueries({
+              queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
-                exact: false
+                exact: false,
+                refetchType: 'active'
               });
             }
           } else if (payload.eventType === 'DELETE') {
-            const deletedProduct = payload.old as any;
-            console.log('🗑️ WebSocket DELETE: Fjerner ALLE cacher', {
+            const deletedProduct = payload.old as ActivePackingProduct | undefined;
+            console.log('🗑️ WebSocket DELETE: Invaliderer alle cacher (ingen removeQueries)', {
               payload_old: deletedProduct,
               has_data: !!deletedProduct?.id
             });
             
-            // Fjern ALLE cacher uavhengig av payload.old data
-            queryClient.removeQueries({
-              queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId],
-              exact: false
-            });
-            
-            queryClient.removeQueries({
-              queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
-              exact: false
-            });
-            
-            // Invalidér aktiv pakkingsdato når produkter slettes
-            queryClient.invalidateQueries({
-              queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0], bakeryId],
-              refetchType: 'active'
-            });
-            
-            // Force invalidation med refetch for å hente ferske data
+            // ✅ Kun invalidate med refetch - ikke removeQueries
             queryClient.invalidateQueries({
               queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId],
               exact: false,
               refetchType: 'active'
             });
             
-            console.log('🧹 Fjernet ALLE cacher - tvinger fresh fetch fra database');
+            queryClient.invalidateQueries({
+              queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+              exact: false,
+              refetchType: 'active'
+            });
+            
+            queryClient.invalidateQueries({
+              queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0], bakeryId],
+              refetchType: 'active'
+            });
+            
+            console.log('🧹 Invaliderte ALLE cacher - React Query håndterer refetch');
           }
           
-          // Mark public-packing-data as stale and force refetch for INSERT/UPDATE
+          // Always invalidate packing data for consistency
           queryClient.invalidateQueries({
             queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
             exact: false,
@@ -114,7 +154,7 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
         },
         (payload) => {
           const wsReceiveTime = performance.now();
-          const updatedProduct = payload.new as any;
+          const updatedProduct = payload.new as OrderProductUpdate;
           console.log('⚡ WebSocket RECEIVED: order_products UPDATE at', wsReceiveTime.toFixed(2), 'ms', {
             order_product_id: updatedProduct.id,
             new_status: updatedProduct.packing_status,
