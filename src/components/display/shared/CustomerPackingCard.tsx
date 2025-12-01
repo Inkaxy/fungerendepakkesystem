@@ -14,7 +14,7 @@ interface CustomerPackingCardProps {
   statusColors: { [key: string]: string };
 }
 
-const CustomerPackingCard = ({ customerData, customer, settings, statusColors }: CustomerPackingCardProps) => {
+const CustomerPackingCard = React.memo(({ customerData, customer, settings, statusColors }: CustomerPackingCardProps) => {
   // Get card height class based on settings
   const getCardHeightClass = () => {
     switch (settings?.customer_card_height) {
@@ -96,14 +96,16 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
             </div>
             {settings?.show_progress_bar && (
               <div 
-                className="w-full rounded-full h-2"
+                className="w-full rounded-full h-2 overflow-hidden"
                 style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
               >
                 <div 
-                  className="h-2 rounded-full transition-all duration-300"
+                  className="h-2 rounded-full"
                   style={{ 
                     backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                    width: `${customerData.progress_percentage}%`
+                    width: `${customerData.progress_percentage}%`,
+                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    willChange: 'width',
                   }}
                 />
               </div>
@@ -202,6 +204,14 @@ const CustomerPackingCard = ({ customerData, customer, settings, statusColors }:
       </CardContent>
     </Card>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.customerData.progress_percentage === nextProps.customerData.progress_percentage &&
+    prevProps.customerData.overall_status === nextProps.customerData.overall_status &&
+    prevProps.customerData.products.length === nextProps.customerData.products.length
+  );
+});
+
+CustomerPackingCard.displayName = 'CustomerPackingCard';
 
 export default CustomerPackingCard;
