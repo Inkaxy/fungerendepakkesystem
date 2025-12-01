@@ -9,6 +9,7 @@ import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useDisplaySettings } from '@/hooks/useDisplaySettings';
 import { usePublicActivePackingDate } from '@/hooks/usePublicDisplayData';
@@ -34,6 +35,9 @@ const SharedDisplay = () => {
   
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
+
+  // Wake Lock - forhindrer at skjermen slukkes
+  const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
   // 🔄 Ekstra sikkerhet: poll packing-data for shared display
   // ✅ Smart polling - kun når WebSocket er disconnected
@@ -61,31 +65,38 @@ const SharedDisplay = () => {
     return () => clearInterval(interval);
   }, [bakeryId, connectionStatus, queryClient]);
 
-  // ✅ Force cache clearing ved mount
+  // ✅ Invalidate cache ved mount (ikke remove - forhindrer race condition)
   React.useEffect(() => {
     if (!bakeryId) return;
     
-    console.log('🧹 SharedDisplay: Clearing cache ved mount');
-    queryClient.removeQueries({ 
+    console.log('🔄 SharedDisplay: Invalidating cache ved mount');
+    queryClient.invalidateQueries({ 
       queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]], 
-      exact: false 
+      exact: false,
+      refetchType: 'active'
     });
-    queryClient.removeQueries({ 
+    queryClient.invalidateQueries({ 
       queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]], 
-      exact: false 
+      exact: false,
+      refetchType: 'active'
     });
   }, [bakeryId, queryClient]);
 
-  // Force reset av packing data når aktiv dato endres
+  // Force invalidate av packing data når aktiv dato endres
   React.useEffect(() => {
     if (!bakeryId || !activePackingDate) return;
     
-    queryClient.removeQueries({
-      predicate: (query) => 
-        query.queryKey[0] === QUERY_KEYS.PUBLIC_PACKING_DATA[0] &&
-        query.queryKey[3] !== activePackingDate,
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+      exact: false,
+      refetchType: 'active'
     });
-    console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
+      exact: false,
+      refetchType: 'active'
+    });
+    console.log('🔄 Aktiv dato endret - invaliderer packing cache');
   }, [bakeryId, activePackingDate, queryClient]);
 
   // Apply customer sorting based on settings
@@ -191,6 +202,14 @@ const SharedDisplay = () => {
               ? 'Automatiske oppdateringer via websockets' 
               : 'Fallback polling aktivt (5s interval)'}
           </p>
+          {wakeLockSupported && (
+            <div className="text-xs mt-1 flex items-center justify-center gap-1">
+              <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
+              <span style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+                {wakeLockActive ? 'Skjerm holdes våken' : 'Wake Lock inaktiv'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>
