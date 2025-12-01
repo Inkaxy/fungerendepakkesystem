@@ -106,6 +106,24 @@ const CustomerDisplay = () => {
   // Dette sikrer at WebSocket kobles til umiddelbart ved mount
   const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
   useDisplayRefreshBroadcast(customer?.bakery_id, true);
+
+  // 🔄 Ekstra sikkerhet: poll backend jevnlig i tilfelle websocket ikke treffer
+  React.useEffect(() => {
+    if (!customer?.bakery_id) return;
+
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({
+        queryKey: ['public-active-packing-products'],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['public-packing-data-v3'],
+        exact: false,
+      });
+    }, 2000); // hver 2. sekund
+
+    return () => clearInterval(interval);
+  }, [customer?.bakery_id, queryClient]);
   
   // ✅ GUARD: Ikke fortsett før activeProducts er lastet
   if (activeProductsLoading) {
@@ -197,6 +215,25 @@ const CustomerDisplay = () => {
   }
 
   const customerPackingData = packingData?.find(data => data.id === customer.id);
+
+  // 🧠 Filtrer kundens produkter basert på aktive produkter i DB
+  const displayProducts =
+    customerPackingData && activeProducts
+      ? customerPackingData.products
+          // Behold kun produkter som er aktive i DB (match på product_id for sikkerhet)
+          .filter(p =>
+            activeProducts.some(ap => 
+              ap.product_id === p.product_id || ap.product_name === p.product_name
+            )
+          )
+          // Maks 3 produkter på displayet
+          .slice(0, 3)
+      : customerPackingData?.products ?? [];
+
+  // Ny "view-modell" for displayet
+  const displayCustomerPackingData = customerPackingData
+    ? { ...customerPackingData, products: displayProducts }
+    : undefined;
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
 
@@ -239,10 +276,10 @@ const CustomerDisplay = () => {
               <strong>Fra DB:</strong> {activeProducts?.map(ap => ap.product_name).join(', ') || 'Ingen'}
             </p>
             <p className="text-yellow-800">
-              <strong>Vises på display:</strong> {customerPackingData?.products.map(p => p.product_name).join(', ') || 'Ingen'}
+              <strong>Vises på display:</strong> {displayCustomerPackingData?.products.map(p => p.product_name).join(', ') || 'Ingen'}
             </p>
             <p className="text-yellow-800">
-              <strong>Antall viste:</strong> {customerPackingData?.products.length || 0}
+              <strong>Antall viste:</strong> {displayCustomerPackingData?.products.length || 0}
             </p>
           </CardContent>
         </Card>
@@ -280,7 +317,7 @@ const CustomerDisplay = () => {
               <p style={{ color: settings?.text_color || '#6b7280' }}>Henter aktive produkter...</p>
             </CardContent>
           </Card>
-        ) : !customerPackingData || customerPackingData.products.length === 0 ? (
+        ) : !displayCustomerPackingData || displayCustomerPackingData.products.length === 0 ? (
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
               <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
@@ -326,7 +363,7 @@ const CustomerDisplay = () => {
           </Card>
         ) : (
           <CustomerProductsList
-            customerPackingData={customerPackingData}
+            customerPackingData={displayCustomerPackingData || customerPackingData}
             settings={settings}
             statusColors={statusColors}
           />
