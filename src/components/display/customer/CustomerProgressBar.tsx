@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
@@ -9,7 +8,12 @@ interface CustomerProgressBarProps {
   settings: DisplaySettings | undefined;
 }
 
-const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgressBarProps) => {
+const CustomerProgressBar = React.memo(({ customerPackingData, settings }: CustomerProgressBarProps) => {
+  const progress = useMemo(() => 
+    customerPackingData.progress_percentage,
+    [customerPackingData.progress_percentage]
+  );
+
   return (
     <Card
       style={{
@@ -22,18 +26,20 @@ const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgress
       <CardContent className="p-8">
         <div className="space-y-4">
           <div 
-            className="w-full rounded-full relative"
+            className="w-full rounded-full relative overflow-hidden"
             style={{ 
               backgroundColor: settings?.progress_background_color || '#e5e7eb',
               height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
             }}
           >
             <div 
-              className={`rounded-full transition-all duration-300 ${settings?.progress_animation ? 'animate-pulse' : ''}`}
+              className="rounded-full"
               style={{ 
                 backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
-                width: `${customerPackingData.progress_percentage}%`
+                height: '100%',
+                width: `${progress}%`,
+                transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                willChange: 'width',
               }}
             />
             {settings?.show_truck_icon && (
@@ -42,11 +48,12 @@ const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgress
                 alt="Varebil"
                 className="absolute top-1/2 transform -translate-y-1/2" 
                 style={{ 
-                  left: `${customerPackingData.progress_percentage}%`, 
+                  left: `${progress}%`, 
                   marginLeft: `-${(settings?.truck_icon_size || 24) / 2}px`,
                   width: `${settings?.truck_icon_size || 24}px`,
                   height: `${settings?.truck_icon_size || 24}px`,
-                  objectFit: 'contain'
+                  objectFit: 'contain',
+                  transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               />
             )}
@@ -57,7 +64,7 @@ const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgress
                 className="text-3xl font-bold"
                 style={{ color: settings?.text_color || '#374151' }}
               >
-                {customerPackingData.progress_percentage}%
+                {progress}%
               </span>
             </div>
           )}
@@ -65,6 +72,15 @@ const CustomerProgressBar = ({ customerPackingData, settings }: CustomerProgress
       </CardContent>
     </Card>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.customerPackingData.progress_percentage === nextProps.customerPackingData.progress_percentage &&
+    prevProps.settings?.progress_bar_color === nextProps.settings?.progress_bar_color &&
+    prevProps.settings?.progress_background_color === nextProps.settings?.progress_background_color &&
+    prevProps.settings?.show_truck_icon === nextProps.settings?.show_truck_icon
+  );
+});
+
+CustomerProgressBar.displayName = 'CustomerProgressBar';
 
 export default CustomerProgressBar;
