@@ -32,26 +32,29 @@ const CustomerDisplay = () => {
   const { displayUrl } = useParams();
   const navigate = useNavigate();
   
-  // ✅ KRITISK FIX: HARD RESET av ALL cache ved mount
+  // ✅ KRITISK FIX: Invalidate cache ved mount (ikke remove - unngår race condition)
   React.useEffect(() => {
-    console.log('🔄 CustomerDisplay mounted - HARD RESET av display cache');
+    console.log('🔄 CustomerDisplay mounted - invaliderer display cache');
     
-    queryClient.removeQueries({
+    queryClient.invalidateQueries({
       queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
-      exact: false
+      exact: false,
+      refetchType: 'active'
     });
     
-    queryClient.removeQueries({
+    queryClient.invalidateQueries({
       queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
-      exact: false
+      exact: false,
+      refetchType: 'active'
     });
     
-    queryClient.removeQueries({
+    queryClient.invalidateQueries({
       queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
-      exact: false
+      exact: false,
+      refetchType: 'active'
     });
     
-    console.log('✅ Display cache RESATT - vil fetche fresh data');
+    console.log('✅ Display cache invalidert - vil fetche fresh data');
   }, [queryClient]);
   
   // Use public hooks that don't require authentication
@@ -59,16 +62,17 @@ const CustomerDisplay = () => {
   const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
   
-  // ✅ Force reset av packing data når aktiv dato endres
+  // ✅ Invalidate packing data når aktiv dato endres (ikke remove - unngår race condition)
   React.useEffect(() => {
     if (!customer?.bakery_id || !activePackingDate) return;
     
-    queryClient.removeQueries({
+    queryClient.invalidateQueries({
       predicate: (query) => 
         query.queryKey[0] === QUERY_KEYS.PUBLIC_PACKING_DATA[0] &&
         query.queryKey[3] !== activePackingDate,
+      refetchType: 'active'
     });
-    console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
+    console.log('🔄 Aktiv dato endret - invaliderte gamle packing cache entries');
   }, [customer?.bakery_id, activePackingDate, queryClient]);
   
   // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
@@ -97,13 +101,19 @@ const CustomerDisplay = () => {
   useDisplayRefreshBroadcast(customer?.bakery_id, true);
 
   // 🔄 Ekstra sikkerhet: poll backend jevnlig i tilfelle websocket ikke treffer
-  // ✅ Smart polling - kun når WebSocket er disconnected
+  // ✅ Smart polling - kun når WebSocket er disconnected OG tab er synlig
   React.useEffect(() => {
-    if (!customer?.bakery_id || connectionStatus === 'connected') return;
+    if (!customer?.bakery_id || connectionStatus === 'connected' || document.hidden) return;
 
     console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
     const interval = setInterval(() => {
+      // ✅ Skip polling hvis tab er skjult
+      if (document.hidden) {
+        console.log('⏸️ Polling paused - tab er skjult');
+        return;
+      }
+
       console.log('🔄 Fallback polling: Invalidating queries...');
       
       queryClient.invalidateQueries({
@@ -121,6 +131,30 @@ const CustomerDisplay = () => {
 
     return () => clearInterval(interval);
   }, [customer?.bakery_id, connectionStatus, queryClient]);
+
+  // ✅ Page Visibility API - refresh data når tab blir synlig igjen
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('⏸️ Display hidden - polling paused');
+      } else {
+        console.log('▶️ Display visible - refreshing data');
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+          exact: false,
+          refetchType: 'active'
+        });
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
+          exact: false,
+          refetchType: 'active'
+        });
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [queryClient]);
   
   // ✅ GUARD: Ikke fortsett før activeProducts er lastet
   if (activeProductsLoading) {
