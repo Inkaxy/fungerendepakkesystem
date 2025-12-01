@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
@@ -15,10 +15,10 @@ import { usePublicActivePackingDate } from '@/hooks/usePublicDisplayData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
+import { QUERY_KEYS } from '@/lib/queryKeys';
 
 const SharedDisplay = () => {
   const queryClient = useQueryClient();
-  const isMountedRef = useRef(true);
   const { data: customers } = useCustomers();
   const { data: settings } = useDisplaySettings();
   
@@ -41,11 +41,11 @@ const SharedDisplay = () => {
 
     const interval = setInterval(() => {
       queryClient.invalidateQueries({
-        queryKey: ['public-active-packing-products'],
+        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
         exact: false,
       });
       queryClient.invalidateQueries({
-        queryKey: ['public-packing-data-v3'],
+        queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
         exact: false,
       });
     }, 2000);
@@ -55,31 +55,29 @@ const SharedDisplay = () => {
 
   // ✅ Force cache clearing ved mount
   React.useEffect(() => {
-    isMountedRef.current = true;
+    if (!bakeryId) return;
     
-    if (bakeryId) {
-      console.log('🧹 SharedDisplay: Clearing cache ved mount');
-      queryClient.removeQueries({ queryKey: ['public-active-packing-products'], exact: false });
-      queryClient.removeQueries({ queryKey: ['public-packing-data-v3'], exact: false });
-    }
-    
-    return () => {
-      isMountedRef.current = false;
-      console.log('🧹 SharedDisplay: Cleanup - marking as unmounted');
-    };
+    console.log('🧹 SharedDisplay: Clearing cache ved mount');
+    queryClient.removeQueries({ 
+      queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]], 
+      exact: false 
+    });
+    queryClient.removeQueries({ 
+      queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]], 
+      exact: false 
+    });
   }, [bakeryId, queryClient]);
 
   // Force reset av packing data når aktiv dato endres
   React.useEffect(() => {
-    if (isMountedRef.current && bakeryId && activePackingDate) {
-      queryClient.removeQueries({
-        predicate: (query: any) => {
-          const key = query.queryKey[0];
-          return key === 'public-packing-data-v3' && query.queryKey[3] !== activePackingDate;
-        }
-      });
-      console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
-    }
+    if (!bakeryId || !activePackingDate) return;
+    
+    queryClient.removeQueries({
+      predicate: (query) => 
+        query.queryKey[0] === QUERY_KEYS.PUBLIC_PACKING_DATA[0] &&
+        query.queryKey[3] !== activePackingDate,
+    });
+    console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
   }, [bakeryId, activePackingDate, queryClient]);
 
   // Apply customer sorting based on settings
@@ -183,7 +181,7 @@ const SharedDisplay = () => {
         ) : null}
 
         <div className="text-center mt-8">
-          <ConnectionStatus status={connectionStatus} />
+          <ConnectionStatus status={connectionStatus} pollingActive={true} />
           <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
             Automatiske oppdateringer via websockets
           </p>
