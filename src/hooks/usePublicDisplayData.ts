@@ -131,7 +131,7 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
     enabled: !!bakeryId,
     refetchInterval: false, // Kun websockets
     staleTime: 0, // ✅ Zero cache - displayet må alltid sjekke ny dato ved sesjonsbytter
-    gcTime: 0, // ✅ Ingen cache persistence
+    gcTime: 5 * 60 * 1000, // ✅ Behold cache i 5 min (ikke 0 - unngår cache thrashing)
     refetchOnMount: 'always', // ✅ Alltid hent ny dato ved mount
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

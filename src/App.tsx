@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,14 +22,25 @@ import Admin from "./pages/dashboard/Admin";
 import DisplaySettings from "./pages/dashboard/DisplaySettings";
 import NotFound from "./pages/NotFound";
 
-// Display Pages
-import SharedDisplay from "./pages/display/SharedDisplay";
-import CustomerDisplay from "./pages/display/CustomerDisplay";
+// Display Pages - Lazy loaded for better performance
+const SharedDisplay = lazy(() => import("./pages/display/SharedDisplay"));
+const CustomerDisplay = lazy(() => import("./pages/display/CustomerDisplay"));
 
 // Components
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthLayout from "@/components/layouts/AuthLayout";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
+
+// Loading component for lazy-loaded routes
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+      <p className="text-gray-600">Laster display...</p>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,8 +73,14 @@ function AppContent() {
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
         
-        {/* Display routes (public) */}
-        <Route path="/display/:displayUrl" element={<CustomerDisplay />} />
+        {/* Display routes (public) - wrapped in ErrorBoundary and Suspense */}
+        <Route path="/display/:displayUrl" element={
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <CustomerDisplay />
+            </Suspense>
+          </ErrorBoundary>
+        } />
         
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -114,7 +131,11 @@ function AppContent() {
           } />
           <Route path="/dashboard/display/shared" element={
             <AuthLayout>
-              <SharedDisplay />
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <SharedDisplay />
+                </Suspense>
+              </ErrorBoundary>
             </AuthLayout>
           } />
         </Route>
