@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
@@ -86,19 +86,15 @@ const SharedDisplay = () => {
   }, [bakeryId, activePackingDate, queryClient]);
 
   // Apply customer sorting based on settings
-  let sortedCustomers = [...sharedDisplayCustomers];
-  if (settings?.customer_sort_order) {
-    switch (settings.customer_sort_order) {
-      case 'alphabetical':
-        sortedCustomers = sortedCustomers.sort((a, b) => 
-          a.name.localeCompare(b.name)
-        );
-        break;
-      // Status og progress sorting vil skje per kunde i CustomerDataLoader
-      default:
-        break;
+  const sortedCustomers = useMemo(() => {
+    const customers = [...sharedDisplayCustomers];
+    
+    if (settings?.customer_sort_order === 'alphabetical') {
+      return customers.sort((a, b) => a.name.localeCompare(b.name));
     }
-  }
+    
+    return customers;
+  }, [sharedDisplayCustomers, settings?.customer_sort_order]);
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? statusColorMap(settings) : {
