@@ -23,63 +23,52 @@ import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
+import { QUERY_KEYS } from '@/lib/queryKeys';
+
+const isDebugMode = import.meta.env.DEV;
 
 const CustomerDisplay = () => {
   const queryClient = useQueryClient();
   const { displayUrl } = useParams();
   const navigate = useNavigate();
-  const isMountedRef = useRef(true);
   
   // ✅ KRITISK FIX: HARD RESET av ALL cache ved mount
   React.useEffect(() => {
-    isMountedRef.current = true;
+    console.log('🔄 CustomerDisplay mounted - HARD RESET av display cache');
     
-    if (isMountedRef.current) {
-      console.log('🔄 CustomerDisplay mounted - HARD RESET av display cache');
-      
-      // Fjern ALL public-active-packing-products cache
-      queryClient.removeQueries({
-        queryKey: ['public-active-packing-products'],
-        exact: false
-      });
-      
-      // Fjern ALL public-packing-data-v3 cache
-      queryClient.removeQueries({
-        queryKey: ['public-packing-data-v3'],
-        exact: false
-      });
-      
-      // Fjern public-active-packing-date cache
-      queryClient.removeQueries({
-        queryKey: ['public-active-packing-date'],
-        exact: false
-      });
-      
-      console.log('✅ Display cache RESATT - vil fetche fresh data');
-    }
+    queryClient.removeQueries({
+      queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
+      exact: false
+    });
     
-    return () => {
-      isMountedRef.current = false;
-      console.log('🧹 CustomerDisplay: Cleanup - marking as unmounted');
-    };
-  }, [queryClient]); // Kjør KUN ved første mount
+    queryClient.removeQueries({
+      queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+      exact: false
+    });
+    
+    queryClient.removeQueries({
+      queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
+      exact: false
+    });
+    
+    console.log('✅ Display cache RESATT - vil fetche fresh data');
+  }, [queryClient]);
   
   // Use public hooks that don't require authentication
   const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
   const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
   
-  // ✅ Force reset av packing data når aktiv dato endres - MÅ KOMME FØR CONDITIONAL RETURNS
+  // ✅ Force reset av packing data når aktiv dato endres
   React.useEffect(() => {
-    if (isMountedRef.current && customer?.bakery_id && activePackingDate) {
-      queryClient.removeQueries({
-        predicate: (query) => {
-          const key = query.queryKey[0];
-          return key === 'public-packing-data-v3' && query.queryKey[3] !== activePackingDate;
-        }
-      });
-      console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
-    }
+    if (!customer?.bakery_id || !activePackingDate) return;
+    
+    queryClient.removeQueries({
+      predicate: (query) => 
+        query.queryKey[0] === QUERY_KEYS.PUBLIC_PACKING_DATA[0] &&
+        query.queryKey[3] !== activePackingDate,
+    });
+    console.log('🔄 Aktiv dato endret - fjernet gamle packing cache entries');
   }, [customer?.bakery_id, activePackingDate, queryClient]);
   
   // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
@@ -113,14 +102,14 @@ const CustomerDisplay = () => {
 
     const interval = setInterval(() => {
       queryClient.invalidateQueries({
-        queryKey: ['public-active-packing-products'],
+        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
         exact: false,
       });
       queryClient.invalidateQueries({
-        queryKey: ['public-packing-data-v3'],
+        queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
         exact: false,
       });
-    }, 2000); // hver 2. sekund
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [customer?.bakery_id, queryClient]);
@@ -217,20 +206,18 @@ const CustomerDisplay = () => {
   const customerPackingData = packingData?.find(data => data.id === customer.id);
 
   // 🧠 Filtrer kundens produkter basert på aktive produkter i DB
+  const maxProducts = settings?.max_products_per_card ?? 3;
   const displayProducts =
     customerPackingData && activeProducts
       ? customerPackingData.products
-          // Behold kun produkter som er aktive i DB (match på product_id for sikkerhet)
           .filter(p =>
             activeProducts.some(ap => 
               ap.product_id === p.product_id || ap.product_name === p.product_name
             )
           )
-          // Maks 3 produkter på displayet
-          .slice(0, 3)
+          .slice(0, maxProducts) // ✅ Dynamisk maks produkter
       : customerPackingData?.products ?? [];
 
-  // Ny "view-modell" for displayet
   const displayCustomerPackingData = customerPackingData
     ? { ...customerPackingData, products: displayProducts }
     : undefined;
@@ -308,6 +295,7 @@ const CustomerDisplay = () => {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Content area - conditional basert på state */}
         {activeProductsLoading ? (

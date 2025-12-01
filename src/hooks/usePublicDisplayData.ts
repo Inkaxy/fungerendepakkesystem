@@ -5,11 +5,12 @@ import { Customer, PackingSession } from '@/types/database';
 import { DisplaySettings } from '@/types/displaySettings';
 import { PackingCustomer } from './usePackingData';
 import { format } from 'date-fns';
+import { QUERY_KEYS } from '@/lib/queryKeys';
 
 // Hook to get a customer by display URL without authentication
 export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
   return useQuery({
-    queryKey: ['public-customer', displayUrl],
+    queryKey: [QUERY_KEYS.PUBLIC_CUSTOMER[0], displayUrl],
     queryFn: async () => {
       console.log('Fetching public customer with display URL:', displayUrl);
       
@@ -42,7 +43,7 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
 // Hook to get display settings for a bakery without authentication
 export const usePublicDisplaySettings = (bakeryId?: string) => {
   return useQuery({
-    queryKey: ['public-display-settings', bakeryId],
+    queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
     queryFn: async () => {
       if (!bakeryId) {
         throw new Error('No bakery_id provided');
@@ -89,7 +90,7 @@ export const usePublicDisplaySettings = (bakeryId?: string) => {
 // Hook to get active packing date without authentication
 export const usePublicActivePackingDate = (bakeryId?: string) => {
   return useQuery({
-    queryKey: ['public-active-packing-date', bakeryId],
+    queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0], bakeryId],
     queryFn: async () => {
       if (!bakeryId) return null;
 
@@ -145,7 +146,7 @@ export const usePublicActivePackingDate = (bakeryId?: string) => {
 // Hook to get active packing products without authentication
 export const usePublicActivePackingProducts = (bakeryId?: string, date?: string) => {
   return useQuery({
-    queryKey: ['public-active-packing-products', bakeryId, date],
+    queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId, date],
     queryFn: async () => {
       if (!bakeryId || !date) return [];
 
@@ -188,7 +189,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
   const activeProductIds = activeProducts?.map(ap => ap.product_id).sort().join(',') || '';
 
   return useQuery({
-    queryKey: ['public-packing-data-v3', customerId, bakeryId, targetDate, activeProductIds],
+    queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0], customerId, bakeryId, targetDate, activeProductIds],
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
@@ -378,7 +379,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
 // Hook to get packing session by date without authentication
 export const usePublicPackingSession = (bakeryId?: string, date?: string) => {
   return useQuery({
-    queryKey: ['public-packing-session', bakeryId, date],
+    queryKey: [QUERY_KEYS.PUBLIC_PACKING_SESSION[0], bakeryId, date],
     queryFn: async () => {
       if (!bakeryId || !date) return null;
 
