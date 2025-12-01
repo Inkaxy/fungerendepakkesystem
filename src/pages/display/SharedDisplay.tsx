@@ -40,13 +40,18 @@ const SharedDisplay = () => {
     if (!bakeryId) return;
 
     const interval = setInterval(() => {
+      console.log('🔄 Polling: Invalidating queries...');
+      
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
         exact: false,
+        refetchType: 'active',
       });
+      
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
         exact: false,
+        refetchType: 'active',
       });
     }, 2000);
 
@@ -183,7 +188,7 @@ const SharedDisplay = () => {
         <div className="text-center mt-8">
           <ConnectionStatus status={connectionStatus} pollingActive={true} />
           <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
-            Automatiske oppdateringer via websockets
+            Automatiske oppdateringer via websockets + 2s polling
           </p>
         </div>
       </div>
