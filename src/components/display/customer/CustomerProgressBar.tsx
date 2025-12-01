@@ -42,8 +42,8 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
                 willChange: 'width',
               }}
             />
-            {settings?.show_truck_icon && (
-              <img 
+            {(settings?.show_truck_icon ?? true) && (
+              <img
                 src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
                 alt="Varebil"
                 className="absolute top-1/2 transform -translate-y-1/2" 
@@ -58,7 +58,7 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
               />
             )}
           </div>
-          {settings?.show_progress_percentage && (
+          {(settings?.show_progress_percentage ?? true) && (
             <div className="text-center">
               <span 
                 className="text-3xl font-bold"
