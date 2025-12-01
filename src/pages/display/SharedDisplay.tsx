@@ -36,11 +36,14 @@ const SharedDisplay = () => {
   useDisplayRefreshBroadcast(bakeryId, true);
 
   // 🔄 Ekstra sikkerhet: poll packing-data for shared display
+  // ✅ Smart polling - kun når WebSocket er disconnected
   React.useEffect(() => {
-    if (!bakeryId) return;
+    if (!bakeryId || connectionStatus === 'connected') return;
+
+    console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
     const interval = setInterval(() => {
-      console.log('🔄 Polling: Invalidating queries...');
+      console.log('🔄 Fallback polling: Invalidating queries...');
       
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
@@ -53,10 +56,10 @@ const SharedDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
-    }, 2000);
+    }, 5000); // ✅ Lengre intervall siden det er fallback
 
     return () => clearInterval(interval);
-  }, [bakeryId, queryClient]);
+  }, [bakeryId, connectionStatus, queryClient]);
 
   // ✅ Force cache clearing ved mount
   React.useEffect(() => {
@@ -182,9 +185,11 @@ const SharedDisplay = () => {
         ) : null}
 
         <div className="text-center mt-8">
-          <ConnectionStatus status={connectionStatus} pollingActive={true} />
+          <ConnectionStatus status={connectionStatus} pollingActive={connectionStatus !== 'connected'} />
           <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
-            Automatiske oppdateringer via websockets + 2s polling
+            {connectionStatus === 'connected' 
+              ? 'Automatiske oppdateringer via websockets' 
+              : 'Fallback polling aktivt (5s interval)'}
           </p>
         </div>
       </div>
