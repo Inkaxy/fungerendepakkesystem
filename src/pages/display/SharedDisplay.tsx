@@ -35,6 +35,24 @@ const SharedDisplay = () => {
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
 
+  // 🔄 Ekstra sikkerhet: poll packing-data for shared display
+  React.useEffect(() => {
+    if (!bakeryId) return;
+
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({
+        queryKey: ['public-active-packing-products'],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['public-packing-data-v3'],
+        exact: false,
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [bakeryId, queryClient]);
+
   // ✅ Force cache clearing ved mount
   React.useEffect(() => {
     isMountedRef.current = true;
