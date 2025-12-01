@@ -21,6 +21,7 @@ import {
 } from '@/hooks/usePublicDisplayData';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { QUERY_KEYS } from '@/lib/queryKeys';
@@ -99,6 +100,9 @@ const CustomerDisplay = () => {
   // Dette sikrer at WebSocket kobles til umiddelbart ved mount
   const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
   useDisplayRefreshBroadcast(customer?.bakery_id, true);
+  
+  // Wake Lock - forhindrer at skjermen slukkes
+  const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
   // 🔄 Ekstra sikkerhet: poll backend jevnlig i tilfelle websocket ikke treffer
   // ✅ Smart polling - kun når WebSocket er disconnected OG tab er synlig
@@ -409,6 +413,14 @@ const CustomerDisplay = () => {
               ? 'Automatiske oppdateringer via websockets' 
               : 'Fallback polling aktivt (5s interval)'}
           </p>
+          {wakeLockSupported && (
+            <div className="text-xs mt-1 flex items-center justify-center gap-1">
+              <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
+              <span style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+                {wakeLockActive ? 'Skjerm holdes våken' : 'Wake Lock inaktiv'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>
