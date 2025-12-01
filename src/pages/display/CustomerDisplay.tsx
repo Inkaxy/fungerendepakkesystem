@@ -138,29 +138,7 @@ const CustomerDisplay = () => {
     );
   }
 
-  // ✅ GUARD: Hvis ingen active products, vis tom state
-  if (!activeProducts || activeProducts.length === 0) {
-    return (
-      <div className="min-h-screen p-8" style={settings ? generateDisplayStyles(settings) : {}}>
-        <div className="max-w-4xl mx-auto">
-          <CustomerHeader
-            customerName={customer?.name || ''}
-            showRefresh={false}
-            settings={settings}
-          />
-          <Card className="mt-8">
-            <CardContent className="text-center p-12">
-              <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
-              <p className="text-xl mb-4">Ingen produkter valgt for pakking i dag</p>
-              <p className="text-sm text-gray-500">
-                Gå til Pakking-siden for å velge produkter som skal pakkes
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  // ✅ Ingen early return - la STATUS og PROGRESS alltid vises
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
