@@ -20,11 +20,12 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
         backgroundColor: settings?.card_background_color || '#ffffff',
         borderColor: settings?.card_border_color || '#e5e7eb',
         borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined,
+        overflow: 'visible',
       }}
     >
-      <CardContent className="p-8">
-        <div className="space-y-4">
+      <CardContent className="p-8" style={{ overflow: 'visible' }}>
+        <div className="space-y-4" style={{ overflow: 'visible' }}>
           <div 
             className="w-full rounded-full relative overflow-visible"
             style={{ 
@@ -32,6 +33,8 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
               height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
               marginLeft: `${(settings?.truck_icon_size || 24) / 2}px`,
               marginRight: `${(settings?.truck_icon_size || 24) / 2}px`,
+              marginTop: `${Math.max(0, ((settings?.truck_icon_size || 24) - (settings?.progress_height ? settings.progress_height * 4 : 32)) / 2)}px`,
+              marginBottom: `${Math.max(0, ((settings?.truck_icon_size || 24) - (settings?.progress_height ? settings.progress_height * 4 : 32)) / 2)}px`,
             }}
           >
             <div 
