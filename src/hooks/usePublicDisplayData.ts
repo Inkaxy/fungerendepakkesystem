@@ -193,11 +193,9 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
     queryFn: async () => {
       if (!customerId || !bakeryId) return [];
 
-      // ✅ Bruk activeProducts parameter direkte - ingen cache lookup
-      if (!activeProducts || activeProducts.length === 0) {
-        console.warn('🚫 Ingen active products mottatt som parameter, returnerer tom array');
-        return [];
-      }
+      // ✅ KRITISK FIX: Hent ALLTID data for progress-beregning
+      // Produktlisten filtreres senere basert på activeProducts
+      const hasActiveProducts = activeProducts && activeProducts.length > 0;
 
       console.log('🔍 Fetching public packing data:', {
         customerId,
@@ -288,48 +286,43 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
             customer!.packed_line_items_all += 1;
           }
 
-          // Only include active products - hvis ingen aktive produkter finnes, vis INGEN produkter
-          const shouldIncludeProduct = activeProductIds.size > 0 && activeProductIds.has(op.product_id);
+          // ✅ KRITISK FIX: Separer produktliste-filtrering fra line item-telling
+          const shouldIncludeInProductList = hasActiveProducts && activeProductIds.has(op.product_id);
           
-          if (!shouldIncludeProduct) {
-            console.log(`🚫 Filtrerer bort produkt: ${op.product.name} (ID: ${op.product_id})`);
-            return;
-          }
+          // ✅ Kun legg til i produktlisten hvis det skal vises
+          if (shouldIncludeInProductList) {
+            console.log(`✅ Inkluderer produkt i liste: ${op.product.name} (ID: ${op.product_id})`);
+            
+            const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
+            
+            if (existingProduct) {
+              existingProduct.total_quantity += op.quantity;
+              existingProduct.total_line_items += 1;
+              if (op.packing_status === 'packed' || op.packing_status === 'completed') {
+                existingProduct.packed_line_items += 1;
+              }
+            } else {
+              const validPackingStatus = (['pending', 'in_progress', 'packed', 'completed'].includes(op.packing_status || '')) 
+                ? op.packing_status as 'pending' | 'in_progress' | 'packed' | 'completed'
+                : 'pending';
 
-          if (activeProductIds.size > 0) {
-            console.log(`✅ Inkluderer produkt: ${op.product.name} (ID: ${op.product_id})`);
-          }
+              const newProduct = {
+                id: op.id,
+                product_id: op.product_id,
+                product_name: op.product.name,
+                product_category: op.product.category || 'Ingen kategori',
+                product_unit: op.product.unit || 'stk',
+                total_quantity: op.quantity,
+                total_line_items: 1,
+                packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
+                packing_status: validPackingStatus,
+                colorIndex: productColorMap.get(op.product_id) ?? 0,
+              };
 
-          const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
-          
-          if (existingProduct) {
-            existingProduct.total_quantity += op.quantity;
-            existingProduct.total_line_items += 1;
-            if (op.packing_status === 'packed' || op.packing_status === 'completed') {
-              existingProduct.packed_line_items += 1;
+              customer!.products.push(newProduct);
             }
-          } else {
-            const validPackingStatus = (['pending', 'in_progress', 'packed', 'completed'].includes(op.packing_status || '')) 
-              ? op.packing_status as 'pending' | 'in_progress' | 'packed' | 'completed'
-              : 'pending';
 
-            const newProduct = {
-              id: op.id,
-              product_id: op.product_id,
-              product_name: op.product.name,
-              product_category: op.product.category || 'Ingen kategori',
-              product_unit: op.product.unit || 'stk',
-              total_quantity: op.quantity,
-              total_line_items: 1,
-              packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
-              packing_status: validPackingStatus,
-              colorIndex: productColorMap.get(op.product_id) ?? 0,
-            };
-
-            customer!.products.push(newProduct);
-          }
-
-          if (shouldIncludeProduct) {
+            // ✅ Line items for VISNING (kun valgte produkter)
             customer!.total_line_items += 1;
             if (op.packing_status === 'packed' || op.packing_status === 'completed') {
               customer!.packed_line_items += 1;
@@ -361,7 +354,8 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       console.log('✅ Public packing data result:', result);
       return result;
     },
-    enabled: !!customerId && !!bakeryId && !!activeProducts && activeProducts.length > 0,
+    // ✅ KRITISK FIX: IKKE avhengig av activeProducts - hent ALLTID data for progress
+    enabled: !!customerId && !!bakeryId,
     refetchInterval: false,
     staleTime: 0,                // ✅ Alltid stale - tving refetch
     gcTime: 5 * 60 * 1000,       // ✅ Behold cache i 5 min
