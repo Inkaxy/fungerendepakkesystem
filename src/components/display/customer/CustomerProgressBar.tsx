@@ -24,8 +24,8 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
         overflow: 'visible',
       }}
     >
-      <CardContent className="p-8" style={{ overflow: 'visible' }}>
-        <div className="space-y-4" style={{ overflow: 'visible' }}>
+      <CardContent className="p-8 flex flex-col justify-center" style={{ overflow: 'visible' }}>
+        <div className="space-y-4 flex flex-col items-center" style={{ overflow: 'visible' }}>
           <div 
             className="w-full rounded-full relative overflow-visible"
             style={{ 
