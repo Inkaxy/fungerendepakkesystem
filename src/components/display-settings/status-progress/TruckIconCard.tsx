@@ -52,8 +52,12 @@ const TruckIconCard = ({ settings, onUpdate }: TruckIconCardProps) => {
           <p className="text-sm text-gray-600 mb-2">Forhåndsvisning:</p>
           <div className="flex items-center space-x-2">
             <div 
-              className="w-full h-2 bg-gray-200 rounded-full relative"
-              style={{ height: `${settings.progress_height}px` }}
+              className="w-full h-2 bg-gray-200 rounded-full relative overflow-visible"
+              style={{ 
+                height: `${settings.progress_height}px`,
+                marginLeft: `${(settings.truck_icon_size || 24) / 2}px`,
+                marginRight: `${(settings.truck_icon_size || 24) / 2}px`,
+              }}
             >
               <div 
                 className="h-full rounded-full"
@@ -68,11 +72,11 @@ const TruckIconCard = ({ settings, onUpdate }: TruckIconCardProps) => {
                   alt="Varebil"
                   className="absolute top-1/2 transform -translate-y-1/2" 
                   style={{ 
-                    left: '65%', 
-                    marginLeft: `-${settings.truck_icon_size / 2}px`,
+                    left: `calc(65% - ${(settings.truck_icon_size || 24) / 2}px)`,
                     width: `${settings.truck_icon_size}px`,
                     height: `${settings.truck_icon_size}px`,
-                    objectFit: 'contain'
+                    objectFit: 'contain',
+                    zIndex: 10,
                   }}
                 />
               )}
