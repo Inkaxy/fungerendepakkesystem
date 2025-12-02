@@ -26,10 +26,12 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
       <CardContent className="p-8">
         <div className="space-y-4">
           <div 
-            className="w-full rounded-full relative overflow-hidden"
+            className="w-full rounded-full relative overflow-visible"
             style={{ 
               backgroundColor: settings?.progress_background_color || '#e5e7eb',
-              height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px'
+              height: settings?.progress_height ? `${settings.progress_height * 4}px` : '32px',
+              marginLeft: `${(settings?.truck_icon_size || 24) / 2}px`,
+              marginRight: `${(settings?.truck_icon_size || 24) / 2}px`,
             }}
           >
             <div 
@@ -48,12 +50,12 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
                 alt="Varebil"
                 className="absolute top-1/2 transform -translate-y-1/2" 
                 style={{ 
-                  left: `${progress}%`, 
-                  marginLeft: `-${(settings?.truck_icon_size || 24) / 2}px`,
+                  left: `calc(${progress}% - ${(settings?.truck_icon_size || 24) / 2}px)`,
                   width: `${settings?.truck_icon_size || 24}px`,
                   height: `${settings?.truck_icon_size || 24}px`,
                   objectFit: 'contain',
                   transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                  zIndex: 10,
                 }}
               />
             )}
