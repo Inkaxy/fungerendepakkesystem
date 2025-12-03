@@ -1,6 +1,6 @@
 import React from 'react';
-import { Settings as SettingsIcon, Cloud } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Settings as SettingsIcon } from 'lucide-react';
+import OneDriveConnectionCard from '@/components/settings/OneDriveConnectionCard';
 
 const Settings: React.FC = () => {
   return (
@@ -16,27 +16,8 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* OneDrive Setup Placeholder */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Cloud className="h-6 w-6 text-blue-500" />
-            </div>
-            <div>
-              <CardTitle>OneDrive Integrasjon</CardTitle>
-              <CardDescription>
-                Koble til Microsoft OneDrive for automatisk import av filer
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            OneDrive-integrasjon blir re-implementert. Kommer snart.
-          </p>
-        </CardContent>
-      </Card>
+      {/* OneDrive Connection */}
+      <OneDriveConnectionCard />
     </div>
   );
 };
