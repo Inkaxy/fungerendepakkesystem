@@ -14,3 +14,8 @@ export interface UploadResults {
   customers: any[];
   orders: any[];
 }
+
+// Handler types for file uploads
+export type ProductUploadHandler = (file: File) => Promise<IdMapping>;
+export type CustomerUploadHandler = (file: File) => Promise<IdMapping>;
+export type OrderUploadHandler = (file: File, productMapping: IdMapping, customerMapping: IdMapping) => Promise<void>;

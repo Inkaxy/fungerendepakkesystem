@@ -7,13 +7,11 @@ export const createOrderUploadHandler = (
   profile: UserProfile | null,
   toast: any,
   createOrder: any,
-  uploadStatus: UploadStatus,
-  productIdMapping: IdMapping,
-  customerIdMapping: IdMapping,
   setUploadStatus: React.Dispatch<React.SetStateAction<UploadStatus>>,
   setUploadResults: React.Dispatch<React.SetStateAction<UploadResults>>
 ) => {
-  return async (file: File) => {
+  // Take mappings as direct parameters to avoid stale closure
+  return async (file: File, productIdMapping: IdMapping, customerIdMapping: IdMapping): Promise<void> => {
     if (!profile?.bakery_id) {
       toast({
         title: "Feil",
@@ -23,7 +21,7 @@ export const createOrderUploadHandler = (
       return;
     }
 
-    // ✅ FIX: Sjekk ID mappings direkte i stedet for uploadStatus (unngår stale closure)
+    // Check ID mappings directly
     if (Object.keys(productIdMapping).length === 0 || Object.keys(customerIdMapping).length === 0) {
       toast({
         title: "Mangler forutsetninger",
@@ -39,41 +37,24 @@ export const createOrderUploadHandler = (
       const text = await file.text();
       const orders = parseOrderFile(text, profile.bakery_id);
       
-      console.log('=== ORDER UPLOAD DEBUG ===');
       console.log('Parsed orders count:', orders.length);
-      console.log('Sample parsed order:', orders[0]);
       console.log('Product ID mapping keys:', Object.keys(productIdMapping));
       console.log('Customer ID mapping keys:', Object.keys(customerIdMapping));
-      console.log('Customer ID mapping:', customerIdMapping);
-      console.log('=== END ORDER UPLOAD DEBUG ===');
       
       const createdOrders = [];
       let failedOrders = 0;
       let skippedDuplicates = 0;
       
       for (const order of orders) {
-        console.log(`\n=== Processing order ${order.order_number} ===`);
-        console.log(`Looking for customer ID: "${order.customer_id}"`);
-        console.log(`Available customer mapping keys:`, Object.keys(customerIdMapping));
-        
         const customerUuid = customerIdMapping[order.customer_id];
-        console.log(`Customer mapping result: ${order.customer_id} -> ${customerUuid}`);
         
         if (!customerUuid) {
-          console.error(`❌ No mapping found for customer ID: ${order.customer_id}`);
-          console.error(`Available mappings:`, customerIdMapping);
+          console.error(`No mapping found for customer ID: ${order.customer_id}`);
           failedOrders++;
-          toast({
-            title: "Feil ved ordreopprettelse",
-            description: `Kunde med ID ${order.customer_id} ikke funnet. Sørg for at kunder er lastet opp først.`,
-            variant: "destructive",
-          });
           continue;
         }
         
-        console.log(`✓ Customer found: ${order.customer_id} -> ${customerUuid}`);
-        
-        // ✅ DUPLIKATSJEKK: Sjekk om ordre allerede eksisterer for denne kunden og datoen
+        // Duplicate check
         const { data: existingOrders } = await supabase
           .from('orders')
           .select('id, order_number')
@@ -82,28 +63,18 @@ export const createOrderUploadHandler = (
           .eq('delivery_date', order.delivery_date);
         
         if (existingOrders && existingOrders.length > 0) {
-          console.log(`⚠️ Ordre eksisterer allerede for kunde ${order.customer_id} på dato ${order.delivery_date} (ordre: ${existingOrders[0].order_number})`);
           skippedDuplicates++;
           continue;
         }
         
         const convertedOrderProducts = [];
         for (const orderProduct of order.order_products) {
-          console.log(`Looking for product ID: "${orderProduct.product_original_id}"`);
           const productUuid = productIdMapping[orderProduct.product_original_id];
-          console.log(`Product mapping result: ${orderProduct.product_original_id} -> ${productUuid}`);
           
           if (!productUuid) {
-            console.error(`❌ No mapping found for product ID: ${orderProduct.product_original_id}`);
-            toast({
-              title: "Feil ved ordreopprettelse",
-              description: `Produkt med ID ${orderProduct.product_original_id} ikke funnet. Sørg for at produkter er lastet opp først.`,
-              variant: "destructive",
-            });
+            console.error(`No mapping found for product ID: ${orderProduct.product_original_id}`);
             continue;
           }
-          
-          console.log(`✓ Product found: ${orderProduct.product_original_id} -> ${productUuid}`);
           
           convertedOrderProducts.push({
             product_id: productUuid,
@@ -113,7 +84,6 @@ export const createOrderUploadHandler = (
         }
         
         if (convertedOrderProducts.length === 0) {
-          console.warn(`⚠️ Skipping order ${order.order_number} - no valid products found`);
           failedOrders++;
           continue;
         }
@@ -127,16 +97,13 @@ export const createOrderUploadHandler = (
           order_products: convertedOrderProducts
         };
         
-        console.log('✓ Creating order:', orderToCreate);
         const createdOrder = await createOrder.mutateAsync(orderToCreate);
         createdOrders.push(createdOrder);
-        console.log(`✓ Order ${order.order_number} created successfully`);
       }
       
       setUploadResults(prev => ({ ...prev, orders: createdOrders }));
       setUploadStatus(prev => ({ ...prev, orders: 'success' }));
       
-      // ✅ Forbedret feedback med duplikatinfo
       let description = `${createdOrders.length} ordrer ble importert`;
       if (skippedDuplicates > 0) {
         description += `, ${skippedDuplicates} duplikater hoppet over`;
