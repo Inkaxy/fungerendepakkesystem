@@ -20,6 +20,7 @@ import Customers from "./pages/dashboard/Customers";
 import Reports from "./pages/dashboard/Reports";
 import Admin from "./pages/dashboard/Admin";
 import DisplaySettings from "./pages/dashboard/DisplaySettings";
+import Settings from "./pages/dashboard/Settings";
 import NotFound from "./pages/NotFound";
 
 // Display Pages - Lazy loaded for better performance
@@ -127,6 +128,11 @@ function AppContent() {
           <Route path="/dashboard/admin" element={
             <AuthLayout>
               <Admin />
+            </AuthLayout>
+          } />
+          <Route path="/dashboard/settings" element={
+            <AuthLayout>
+              <Settings />
             </AuthLayout>
           } />
           <Route path="/dashboard/display/shared" element={

@@ -62,6 +62,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     href: '/dashboard/display-settings'
   }];
 
+  // Add Settings for bakery_admin and super_admin
+  if (profile?.role === 'bakery_admin' || profile?.role === 'super_admin') {
+    navigationItems.push({
+      name: 'Innstillinger',
+      href: '/dashboard/settings'
+    });
+  }
+
   // Add Admin for super_admin only
   if (profile?.role === 'super_admin') {
     navigationItems.push({
