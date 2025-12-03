@@ -646,6 +646,185 @@ export type Database = {
           },
         ]
       }
+      file_import_logs: {
+        Row: {
+          bakery_id: string
+          completed_at: string | null
+          customers_imported: number | null
+          error_message: string | null
+          execution_time_ms: number | null
+          file_results: Json | null
+          files_processed: number | null
+          id: string
+          orders_created: number | null
+          products_imported: number | null
+          source: string
+          started_at: string | null
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          bakery_id: string
+          completed_at?: string | null
+          customers_imported?: number | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          file_results?: Json | null
+          files_processed?: number | null
+          id?: string
+          orders_created?: number | null
+          products_imported?: number | null
+          source: string
+          started_at?: string | null
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          bakery_id?: string
+          completed_at?: string | null
+          customers_imported?: number | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          file_results?: Json | null
+          files_processed?: number | null
+          id?: string
+          orders_created?: number | null
+          products_imported?: number | null
+          source?: string
+          started_at?: string | null
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_import_logs_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_import_logs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onedrive_connections: {
+        Row: {
+          access_token_encrypted: string | null
+          bakery_id: string
+          connected_at: string | null
+          connected_by: string | null
+          consecutive_failures: number | null
+          created_at: string | null
+          id: string
+          is_connected: boolean | null
+          last_error: string | null
+          microsoft_email: string | null
+          refresh_token_encrypted: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          bakery_id: string
+          connected_at?: string | null
+          connected_by?: string | null
+          consecutive_failures?: number | null
+          created_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_error?: string | null
+          microsoft_email?: string | null
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          bakery_id?: string
+          connected_at?: string | null
+          connected_by?: string | null
+          consecutive_failures?: number | null
+          created_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_error?: string | null
+          microsoft_email?: string | null
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onedrive_connections_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: true
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onedrive_connections_connected_by_fkey"
+            columns: ["connected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onedrive_import_config: {
+        Row: {
+          bakery_id: string
+          created_at: string | null
+          file_pattern: string | null
+          folder_path: string
+          id: string
+          is_auto_enabled: boolean | null
+          last_import_at: string | null
+          last_import_status: string | null
+          scheduled_time: string | null
+          timezone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bakery_id: string
+          created_at?: string | null
+          file_pattern?: string | null
+          folder_path?: string
+          id?: string
+          is_auto_enabled?: boolean | null
+          last_import_at?: string | null
+          last_import_status?: string | null
+          scheduled_time?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bakery_id?: string
+          created_at?: string | null
+          file_pattern?: string | null
+          folder_path?: string
+          id?: string
+          is_auto_enabled?: boolean | null
+          last_import_at?: string | null
+          last_import_status?: string | null
+          scheduled_time?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onedrive_import_config_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: true
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_products: {
         Row: {
           bakery_id: string
@@ -1176,6 +1355,7 @@ export type Database = {
         Args: { encrypted_text: string; key: string }
         Returns: string
       }
+      disconnect_onedrive: { Args: { _bakery_id: string }; Returns: undefined }
       encrypt_credential: {
         Args: { key: string; plain_text: string }
         Returns: string
@@ -1188,6 +1368,15 @@ export type Database = {
       }
       get_current_user_bakery_id: { Args: never; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
+      get_decrypted_onedrive_token: {
+        Args: { _bakery_id: string }
+        Returns: {
+          access_token: string
+          is_expired: boolean
+          refresh_token: string
+          token_expires_at: string
+        }[]
+      }
       get_user_primary_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1199,7 +1388,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_onedrive_error: {
+        Args: { _bakery_id: string; _error_message: string }
+        Returns: undefined
+      }
       should_extend_session: { Args: never; Returns: boolean }
+      update_onedrive_tokens: {
+        Args: {
+          _access_token: string
+          _bakery_id: string
+          _expires_in: number
+          _microsoft_email?: string
+          _refresh_token: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "super_admin" | "bakery_admin" | "bakery_user"
