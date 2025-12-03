@@ -130,62 +130,6 @@ export type Database = {
           },
         ]
       }
-      bakery_onedrive_connections: {
-        Row: {
-          access_token_encrypted: string | null
-          bakery_id: string
-          connected_at: string | null
-          connected_by: string | null
-          connection_error: string | null
-          created_at: string | null
-          id: string
-          is_connected: boolean | null
-          last_token_refresh: string | null
-          refresh_token_encrypted: string | null
-          token_expires_at: string | null
-          updated_at: string | null
-          user_email: string | null
-        }
-        Insert: {
-          access_token_encrypted?: string | null
-          bakery_id: string
-          connected_at?: string | null
-          connected_by?: string | null
-          connection_error?: string | null
-          created_at?: string | null
-          id?: string
-          is_connected?: boolean | null
-          last_token_refresh?: string | null
-          refresh_token_encrypted?: string | null
-          token_expires_at?: string | null
-          updated_at?: string | null
-          user_email?: string | null
-        }
-        Update: {
-          access_token_encrypted?: string | null
-          bakery_id?: string
-          connected_at?: string | null
-          connected_by?: string | null
-          connection_error?: string | null
-          created_at?: string | null
-          id?: string
-          is_connected?: boolean | null
-          last_token_refresh?: string | null
-          refresh_token_encrypted?: string | null
-          token_expires_at?: string | null
-          updated_at?: string | null
-          user_email?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bakery_onedrive_connections_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: true
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customers: {
         Row: {
           address: string | null
@@ -695,131 +639,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "display_stations_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: false
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      file_sync_logs: {
-        Row: {
-          bakery_id: string
-          created_at: string
-          error_message: string | null
-          file_details: Json | null
-          files_failed: number | null
-          files_found: number | null
-          files_processed: number | null
-          id: string
-          status: string
-          sync_completed_at: string | null
-          sync_setting_id: string
-          sync_started_at: string
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string
-          error_message?: string | null
-          file_details?: Json | null
-          files_failed?: number | null
-          files_found?: number | null
-          files_processed?: number | null
-          id?: string
-          status?: string
-          sync_completed_at?: string | null
-          sync_setting_id: string
-          sync_started_at?: string
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string
-          error_message?: string | null
-          file_details?: Json | null
-          files_failed?: number | null
-          files_found?: number | null
-          files_processed?: number | null
-          id?: string
-          status?: string
-          sync_completed_at?: string | null
-          sync_setting_id?: string
-          sync_started_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "file_sync_logs_bakery_id_fkey"
-            columns: ["bakery_id"]
-            isOneToOne: false
-            referencedRelation: "bakeries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "file_sync_logs_sync_setting_id_fkey"
-            columns: ["sync_setting_id"]
-            isOneToOne: false
-            referencedRelation: "file_sync_settings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      file_sync_settings: {
-        Row: {
-          bakery_id: string
-          created_at: string
-          delete_after_sync: boolean | null
-          delete_old_files_after_days: number | null
-          folder_path: string | null
-          id: string
-          is_active: boolean | null
-          last_sync_at: string | null
-          last_sync_error: string | null
-          last_sync_status: string | null
-          notification_email: string | null
-          schedule_cron: string | null
-          send_failure_notifications: boolean | null
-          service_config: Json
-          service_type: string
-          updated_at: string
-        }
-        Insert: {
-          bakery_id: string
-          created_at?: string
-          delete_after_sync?: boolean | null
-          delete_old_files_after_days?: number | null
-          folder_path?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_sync_at?: string | null
-          last_sync_error?: string | null
-          last_sync_status?: string | null
-          notification_email?: string | null
-          schedule_cron?: string | null
-          send_failure_notifications?: boolean | null
-          service_config?: Json
-          service_type: string
-          updated_at?: string
-        }
-        Update: {
-          bakery_id?: string
-          created_at?: string
-          delete_after_sync?: boolean | null
-          delete_old_files_after_days?: number | null
-          folder_path?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_sync_at?: string | null
-          last_sync_error?: string | null
-          last_sync_status?: string | null
-          notification_email?: string | null
-          schedule_cron?: string | null
-          send_failure_notifications?: boolean | null
-          service_config?: Json
-          service_type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "file_sync_settings_bakery_id_fkey"
             columns: ["bakery_id"]
             isOneToOne: false
             referencedRelation: "bakeries"
@@ -1363,17 +1182,6 @@ export type Database = {
       }
       extend_user_session: { Args: never; Returns: undefined }
       generate_display_url: { Args: never; Returns: string }
-      get_bakeries_to_sync_now: {
-        Args: never
-        Returns: {
-          access_token: string
-          bakery_id: string
-          folder_path: string
-          refresh_token: string
-          setting_id: string
-          token_expires_at: string
-        }[]
-      }
       get_bakery_id_from_display_url: {
         Args: { display_url_param: string }
         Returns: string
@@ -1392,7 +1200,6 @@ export type Database = {
         Returns: boolean
       }
       should_extend_session: { Args: never; Returns: boolean }
-      update_sync_cron_jobs: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "super_admin" | "bakery_admin" | "bakery_user"
