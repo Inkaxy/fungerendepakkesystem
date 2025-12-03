@@ -45,8 +45,9 @@ export function useOneDriveConnection() {
 
     const clientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID;
     if (!clientId) {
-      // Use a placeholder that will be handled by the edge function
-      console.log('Client ID not in env, using edge function redirect');
+      toast.error('Microsoft Client ID er ikke konfigurert. Kontakt administrator.');
+      console.error('VITE_MICROSOFT_CLIENT_ID is not set in environment variables');
+      return;
     }
 
     // Create state with bakery_id and user_id
@@ -57,7 +58,7 @@ export function useOneDriveConnection() {
 
     // Microsoft OAuth URL
     const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
-    authUrl.searchParams.set('client_id', clientId || 'PLACEHOLDER');
+    authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('scope', scope);
