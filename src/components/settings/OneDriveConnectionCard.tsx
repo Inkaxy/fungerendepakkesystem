@@ -1,21 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cloud, CheckCircle, XCircle, AlertTriangle, Loader2, Unplug, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useOneDriveConnection, useDisconnectOneDrive } from '@/hooks/useOneDriveConnection';
+import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 export const OneDriveConnectionCard: React.FC = () => {
-  const { data: connection, isLoading, error } = useOneDriveConnection();
+  const { data: connection, isLoading, error, refetch } = useOneDriveConnection();
   const disconnectMutation = useDisconnectOneDrive();
+  const [isConnecting, setIsConnecting] = useState(false);
+  const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const handleConnect = () => {
-    // TODO: Implementer OAuth flow via edge function
-    // For nå, vis placeholder
-    window.alert('OAuth-integrasjon kommer i neste fase. Edge function må implementeres først.');
+  // Handle OAuth callback results from URL params
+  useEffect(() => {
+    const oneDriveSuccess = searchParams.get("onedrive_success");
+    const oneDriveError = searchParams.get("onedrive_error");
+
+    if (oneDriveSuccess === "true") {
+      toast({
+        title: "OneDrive tilkoblet",
+        description: "Din OneDrive-konto er nå koblet til.",
+      });
+      refetch();
+      // Clean up URL params
+      searchParams.delete("onedrive_success");
+      setSearchParams(searchParams, { replace: true });
+    }
+
+    if (oneDriveError) {
+      toast({
+        title: "OneDrive-feil",
+        description: decodeURIComponent(oneDriveError),
+        variant: "destructive",
+      });
+      // Clean up URL params
+      searchParams.delete("onedrive_error");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, toast, refetch]);
+
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("onedrive-auth");
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.authUrl) {
+        // Redirect to Microsoft OAuth
+        window.location.href = data.authUrl;
+      } else {
+        throw new Error("Ingen OAuth-URL mottatt");
+      }
+    } catch (err: any) {
+      toast({
+        title: "Tilkoblingsfeil",
+        description: err.message || "Kunne ikke starte OneDrive-tilkobling",
+        variant: "destructive",
+      });
+      setIsConnecting(false);
+    }
   };
 
   const handleDisconnect = () => {
@@ -82,7 +135,10 @@ export const OneDriveConnectionCard: React.FC = () => {
             isDisconnecting={disconnectMutation.isPending}
           />
         ) : (
-          <DisconnectedState onConnect={handleConnect} />
+          <DisconnectedState 
+            onConnect={handleConnect} 
+            isConnecting={isConnecting}
+          />
         )}
 
         {hasErrors && connection?.last_error && (
@@ -187,9 +243,10 @@ const ConnectedState: React.FC<ConnectedStateProps> = ({
 
 interface DisconnectedStateProps {
   onConnect: () => void;
+  isConnecting: boolean;
 }
 
-const DisconnectedState: React.FC<DisconnectedStateProps> = ({ onConnect }) => {
+const DisconnectedState: React.FC<DisconnectedStateProps> = ({ onConnect, isConnecting }) => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
@@ -206,10 +263,14 @@ const DisconnectedState: React.FC<DisconnectedStateProps> = ({ onConnect }) => {
         </ul>
       </div>
 
-      <Button onClick={onConnect} className="w-full">
-        <Cloud className="h-4 w-4 mr-2" />
-        Koble til OneDrive
-        <ExternalLink className="h-3 w-3 ml-2" />
+      <Button onClick={onConnect} className="w-full" disabled={isConnecting}>
+        {isConnecting ? (
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : (
+          <Cloud className="h-4 w-4 mr-2" />
+        )}
+        {isConnecting ? 'Kobler til...' : 'Koble til OneDrive'}
+        {!isConnecting && <ExternalLink className="h-3 w-3 ml-2" />}
       </Button>
     </div>
   );
