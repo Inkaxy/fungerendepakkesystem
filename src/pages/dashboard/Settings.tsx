@@ -1,27 +1,8 @@
-import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Settings as SettingsIcon } from 'lucide-react';
-import OneDriveSetup from '@/components/settings/OneDriveSetup';
+import React from 'react';
+import { Settings as SettingsIcon, Cloud } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Settings: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // Handle OAuth callback results
-  useEffect(() => {
-    const onedriveStatus = searchParams.get('onedrive');
-    const message = searchParams.get('message');
-
-    if (onedriveStatus === 'success') {
-      toast.success('OneDrive er nå tilkoblet!');
-      // Clear the params
-      setSearchParams({});
-    } else if (onedriveStatus === 'error') {
-      toast.error(message || 'Kunne ikke koble til OneDrive');
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -35,8 +16,27 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* OneDrive Setup Section */}
-      <OneDriveSetup />
+      {/* OneDrive Setup Placeholder */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Cloud className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <CardTitle>OneDrive Integrasjon</CardTitle>
+              <CardDescription>
+                Koble til Microsoft OneDrive for automatisk import av filer
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            OneDrive-integrasjon blir re-implementert. Kommer snart.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
