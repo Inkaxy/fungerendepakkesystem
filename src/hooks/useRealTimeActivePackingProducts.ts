@@ -60,23 +60,32 @@ export const useRealTimeActivePackingProducts = () => {
           } else if (payload.eventType === 'DELETE') {
             const deletedItem = payload.old as any;
             console.log('🗑️ Deleting active product from cache:', {
-              id: deletedItem.id,
-              session_date: deletedItem.session_date,
-              product_name: deletedItem.product_name
+              id: deletedItem?.id,
+              session_date: deletedItem?.session_date,
+              product_name: deletedItem?.product_name
             });
             
-            queryClient.setQueryData(
-              ['active-packing-products', profile.bakery_id, deletedItem.session_date],
-              (oldData: any[] | undefined) => 
-                oldData?.filter(item => item.id !== deletedItem.id) || []
-            );
+            // ✅ FIX: Bruk riktig query key som matcher useActivePackingProducts
+            if (deletedItem?.session_date) {
+              queryClient.setQueryData(
+                ['active-packing-products', deletedItem.session_date],
+                (oldData: any[] | undefined) => 
+                  oldData?.filter(item => item.id !== deletedItem.id) || []
+              );
+            }
             
-            // ✅ KRITISK FIX: Fjern ALLE gamle packing-data cacher når active products endres
+            // ✅ KRITISK: Invalider active-packing-date så ContinuePackingButton oppdateres
+            queryClient.invalidateQueries({
+              queryKey: ['active-packing-date'],
+              refetchType: 'active'
+            });
+            
+            // Fjern ALLE gamle packing-data cacher når active products endres
             queryClient.removeQueries({
               queryKey: ['packing-data', profile.bakery_id],
               exact: false
             });
-            console.log('🧹 Fjernet alle gamle autentiserte packing-data cacher');
+            console.log('🧹 Fjernet alle gamle autentiserte packing-data cacher + invalidert active-packing-date');
           }
           
           // Force refetch for authenticated caches

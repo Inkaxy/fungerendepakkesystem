@@ -73,8 +73,8 @@ export const useActivePackingDate = () => {
         return null;
       }
     },
-    refetchInterval: false, // Kun websockets - ingen polling
-    staleTime: Infinity, // Cache alltid fersk via websockets
+    refetchInterval: false,
+    staleTime: 0, // ✅ Data er alltid stale - sikrer refetch ved behov
     retry: 3,
     retryDelay: 1000,
   });

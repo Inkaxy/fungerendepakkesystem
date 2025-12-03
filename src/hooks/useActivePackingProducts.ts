@@ -42,8 +42,8 @@ export const useActivePackingProducts = (sessionDate?: string) => {
       }
     },
     enabled: !!sessionDate,
-    refetchInterval: false, // Kun websockets - ingen polling
-    staleTime: Infinity, // Cache alltid fersk via websockets
+    refetchInterval: false,
+    staleTime: 0, // ✅ Data er alltid stale - sikrer refetch ved behov
     retry: 3,
     retryDelay: 1000,
   });
@@ -195,11 +195,11 @@ export const useClearActivePackingProducts = () => {
       queriesToInvalidate.forEach(queryKey => {
         queryClient.invalidateQueries({ 
           queryKey,
-          refetchType: 'none' // ✅ Marker stale, men IKKE refetch - WebSocket oppdaterer
+          refetchType: 'active' // ✅ Tvinger refetch
         });
       });
       
-      console.log('✅ Active products cleared - WebSocket vil oppdatere');
+      console.log('✅ Active products cleared - cache invalidert og refetched');
 
       toast({
         title: "Pakking avsluttet",
