@@ -1,1 +1,7 @@
 project_id = "sxggxcaanwsrufxfjbqb"
+
+[functions.onedrive-oauth-callback]
+verify_jwt = false
+
+[functions.sync-onedrive-files]
+verify_jwt = false

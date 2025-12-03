@@ -130,6 +130,62 @@ export type Database = {
           },
         ]
       }
+      bakery_onedrive_connections: {
+        Row: {
+          access_token_encrypted: string | null
+          bakery_id: string
+          connected_at: string | null
+          connected_by: string | null
+          connection_error: string | null
+          created_at: string | null
+          id: string
+          is_connected: boolean | null
+          last_token_refresh: string | null
+          refresh_token_encrypted: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_email: string | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          bakery_id: string
+          connected_at?: string | null
+          connected_by?: string | null
+          connection_error?: string | null
+          created_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_token_refresh?: string | null
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_email?: string | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          bakery_id?: string
+          connected_at?: string | null
+          connected_by?: string | null
+          connection_error?: string | null
+          created_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_token_refresh?: string | null
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bakery_onedrive_connections_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: true
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -1307,6 +1363,17 @@ export type Database = {
       }
       extend_user_session: { Args: never; Returns: undefined }
       generate_display_url: { Args: never; Returns: string }
+      get_bakeries_to_sync_now: {
+        Args: never
+        Returns: {
+          access_token: string
+          bakery_id: string
+          folder_path: string
+          refresh_token: string
+          setting_id: string
+          token_expires_at: string
+        }[]
+      }
       get_bakery_id_from_display_url: {
         Args: { display_url_param: string }
         Returns: string
