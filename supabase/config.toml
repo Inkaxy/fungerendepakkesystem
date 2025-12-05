@@ -8,12 +8,3 @@ verify_jwt = false
 
 [functions.onedrive-refresh-token]
 verify_jwt = false
-
-[functions.onedrive-list-files]
-verify_jwt = true
-
-[functions.onedrive-import]
-verify_jwt = true
-
-[functions.onedrive-scheduled-import]
-verify_jwt = false

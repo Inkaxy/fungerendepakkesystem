@@ -1,15 +1,8 @@
 import React from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
 import OneDriveConnectionCard from '@/components/settings/OneDriveConnectionCard';
-import OneDriveImportConfigCard from '@/components/settings/OneDriveImportConfigCard';
-import OneDriveFileBrowser from '@/components/settings/OneDriveFileBrowser';
-import OneDriveImportHistoryCard from '@/components/settings/OneDriveImportHistoryCard';
-import { useOneDriveConnection } from '@/hooks/useOneDriveConnection';
 
 const Settings: React.FC = () => {
-  const { data: connection } = useOneDriveConnection();
-  const isConnected = connection?.is_connected ?? false;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -25,15 +18,6 @@ const Settings: React.FC = () => {
 
       {/* OneDrive Connection */}
       <OneDriveConnectionCard />
-
-      {/* OneDrive Import Config - only show when connected */}
-      {isConnected && (
-        <>
-          <OneDriveImportConfigCard />
-          <OneDriveFileBrowser />
-          <OneDriveImportHistoryCard />
-        </>
-      )}
     </div>
   );
 };
