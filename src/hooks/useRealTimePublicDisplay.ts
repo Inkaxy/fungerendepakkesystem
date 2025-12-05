@@ -61,6 +61,39 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
 
     const channel = supabase
       .channel(`public-display-${bakeryId}`)
+      // ✅ NY: Lytt på packing_sessions for sesjonsskifte
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'packing_sessions',
+          filter: `bakery_id=eq.${bakeryId}`
+        },
+        (payload) => {
+          console.log('⚡ WebSocket: packing_sessions changed', payload.eventType, payload.new);
+          
+          // Invalidate date og products cache ved sesjonsskifte
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0], bakeryId],
+            refetchType: 'active'
+          });
+          
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId],
+            exact: false,
+            refetchType: 'active'
+          });
+          
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+            exact: false,
+            refetchType: 'active'
+          });
+          
+          console.log('✅ Packing session endret - alle display cacher invalidert');
+        }
+      )
       .on(
         'postgres_changes',
         {

@@ -28,10 +28,12 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
       console.log('Found public customer:', data);
       return data as Customer;
     },
-    refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache er alltid fersk via websockets
-    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000, // ✅ 5 minutter - ikke Infinity
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true, // ✅ Refetch ved fokus
     refetchOnReconnect: true,
+    refetchOnMount: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached customer data due to fetch failure');
@@ -75,10 +77,12 @@ export const usePublicDisplaySettings = (bakeryId?: string) => {
       return mappedSettings;
     },
     enabled: !!bakeryId,
-    refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache er alltid fersk via websockets
-    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000, // ✅ 5 minutter - ikke Infinity
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true, // ✅ Refetch ved fokus
     refetchOnReconnect: true,
+    refetchOnMount: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached display settings due to fetch failure');
@@ -395,10 +399,12 @@ export const usePublicPackingSession = (bakeryId?: string, date?: string) => {
       return data as PackingSession | null;
     },
     enabled: !!bakeryId && !!date,
-    refetchInterval: false, // Kun websockets
-    staleTime: Infinity, // Cache er alltid fersk via websockets
-    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000, // ✅ 5 minutter - ikke Infinity
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true, // ✅ Refetch ved fokus
     refetchOnReconnect: true,
+    refetchOnMount: true,
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached packing session due to fetch failure');

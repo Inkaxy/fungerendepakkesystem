@@ -33,6 +33,9 @@ const CustomerDisplay = () => {
   const { displayUrl } = useParams();
   const navigate = useNavigate();
   
+  // ✅ Debounce for tom-state - forhindrer flimring ved sesjonsskifte
+  const [showEmptyState, setShowEmptyState] = React.useState(false);
+  
   // ✅ KRITISK FIX: Invalidate cache ved mount (ikke remove - unngår race condition)
   React.useEffect(() => {
     console.log('🔄 CustomerDisplay mounted - invaliderer display cache');
@@ -104,19 +107,14 @@ const CustomerDisplay = () => {
   // Wake Lock - forhindrer at skjermen slukkes
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
-  // 🔄 Ekstra sikkerhet: poll backend jevnlig i tilfelle websocket ikke treffer
-  // ✅ Smart polling - kun når WebSocket er disconnected OG tab er synlig
+  // 🔄 Fallback polling - kun når WebSocket er disconnected
   React.useEffect(() => {
-    if (!customer?.bakery_id || connectionStatus === 'connected' || document.hidden) return;
+    if (!customer?.bakery_id || connectionStatus === 'connected') return;
 
     console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
     const interval = setInterval(() => {
-      // ✅ Skip polling hvis tab er skjult
-      if (document.hidden) {
-        console.log('⏸️ Polling paused - tab er skjult');
-        return;
-      }
+      if (document.hidden) return;
 
       console.log('🔄 Fallback polling: Invalidating queries...');
       
@@ -131,10 +129,46 @@ const CustomerDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
-    }, 5000); // ✅ Lengre intervall siden det er fallback
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [customer?.bakery_id, connectionStatus, queryClient]);
+
+  // ✅ NY: Heartbeat polling - alltid aktiv som backup (30s)
+  React.useEffect(() => {
+    if (!customer?.bakery_id) return;
+
+    console.log('💓 Heartbeat polling aktivert (30s intervall)');
+
+    const heartbeatInterval = setInterval(() => {
+      if (document.hidden) return;
+
+      console.log('💓 Heartbeat: Sjekker for oppdateringer...');
+      
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
+        exact: false,
+        refetchType: 'active',
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
+        exact: false,
+        refetchType: 'active',
+      });
+    }, 30000);
+
+    return () => clearInterval(heartbeatInterval);
+  }, [customer?.bakery_id, queryClient]);
+
+  // ✅ NY: Debounce for tom-state - forhindrer flimring ved sesjonsskifte
+  React.useEffect(() => {
+    if (!activeProducts || activeProducts.length === 0) {
+      const timer = setTimeout(() => setShowEmptyState(true), 3000);
+      return () => clearTimeout(timer);
+    }
+    setShowEmptyState(false);
+  }, [activeProducts]);
 
   // ✅ Page Visibility API - refresh data når tab blir synlig igjen
   React.useEffect(() => {
@@ -330,7 +364,21 @@ const CustomerDisplay = () => {
               <p style={{ color: settings?.text_color || '#6b7280' }}>Henter aktive produkter...</p>
             </CardContent>
           </Card>
-        ) : !displayCustomerPackingData || displayCustomerPackingData.products.length === 0 ? (
+        ) : (!displayCustomerPackingData || displayCustomerPackingData.products.length === 0) && !showEmptyState ? (
+          // ✅ Venter-state - vises i 3 sekunder før tom-state
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center p-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p 
+                className="text-lg animate-pulse"
+                style={{ color: settings?.text_color || '#6b7280' }}
+              >
+                Venter på produktvalg...
+              </p>
+            </CardContent>
+          </Card>
+        ) : (!displayCustomerPackingData || displayCustomerPackingData.products.length === 0) && showEmptyState ? (
+          // ✅ Tom-state - vises etter 3 sekunders forsinkelse
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center p-12">
               <Package2 className="h-16 w-16 mx-auto mb-6 text-gray-400" />
