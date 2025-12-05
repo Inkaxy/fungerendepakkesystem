@@ -44,9 +44,24 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
     );
   }
 
-  // ✅ Returner null hvis ingen active products
+  // ✅ Vis "venter på produktvalg" istedenfor null
   if (!activeProducts || activeProducts.length === 0) {
-    return null;
+    return (
+      <div 
+        className="rounded-lg p-6 text-center border-2 border-dashed"
+        style={{
+          backgroundColor: settings?.card_background_color ? `${settings.card_background_color}20` : '#f3f4f620',
+          borderColor: settings?.card_border_color || '#e5e7eb',
+        }}
+      >
+        <p 
+          className="text-sm animate-pulse"
+          style={{ color: settings?.text_color || '#6b7280' }}
+        >
+          Venter på produktvalg...
+        </p>
+      </div>
+    );
   }
 
   // Finn customerData fra packingData

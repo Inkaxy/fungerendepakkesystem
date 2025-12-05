@@ -39,14 +39,15 @@ const SharedDisplay = () => {
   // Wake Lock - forhindrer at skjermen slukkes
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
-  // 🔄 Ekstra sikkerhet: poll packing-data for shared display
-  // ✅ Smart polling - kun når WebSocket er disconnected
+  // 🔄 Fallback polling - kun når WebSocket er disconnected
   React.useEffect(() => {
     if (!bakeryId || connectionStatus === 'connected') return;
 
     console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
     const interval = setInterval(() => {
+      if (document.hidden) return;
+
       console.log('🔄 Fallback polling: Invalidating queries...');
       
       queryClient.invalidateQueries({
@@ -60,10 +61,37 @@ const SharedDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
-    }, 5000); // ✅ Lengre intervall siden det er fallback
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [bakeryId, connectionStatus, queryClient]);
+
+  // ✅ NY: Heartbeat polling - alltid aktiv som backup (30s)
+  React.useEffect(() => {
+    if (!bakeryId) return;
+
+    console.log('💓 Heartbeat polling aktivert (30s intervall)');
+
+    const heartbeatInterval = setInterval(() => {
+      if (document.hidden) return;
+
+      console.log('💓 Heartbeat: Sjekker for oppdateringer...');
+      
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
+        exact: false,
+        refetchType: 'active',
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
+        exact: false,
+        refetchType: 'active',
+      });
+    }, 30000);
+
+    return () => clearInterval(heartbeatInterval);
+  }, [bakeryId, queryClient]);
 
   // ✅ Invalidate cache ved mount (ikke remove - forhindrer race condition)
   React.useEffect(() => {
