@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { FolderOpen, Clock, Save, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FolderOpen, Clock, Save, RefreshCw, CalendarClock, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useOneDriveImportConfig, useUpdateImportConfig } from '@/hooks/useOneDriveConnection';
 
 const TIME_PRESETS = [
@@ -16,6 +17,28 @@ const TIME_PRESETS = [
   { value: '06:30', label: '06:30' },
   { value: '07:00', label: '07:00' },
 ];
+
+const getNextScheduledTime = (scheduledTime: string, isEnabled: boolean): string | null => {
+  if (!isEnabled || !scheduledTime) return null;
+  
+  const [hours, minutes] = scheduledTime.split(':').map(Number);
+  const now = new Date();
+  const scheduled = new Date();
+  scheduled.setHours(hours, minutes, 0, 0);
+  
+  // If the scheduled time has passed today, show tomorrow
+  if (scheduled <= now) {
+    scheduled.setDate(scheduled.getDate() + 1);
+  }
+  
+  return scheduled.toLocaleString('nb-NO', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 const OneDriveImportConfigCard: React.FC = () => {
   const { data: config, isLoading } = useOneDriveImportConfig();
@@ -152,17 +175,43 @@ const OneDriveImportConfigCard: React.FC = () => {
           />
         </div>
 
+        {/* Next Scheduled Import */}
+        {isAutoEnabled && (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CalendarClock className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm">Neste planlagte import</span>
+              <Badge variant="outline" className="ml-auto text-xs">
+                Aktiv
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {getNextScheduledTime(scheduledTime, isAutoEnabled) || 'Ikke planlagt'}
+            </p>
+          </div>
+        )}
+
         {/* Last Import Status */}
         {config?.last_import_at && (
-          <div className="rounded-lg bg-muted/50 p-3 text-sm">
-            <p className="text-muted-foreground">
-              Siste import: {new Date(config.last_import_at).toLocaleString('nb-NO')}
+          <div className="rounded-lg bg-muted/50 p-3">
+            <div className="flex items-center gap-2">
+              {config.last_import_status === 'success' ? (
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              ) : config.last_import_status === 'failed' ? (
+                <XCircle className="h-4 w-4 text-destructive" />
+              ) : null}
+              <span className="text-sm text-muted-foreground">
+                Siste import: {new Date(config.last_import_at).toLocaleString('nb-NO')}
+              </span>
               {config.last_import_status && (
-                <span className={`ml-2 ${config.last_import_status === 'success' ? 'text-green-600' : 'text-destructive'}`}>
-                  ({config.last_import_status === 'success' ? 'Vellykket' : 'Feilet'})
-                </span>
+                <Badge 
+                  variant={config.last_import_status === 'success' ? 'default' : 'destructive'}
+                  className="ml-auto text-xs"
+                >
+                  {config.last_import_status === 'success' ? 'Vellykket' : 'Feilet'}
+                </Badge>
               )}
-            </p>
+            </div>
           </div>
         )}
 
