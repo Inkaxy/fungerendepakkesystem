@@ -82,6 +82,13 @@ function AppContent() {
             </Suspense>
           </ErrorBoundary>
         } />
+        <Route path="/display/shared" element={
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <SharedDisplay />
+            </Suspense>
+          </ErrorBoundary>
+        } />
         
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -133,15 +140,6 @@ function AppContent() {
           <Route path="/dashboard/settings" element={
             <AuthLayout>
               <Settings />
-            </AuthLayout>
-          } />
-          <Route path="/dashboard/display/shared" element={
-            <AuthLayout>
-              <ErrorBoundary>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <SharedDisplay />
-                </Suspense>
-              </ErrorBoundary>
             </AuthLayout>
           } />
         </Route>
