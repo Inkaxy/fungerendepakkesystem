@@ -23,7 +23,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   // Generer iframe URL basert på valgt display type
   const getIframeUrl = () => {
     if (displayType === 'shared') {
-      return '/dashboard/display/shared';
+      return '/display/shared';
     }
     
     if (selectedCustomerId) {
@@ -33,7 +33,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
       }
     }
     
-    return '/dashboard/display/shared';
+    return '/display/shared';
   };
 
   const iframeUrl = getIframeUrl();

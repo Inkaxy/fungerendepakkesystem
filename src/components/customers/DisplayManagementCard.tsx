@@ -10,7 +10,7 @@ const DisplayManagementCard = () => {
   const { toast } = useToast();
 
   const copySharedDisplayUrl = () => {
-    const fullUrl = `${window.location.origin}/dashboard/display/shared`;
+    const fullUrl = `${window.location.origin}/display/shared`;
     navigator.clipboard.writeText(fullUrl);
     toast({
       title: "URL kopiert",
@@ -19,7 +19,7 @@ const DisplayManagementCard = () => {
   };
 
   const openSharedDisplayUrl = () => {
-    const fullUrl = `${window.location.origin}/dashboard/display/shared`;
+    const fullUrl = `${window.location.origin}/display/shared`;
     window.open(fullUrl, '_blank');
   };
 
