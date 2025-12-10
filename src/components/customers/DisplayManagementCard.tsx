@@ -5,12 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Monitor, Users, Copy, ExternalLink, Settings, BarChart3, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 const DisplayManagementCard = () => {
   const { toast } = useToast();
+  const { profile } = useAuthStore();
+  const bakeryId = profile?.bakery_id;
+
+  const getSharedDisplayUrl = () => {
+    if (!bakeryId) {
+      return null;
+    }
+    return `${window.location.origin}/display/shared/${bakeryId}`;
+  };
 
   const copySharedDisplayUrl = () => {
-    const fullUrl = `${window.location.origin}/display/shared`;
+    const fullUrl = getSharedDisplayUrl();
+    if (!fullUrl) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke generere URL - bakeri-ID mangler",
+        variant: "destructive"
+      });
+      return;
+    }
     navigator.clipboard.writeText(fullUrl);
     toast({
       title: "URL kopiert",
@@ -19,8 +37,10 @@ const DisplayManagementCard = () => {
   };
 
   const openSharedDisplayUrl = () => {
-    const fullUrl = `${window.location.origin}/display/shared`;
-    window.open(fullUrl, '_blank');
+    const fullUrl = getSharedDisplayUrl();
+    if (fullUrl) {
+      window.open(fullUrl, '_blank');
+    }
   };
 
   return (
