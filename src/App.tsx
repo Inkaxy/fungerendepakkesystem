@@ -82,7 +82,7 @@ function AppContent() {
             </Suspense>
           </ErrorBoundary>
         } />
-        <Route path="/display/shared" element={
+        <Route path="/display/shared/:bakeryId" element={
           <ErrorBoundary>
             <Suspense fallback={<LoadingSpinner />}>
               <SharedDisplay />

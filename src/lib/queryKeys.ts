@@ -7,6 +7,7 @@ export const QUERY_KEYS = {
   PUBLIC_DISPLAY_SETTINGS: ['public-display-settings'] as const,
   PUBLIC_CUSTOMER: ['public-customer'] as const,
   PUBLIC_PACKING_SESSION: ['public-packing-session'] as const,
+  PUBLIC_SHARED_CUSTOMERS: ['public-shared-display-customers'] as const,
   
   // Authenticated queries
   DISPLAY_SETTINGS: ['display-settings'] as const,

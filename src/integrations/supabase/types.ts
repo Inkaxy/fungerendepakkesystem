@@ -963,6 +963,13 @@ export type Database = {
             referencedRelation: "public_display_customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_shared_display_customers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       packing_sessions: {
@@ -1315,6 +1322,13 @@ export type Database = {
             referencedRelation: "public_display_customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_shared_display_customers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       public_display_products: {
@@ -1342,6 +1356,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "products_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_shared_display_customers: {
+        Row: {
+          bakery_id: string | null
+          customer_number: string | null
+          display_url: string | null
+          has_dedicated_display: boolean | null
+          id: string | null
+          name: string | null
+          status: string | null
+        }
+        Insert: {
+          bakery_id?: string | null
+          customer_number?: string | null
+          display_url?: string | null
+          has_dedicated_display?: boolean | null
+          id?: string | null
+          name?: string | null
+          status?: string | null
+        }
+        Update: {
+          bakery_id?: string | null
+          customer_number?: string | null
+          display_url?: string | null
+          has_dedicated_display?: boolean | null
+          id?: string | null
+          name?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_bakery_id_fkey"
             columns: ["bakery_id"]
             isOneToOne: false
             referencedRelation: "bakeries"

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useAuthStore } from '@/stores/authStore';
 import { Users, User, ExternalLink } from 'lucide-react';
 
 interface DisplayPreviewProps {
@@ -16,6 +17,8 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   const [iframeKey, setIframeKey] = useState(0);
   
   const { data: customers } = useCustomers();
+  const { profile } = useAuthStore();
+  const bakeryId = profile?.bakery_id;
   
   // Filtrer kun kunder med dedikert display
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
@@ -23,7 +26,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   // Generer iframe URL basert på valgt display type
   const getIframeUrl = () => {
     if (displayType === 'shared') {
-      return '/display/shared';
+      return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
     }
     
     if (selectedCustomerId) {
@@ -33,7 +36,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
       }
     }
     
-    return '/display/shared';
+    return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
   };
 
   const iframeUrl = getIframeUrl();

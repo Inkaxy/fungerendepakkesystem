@@ -1,33 +1,34 @@
 
 import React, { useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
-import SharedDisplayStats from '@/components/display/shared/SharedDisplayStats';
 import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useWakeLock } from '@/hooks/useWakeLock';
-import { useCustomers } from '@/hooks/useCustomers';
-import { useDisplaySettings } from '@/hooks/useDisplaySettings';
-import { usePublicActivePackingDate } from '@/hooks/usePublicDisplayData';
+import { 
+  usePublicDisplaySettings,
+  usePublicActivePackingDate,
+  usePublicSharedDisplayCustomers 
+} from '@/hooks/usePublicDisplayData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
 import { QUERY_KEYS } from '@/lib/queryKeys';
 
 const SharedDisplay = () => {
+  const { bakeryId } = useParams<{ bakeryId: string }>();
   const queryClient = useQueryClient();
-  const { data: customers } = useCustomers();
-  const { data: settings } = useDisplaySettings();
   
-  // Bruk public hooks for konsistent oppførsel med CustomerDisplay
-  const bakeryId = customers?.[0]?.bakery_id;
+  // Bruk public hooks - ingen autentisering nødvendig
+  const { data: customers, isLoading: customersLoading } = usePublicSharedDisplayCustomers(bakeryId);
+  const { data: settings } = usePublicDisplaySettings(bakeryId);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(bakeryId);
   
-  // Filter shared display customers
+  // Filter shared display customers (allerede filtrert i view, men dobbeltsjekk)
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
   // Real-time listener for cache updates
@@ -129,13 +130,13 @@ const SharedDisplay = () => {
 
   // Apply customer sorting based on settings
   const sortedCustomers = useMemo(() => {
-    const customers = [...sharedDisplayCustomers];
+    const customerList = [...sharedDisplayCustomers];
     
     if (settings?.customer_sort_order === 'alphabetical') {
-      return customers.sort((a, b) => a.name.localeCompare(b.name));
+      return customerList.sort((a, b) => a.name.localeCompare(b.name));
     }
     
-    return customers;
+    return customerList;
   }, [sharedDisplayCustomers, settings?.customer_sort_order]);
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
@@ -147,6 +148,7 @@ const SharedDisplay = () => {
   };
 
   const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
+  const isLoading = dateLoading || customersLoading;
 
   // Determine grid columns class based on settings
   const getCustomerGridClass = () => {
@@ -160,6 +162,25 @@ const SharedDisplay = () => {
     }
   };
 
+  // Vis feilmelding hvis bakeryId mangler
+  if (!bakeryId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="max-w-md">
+          <CardContent className="text-center p-12">
+            <h2 className="text-xl font-semibold text-destructive mb-4">
+              Ugyldig display-URL
+            </h2>
+            <p className="text-muted-foreground">
+              Denne display-URLen mangler bakeri-ID. 
+              Kontakt administrator for korrekt URL.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="min-h-screen p-8"
@@ -172,7 +193,7 @@ const SharedDisplay = () => {
         activePackingDate={activePackingDate}
       />
 
-        {dateLoading && (
+        {isLoading && (
           <Card
             style={{
               backgroundColor: settings?.card_background_color || '#ffffff',
@@ -189,7 +210,7 @@ const SharedDisplay = () => {
           </Card>
         )}
 
-        {!dateLoading && !activePackingDate && (
+        {!isLoading && !activePackingDate && (
           <EmptyPackingState
             settings={settings}
             activePackingDate={null}
@@ -197,7 +218,7 @@ const SharedDisplay = () => {
           />
         )}
 
-        {!dateLoading && activePackingDate && sortedCustomers.length > 0 ? (
+        {!isLoading && activePackingDate && sortedCustomers.length > 0 ? (
           <div 
             className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
@@ -215,7 +236,7 @@ const SharedDisplay = () => {
               />
             ))}
           </div>
-        ) : !dateLoading && activePackingDate && sortedCustomers.length === 0 ? (
+        ) : !isLoading && activePackingDate && sortedCustomers.length === 0 ? (
           <EmptyPackingState
             settings={settings}
             activePackingDate={activePackingDate}

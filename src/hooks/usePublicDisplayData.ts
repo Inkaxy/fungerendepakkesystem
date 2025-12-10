@@ -412,3 +412,39 @@ export const usePublicPackingSession = (bakeryId?: string, date?: string) => {
     },
   });
 };
+
+// Hook to get shared display customers for a bakery without authentication
+export const usePublicSharedDisplayCustomers = (bakeryId?: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.PUBLIC_SHARED_CUSTOMERS[0], bakeryId],
+    queryFn: async () => {
+      if (!bakeryId) return [];
+
+      console.log('Fetching public shared display customers for bakery:', bakeryId);
+
+      const { data, error } = await supabase
+        .from('public_shared_display_customers')
+        .select('*')
+        .eq('bakery_id', bakeryId);
+
+      if (error) {
+        console.error('Error fetching public shared display customers:', error);
+        throw error;
+      }
+
+      console.log('Found shared display customers:', data);
+      return data as Customer[];
+    },
+    enabled: !!bakeryId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchOnMount: 'always',
+    retry: (failureCount) => {
+      if (failureCount < 3) return true;
+      console.warn('Using cached shared customers due to fetch failure');
+      return false;
+    },
+  });
+};
