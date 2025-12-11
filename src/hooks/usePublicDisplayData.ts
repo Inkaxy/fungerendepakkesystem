@@ -186,7 +186,8 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
 };
 
 // Hook to get packing data for a specific customer without authentication
-export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string, activeProducts?: any[]) => {
+// customerName er nå påkrevd parameter for å unngå JOIN med public_display_customers
+export const usePublicPackingData = (customerId?: string, bakeryId?: string, date?: string, activeProducts?: any[], customerName?: string) => {
   const targetDate = date || format(new Date(), 'yyyy-MM-dd');
   
   // ✅ Inkluder faktiske produkt-ID-er i queryKey for korrekt cache-invalidering
@@ -212,12 +213,14 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         }))
       });
 
+      // ✅ FIX: Hent ordrer UTEN customer-join siden public_display_customers
+      // filtrerer for has_dedicated_display=true, men SharedDisplay trenger kunder
+      // med has_dedicated_display=false. Vi bruker customerId direkte.
       const { data: orders, error } = await supabase
         .from('public_display_orders')
         .select(`
           id,
           customer_id,
-          customer:public_display_customers(id, name),
           order_products:public_display_order_products(
             id,
             product_id,
@@ -261,15 +264,17 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
       const customerMap = new Map<string, PackingCustomer>();
 
       orders?.forEach(order => {
-        if (!order.customer) return;
+        // ✅ FIX: Bruk customerId og customerName fra parametere,
+        // ikke fra join med public_display_customers
+        const orderCustomerId = order.customer_id;
+        if (!orderCustomerId) return;
 
-        const customerId = order.customer.id;
-        let customer = customerMap.get(customerId);
+        let customer = customerMap.get(orderCustomerId);
 
         if (!customer) {
           customer = {
-            id: customerId,
-            name: order.customer.name,
+            id: orderCustomerId,
+            name: customerName || 'Ukjent kunde', // ✅ Bruk parameter
             products: [],
             overall_status: 'ongoing',
             progress_percentage: 0,
@@ -278,7 +283,7 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
             total_line_items_all: 0,
             packed_line_items_all: 0,
           };
-          customerMap.set(customerId, customer);
+          customerMap.set(orderCustomerId, customer);
         }
 
         order.order_products?.forEach(op => {

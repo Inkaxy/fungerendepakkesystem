@@ -25,12 +25,13 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
     activePackingDate
   );
 
-  // ✅ Send activeProducts til usePublicPackingData
+  // ✅ Send activeProducts og customerName til usePublicPackingData
   const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
     customer.id,
     bakeryId,
     activePackingDate,
-    activeProducts // ✅ KRITISK: Send som parameter
+    activeProducts, // ✅ KRITISK: Send som parameter
+    customer.name   // ✅ FIX: Send customerName for å unngå JOIN med public_display_customers
   );
 
   if (activeLoading || packingLoading) {

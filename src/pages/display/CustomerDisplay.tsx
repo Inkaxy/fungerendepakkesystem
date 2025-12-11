@@ -92,7 +92,8 @@ const CustomerDisplay = () => {
     customer?.id, 
     customer?.bakery_id, 
     displayDate,
-    activeProducts // ✅ KRITISK: Send activeProducts som parameter
+    activeProducts, // ✅ KRITISK: Send activeProducts som parameter
+    customer?.name  // ✅ FIX: Send customerName for å unngå JOIN med public_display_customers
   );
   const { data: packingSession } = usePublicPackingSession(
     customer?.bakery_id, 
