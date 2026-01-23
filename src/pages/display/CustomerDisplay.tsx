@@ -22,6 +22,7 @@ import {
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { usePackingBroadcastListener } from '@/hooks/usePackingBroadcastListener';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
+import { useDisplayHeartbeat } from '@/hooks/useDisplayHeartbeat';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
@@ -139,32 +140,8 @@ const CustomerDisplay = () => {
     return () => clearInterval(interval);
   }, [customer?.bakery_id, connectionStatus, queryClient]);
 
-  // ✅ OPTIMALISERT: Heartbeat polling økt til 60s (broadcast håndterer real-time)
-  React.useEffect(() => {
-    if (!customer?.bakery_id) return;
-
-    console.log('💓 Heartbeat polling aktivert (60s intervall - broadcast er primær)');
-
-    const heartbeatInterval = setInterval(() => {
-      if (document.hidden) return;
-
-      console.log('💓 Heartbeat: Synkroniserer...');
-      
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
-        exact: false,
-        refetchType: 'active',
-      });
-      
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
-        exact: false,
-        refetchType: 'active',
-      });
-    }, 60000); // ✅ Økt til 60s
-
-    return () => clearInterval(heartbeatInterval);
-  }, [customer?.bakery_id, queryClient]);
+  // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall)
+  useDisplayHeartbeat({ bakeryId: customer?.bakery_id, enabled: !!customer?.bakery_id });
 
   // ✅ NY: Debounce for tom-state - forhindrer flimring ved sesjonsskifte
   React.useEffect(() => {

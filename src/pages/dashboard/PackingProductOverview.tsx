@@ -9,7 +9,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession, usePackingSessionByDate } from '@/hooks/usePackingSessions';
 import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
 import { useToast } from '@/hooks/use-toast';
-import { useRealTimeDisplay } from '@/hooks/useRealTimeDisplay';
+import { useDashboardRealTime } from '@/hooks/useDashboardRealTime';
 import { useQueryClient } from '@tanstack/react-query';
 import ProductsTable from '@/components/packing/ProductsTable';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
@@ -29,8 +29,8 @@ const PackingProductOverview = () => {
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
   const setActivePackingProducts = useSetActivePackingProducts();
   
-  // Enhanced real-time updates
-  const { connectionStatus } = useRealTimeDisplay();
+  // Konsolidert real-time for dashboard
+  const { connectionStatus } = useDashboardRealTime();
 
   // Effect to force query updates when products are selected
   useEffect(() => {

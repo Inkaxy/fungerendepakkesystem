@@ -4,15 +4,15 @@ import { Package, Clock, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useActivePackingDate } from '@/hooks/useActivePackingDate';
 import { useActivePackingProducts, useClearActivePackingProducts } from '@/hooks/useActivePackingProducts';
-import { useRealTimeActivePackingProducts } from '@/hooks/useRealTimeActivePackingProducts';
+import { useDashboardRealTime } from '@/hooks/useDashboardRealTime';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
 const ContinuePackingButton = () => {
   const navigate = useNavigate();
   
-  // ✅ Aktiver WebSocket-lytter for real-time oppdateringer
-  useRealTimeActivePackingProducts();
+  // ✅ Konsolidert WebSocket-lytter for real-time oppdateringer
+  useDashboardRealTime();
   
   const { data: activeDate, isLoading: dateLoading } = useActivePackingDate();
   const { data: activeProducts, isLoading: productsLoading } = useActivePackingProducts(activeDate || undefined);
