@@ -7,6 +7,7 @@ import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader
 import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
+import FullscreenButton from '@/components/display/FullscreenButton';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { usePackingBroadcastListener } from '@/hooks/usePackingBroadcastListener';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
@@ -226,7 +227,10 @@ const SharedDisplay = () => {
         ) : null}
 
         <div className="text-center mt-8">
-          <ConnectionStatus status={connectionStatus} pollingActive={connectionStatus !== 'connected'} />
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <FullscreenButton settings={settings} />
+            <ConnectionStatus status={connectionStatus} pollingActive={connectionStatus !== 'connected'} />
+          </div>
           <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
             {connectionStatus === 'connected' 
               ? 'Automatiske oppdateringer via websockets' 

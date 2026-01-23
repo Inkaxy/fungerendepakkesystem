@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
+import FullscreenButton from '@/components/display/FullscreenButton';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 
@@ -54,7 +54,10 @@ const SharedDisplayHeader = ({ settings, connectionStatus, activePackingDate }: 
         )}
       </div>
       <div className="flex flex-col items-end gap-2">
-        <ConnectionStatus status={connectionStatus} />
+        <div className="flex items-center gap-2">
+          <FullscreenButton settings={settings} />
+          <ConnectionStatus status={connectionStatus} />
+        </div>
       </div>
     </div>
   );
