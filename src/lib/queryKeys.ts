@@ -8,12 +8,14 @@ export const QUERY_KEYS = {
   PUBLIC_CUSTOMER: ['public-customer'] as const,
   PUBLIC_PACKING_SESSION: ['public-packing-session'] as const,
   PUBLIC_SHARED_CUSTOMERS: ['public-shared-display-customers'] as const,
+  PUBLIC_ALL_CUSTOMERS_PACKING: ['public-all-customers-packing'] as const,
   
   // Authenticated queries
   DISPLAY_SETTINGS: ['display-settings'] as const,
   PACKING_DATA: ['packing-data'] as const,
   CUSTOMERS: ['customers'] as const,
   ORDERS: ['orders'] as const,
+  ORDER_PRODUCTS: ['order-products'] as const,
 } as const;
 
 // Helper functions for building query keys
