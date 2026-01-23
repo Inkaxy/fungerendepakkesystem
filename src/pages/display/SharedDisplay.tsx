@@ -10,6 +10,7 @@ import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
 import { usePackingBroadcastListener } from '@/hooks/usePackingBroadcastListener';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
+import { useDisplayHeartbeat } from '@/hooks/useDisplayHeartbeat';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { 
   usePublicDisplaySettings,
@@ -71,32 +72,8 @@ const SharedDisplay = () => {
     return () => clearInterval(interval);
   }, [bakeryId, connectionStatus, queryClient]);
 
-  // ✅ OPTIMALISERT: Heartbeat polling økt til 60s (broadcast håndterer real-time)
-  React.useEffect(() => {
-    if (!bakeryId) return;
-
-    console.log('💓 Heartbeat polling aktivert (60s intervall - broadcast er primær)');
-
-    const heartbeatInterval = setInterval(() => {
-      if (document.hidden) return;
-
-      console.log('💓 Heartbeat: Synkroniserer...');
-      
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
-        exact: false,
-        refetchType: 'active',
-      });
-      
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
-        exact: false,
-        refetchType: 'active',
-      });
-    }, 60000); // ✅ Økt til 60s
-
-    return () => clearInterval(heartbeatInterval);
-  }, [bakeryId, queryClient]);
+  // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall)
+  useDisplayHeartbeat({ bakeryId, enabled: !!bakeryId });
 
   // ✅ Invalidate cache ved mount (ikke remove - forhindrer race condition)
   React.useEffect(() => {
