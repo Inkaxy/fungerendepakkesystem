@@ -309,7 +309,7 @@ const CustomerDisplay = () => {
                 }}
               >
                 {!isToday && 'PAKKING FOR: '}
-                {format(new Date(displayDate), 'dd.MM.yyyy', { locale: nb })}
+                {format(new Date(displayDate), 'EEEE dd.MM.yy', { locale: nb })}
                 {!isToday && ' (ikke i dag)'}
               </span>
             </div>
