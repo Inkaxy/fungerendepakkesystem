@@ -303,7 +303,7 @@ const CustomerDisplay = () => {
             <div className="flex items-center justify-center gap-2">
               <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
               <span 
-                className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+                className="text-base font-semibold capitalize"
                 style={{ 
                   color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
                 }}
