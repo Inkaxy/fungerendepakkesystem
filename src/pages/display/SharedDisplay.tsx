@@ -8,6 +8,7 @@ import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
+import { usePackingBroadcastListener } from '@/hooks/usePackingBroadcastListener';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { 
@@ -31,8 +32,11 @@ const SharedDisplay = () => {
   // Filter shared display customers (allerede filtrert i view, men dobbeltsjekk)
   const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  // Real-time listener for cache updates
+  // Real-time listener for cache updates (WebSocket fra postgres_changes)
   const { connectionStatus } = useRealTimePublicDisplay(bakeryId);
+  
+  // ✅ NY: Broadcast listener for push-first oppdateringer (< 100ms latency)
+  usePackingBroadcastListener(bakeryId);
   
   // Lytt på refresh broadcasts fra admin
   useDisplayRefreshBroadcast(bakeryId, true);
@@ -67,16 +71,16 @@ const SharedDisplay = () => {
     return () => clearInterval(interval);
   }, [bakeryId, connectionStatus, queryClient]);
 
-  // ✅ NY: Heartbeat polling - alltid aktiv som backup (30s)
+  // ✅ OPTIMALISERT: Heartbeat polling økt til 60s (broadcast håndterer real-time)
   React.useEffect(() => {
     if (!bakeryId) return;
 
-    console.log('💓 Heartbeat polling aktivert (30s intervall)');
+    console.log('💓 Heartbeat polling aktivert (60s intervall - broadcast er primær)');
 
     const heartbeatInterval = setInterval(() => {
       if (document.hidden) return;
 
-      console.log('💓 Heartbeat: Sjekker for oppdateringer...');
+      console.log('💓 Heartbeat: Synkroniserer...');
       
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
@@ -89,7 +93,7 @@ const SharedDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
-    }, 30000);
+    }, 60000); // ✅ Økt til 60s
 
     return () => clearInterval(heartbeatInterval);
   }, [bakeryId, queryClient]);

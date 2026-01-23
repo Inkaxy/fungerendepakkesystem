@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
 import { useUpdateOrderProductPackingStatus, useUpdateMultipleOrderProductsPackingStatus } from '@/hooks/useOrderProducts';
 import { useClearActivePackingProducts } from '@/hooks/useActivePackingProducts';
+import { usePackingBroadcast } from '@/hooks/usePackingBroadcast';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
@@ -35,6 +36,7 @@ const PackingProductDetail = () => {
   const updateOrderProductStatus = useUpdateOrderProductPackingStatus();
   const updateMultipleOrderProductsStatus = useUpdateMultipleOrderProductsPackingStatus();
   const clearActivePackingProducts = useClearActivePackingProducts();
+  const { broadcastItemPacked, broadcastItemUnpacked, broadcastAllPacked } = usePackingBroadcast();
 
   // Prepare data for all selected products when in multi-product mode - using useMemo
   const allProductsData = useMemo(() => {
@@ -160,7 +162,15 @@ const PackingProductDetail = () => {
 
     if (!targetItem) return;
 
-    // Update local state immediately for better UX
+    // 1. BROADCAST FIRST - Push update to displays immediately (non-blocking)
+    const broadcastPromise = checked 
+      ? broadcastItemPacked(targetItem.orderProductId, targetItem.customerId, productId!, targetItem.quantity)
+      : broadcastItemUnpacked(targetItem.orderProductId, targetItem.customerId, productId!, targetItem.quantity);
+    
+    // Don't await broadcast - fire and forget for speed
+    broadcastPromise.catch(err => console.warn('Broadcast failed:', err));
+
+    // 2. Update local state immediately for better UX
     const newPackedItems = new Set(packedItems);
     if (checked) {
       newPackedItems.add(itemKey);
@@ -178,7 +188,7 @@ const PackingProductDetail = () => {
     }
     setPackedItems(newPackedItems);
 
-    // Save to database
+    // 3. Save to database (async, non-blocking)
     try {
       await updateOrderProductStatus.mutateAsync({
         orderProductId: targetItem.orderProductId,
@@ -187,7 +197,7 @@ const PackingProductDetail = () => {
 
       toast({
         title: checked ? "Element pakket" : "Pakking fjernet",
-        description: `${targetItem.customerName} - lagret i database`,
+        description: `${targetItem.customerName} - lagret`,
       });
     } catch (error) {
       // Revert local state on error
@@ -249,6 +259,7 @@ const PackingProductDetail = () => {
   const handleMarkAllPacked = async (productIdToMark?: string) => {
     let itemsToProcess;
     let productName = '';
+    let targetProductId = productIdToMark;
 
     if (isMultiProductMode && productIdToMark) {
       // Multi-product mode: mark all items for specific product
@@ -260,6 +271,7 @@ const PackingProductDetail = () => {
       // Single product mode: mark all items for current product
       itemsToProcess = currentProductData.items;
       productName = currentProductData.productName;
+      targetProductId = productId;
     } else {
       return;
     }
@@ -275,16 +287,21 @@ const PackingProductDetail = () => {
       return;
     }
 
-    // Update local state immediately
+    const orderProductIds = itemsToMark.map(item => item.orderProductId);
+
+    // 1. BROADCAST FIRST - Push update to displays immediately
+    const broadcastPromise = broadcastAllPacked(orderProductIds, targetProductId!);
+    broadcastPromise.catch(err => console.warn('Broadcast failed:', err));
+
+    // 2. Update local state immediately
     const newPackedItems = new Set(packedItems);
     itemsToMark.forEach(item => {
       newPackedItems.add(item.key);
     });
     setPackedItems(newPackedItems);
 
-    // Save to database
+    // 3. Save to database (async)
     try {
-      const orderProductIds = itemsToMark.map(item => item.orderProductId);
       await updateMultipleOrderProductsStatus.mutateAsync({
         orderProductIds,
         packingStatus: 'packed'
@@ -292,7 +309,7 @@ const PackingProductDetail = () => {
 
       toast({
         title: "Elementer markert som pakket",
-        description: `${itemsToMark.length} elementer for ${productName} er lagret i database`,
+        description: `${itemsToMark.length} elementer for ${productName} er lagret`,
       });
     } catch (error) {
       // Revert local state on error

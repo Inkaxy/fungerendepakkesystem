@@ -20,6 +20,7 @@ import {
   usePublicActivePackingProducts
 } from '@/hooks/usePublicDisplayData';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
+import { usePackingBroadcastListener } from '@/hooks/usePackingBroadcastListener';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { format } from 'date-fns';
@@ -105,6 +106,9 @@ const CustomerDisplay = () => {
   const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
   useDisplayRefreshBroadcast(customer?.bakery_id, true);
   
+  // ✅ NY: Broadcast listener for push-first oppdateringer (< 100ms latency)
+  usePackingBroadcastListener(customer?.bakery_id);
+  
   // Wake Lock - forhindrer at skjermen slukkes
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
@@ -135,16 +139,16 @@ const CustomerDisplay = () => {
     return () => clearInterval(interval);
   }, [customer?.bakery_id, connectionStatus, queryClient]);
 
-  // ✅ NY: Heartbeat polling - alltid aktiv som backup (30s)
+  // ✅ OPTIMALISERT: Heartbeat polling økt til 60s (broadcast håndterer real-time)
   React.useEffect(() => {
     if (!customer?.bakery_id) return;
 
-    console.log('💓 Heartbeat polling aktivert (30s intervall)');
+    console.log('💓 Heartbeat polling aktivert (60s intervall - broadcast er primær)');
 
     const heartbeatInterval = setInterval(() => {
       if (document.hidden) return;
 
-      console.log('💓 Heartbeat: Sjekker for oppdateringer...');
+      console.log('💓 Heartbeat: Synkroniserer...');
       
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
@@ -157,7 +161,7 @@ const CustomerDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
-    }, 30000);
+    }, 60000); // ✅ Økt til 60s
 
     return () => clearInterval(heartbeatInterval);
   }, [customer?.bakery_id, queryClient]);

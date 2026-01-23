@@ -453,3 +453,147 @@ export const usePublicSharedDisplayCustomers = (bakeryId?: string) => {
     },
   });
 };
+
+// ✅ NY: Batch query for alle kunder - eliminerer N+1 problemet
+export const usePublicAllCustomersPackingData = (
+  bakeryId?: string,
+  customers?: Array<{id: string; name: string}>,
+  date?: string,
+  activeProducts?: any[]
+) => {
+  const targetDate = date || format(new Date(), 'yyyy-MM-dd');
+  const activeProductIds = activeProducts?.map(ap => ap.product_id).filter(Boolean).sort().join(',') || '';
+  const customerIds = customers?.map(c => c.id) || [];
+
+  return useQuery({
+    queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0], bakeryId, targetDate, customerIds.join(','), activeProductIds],
+    queryFn: async () => {
+      if (!bakeryId || !customerIds.length) return [];
+
+      console.log('📦 Batch-fetching packing data for', customerIds.length, 'customers');
+
+      const { data: orders, error } = await supabase
+        .from('public_display_orders')
+        .select(`
+          id,
+          customer_id,
+          order_products:public_display_order_products(
+            id,
+            product_id,
+            quantity,
+            packing_status,
+            product:public_display_products(id, name, category, unit)
+          )
+        `)
+        .eq('bakery_id', bakeryId)
+        .eq('delivery_date', targetDate)
+        .in('customer_id', customerIds);
+
+      if (error) {
+        console.error('Error fetching batch packing data:', error);
+        throw error;
+      }
+
+      // Create customer name map from props
+      const customerNameMap = new Map<string, string>();
+      customers?.forEach(c => customerNameMap.set(c.id, c.name));
+
+      // Build customer map
+      const customerMap = new Map<string, PackingCustomer>();
+
+      orders?.forEach(order => {
+        const customerId = order.customer_id;
+        if (!customerId) return;
+
+        let customer = customerMap.get(customerId);
+        if (!customer) {
+          customer = {
+            id: customerId,
+            name: customerNameMap.get(customerId) || 'Ukjent kunde',
+            products: [],
+            overall_status: 'ongoing',
+            progress_percentage: 0,
+            total_line_items: 0,
+            packed_line_items: 0,
+            total_line_items_all: 0,
+            packed_line_items_all: 0,
+          };
+          customerMap.set(customerId, customer);
+        }
+
+        order.order_products?.forEach(op => {
+          const product = op.product;
+          if (!product) return;
+
+          // Count ALL line items for progress
+          customer!.total_line_items_all += 1;
+          const isPacked = op.packing_status === 'packed' || op.packing_status === 'completed';
+          if (isPacked) {
+            customer!.packed_line_items_all += 1;
+          }
+
+          // Skip if not in activeProducts (for display filtering)
+          if (activeProducts?.length) {
+            const isActive = activeProducts.some(ap => 
+              ap.product_id === op.product_id || ap.product_name === product.name
+            );
+            if (!isActive) return;
+          }
+
+          const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
+          
+          if (existingProduct) {
+            existingProduct.total_quantity += op.quantity;
+            existingProduct.total_line_items += 1;
+            if (isPacked) {
+              existingProduct.packed_line_items += 1;
+            }
+          } else {
+            customer!.products.push({
+              id: op.id,
+              product_id: op.product_id,
+              product_name: product.name || 'Ukjent produkt',
+              product_category: product.category || 'Ingen kategori',
+              product_unit: product.unit || 'stk',
+              total_quantity: op.quantity,
+              total_line_items: 1,
+              packed_line_items: isPacked ? 1 : 0,
+              packing_status: isPacked ? 'packed' : 'pending',
+            });
+          }
+
+          customer!.total_line_items += 1;
+          if (isPacked) {
+            customer!.packed_line_items += 1;
+          }
+        });
+      });
+
+      // Calculate progress for each customer
+      customerMap.forEach(customer => {
+        customer.progress_percentage = customer.total_line_items_all > 0
+          ? Math.round((customer.packed_line_items_all / customer.total_line_items_all) * 100)
+          : 0;
+        customer.overall_status = customer.progress_percentage >= 100 ? 'completed' : 'ongoing';
+
+        // Update product packing status
+        customer.products.forEach(product => {
+          if (product.packed_line_items >= product.total_line_items) {
+            product.packing_status = 'completed';
+          } else if (product.packed_line_items > 0) {
+            product.packing_status = 'in_progress';
+          }
+        });
+      });
+
+      console.log('📦 Batch fetch complete:', customerMap.size, 'customers with data');
+      return Array.from(customerMap.values());
+    },
+    enabled: !!bakeryId && !!customerIds?.length && customerIds.length > 0,
+    staleTime: 0, // Alltid fresh for packing data
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchOnMount: 'always',
+  });
+};
