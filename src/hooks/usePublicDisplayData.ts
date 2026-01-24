@@ -72,6 +72,11 @@ export const usePublicDisplaySettings = (bakeryId?: string) => {
         packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
         packing_status_completed_color: data.status_completed_color || '#10b981',
         compact_status_progress: (data as any).compact_status_progress ?? true,
+        // New customer display specific fields
+        customer_display_show_date: (data as any).customer_display_show_date ?? true,
+        customer_display_header_size: (data as any).customer_display_header_size ?? 32,
+        hide_completed_products: (data as any).hide_completed_products ?? false,
+        high_contrast_mode: (data as any).high_contrast_mode ?? false,
       } as DisplaySettings;
 
       console.log('Found public display settings:', mappedSettings);
