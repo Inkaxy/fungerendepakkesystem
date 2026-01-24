@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuthStore } from '@/stores/authStore';
-import { Eye } from 'lucide-react';
+import { Eye, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface DisplayPreviewPanelProps {
   settings: DisplaySettings;
@@ -14,18 +14,21 @@ interface DisplayPreviewPanelProps {
 const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps) => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [iframeKey, setIframeKey] = useState(0);
+  const [iframeError, setIframeError] = useState(false);
   
-  const { data: customers } = useCustomers();
-  const { profile } = useAuthStore();
+  const { data: customers, isLoading: customersLoading } = useCustomers();
+  const { profile, isLoading: profileLoading } = useAuthStore();
   const bakeryId = profile?.bakery_id;
   
   // Filtrer kun kunder med dedikert display
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
 
   // Generer iframe URL basert på valgt display type
-  const getIframeUrl = () => {
+  const getIframeUrl = (): string | null => {
+    if (!bakeryId) return null;
+    
     if (displayType === 'shared') {
-      return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
+      return `/display/shared/${bakeryId}`;
     }
     
     if (selectedCustomerId) {
@@ -35,7 +38,7 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
       }
     }
     
-    return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
+    return `/display/shared/${bakeryId}`;
   };
 
   const iframeUrl = getIframeUrl();
@@ -49,10 +52,56 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
 
   // Force iframe refresh når settings endres (via key prop)
   useEffect(() => {
+    setIframeError(false);
     setIframeKey(prev => prev + 1);
   }, [settings]);
 
+  const handleIframeError = () => {
+    setIframeError(true);
+  };
+
   const displayLabel = displayType === 'shared' ? 'Delt visning' : 'Kundevisning';
+  const isLoading = profileLoading || customersLoading;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Eye className="h-4 w-4" />
+          <span className="text-sm">Forhåndsvisning ({displayLabel})</span>
+        </div>
+        <Card className="overflow-hidden border-2 border-muted">
+          <CardContent className="p-0">
+            <div className="flex items-center justify-center h-[400px] bg-muted/20">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // No bakeryId state
+  if (!bakeryId) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Eye className="h-4 w-4" />
+          <span className="text-sm">Forhåndsvisning ({displayLabel})</span>
+        </div>
+        <Card className="overflow-hidden border-2 border-muted">
+          <CardContent className="p-0">
+            <div className="flex flex-col items-center justify-center h-[400px] bg-muted/20 text-muted-foreground">
+              <AlertTriangle className="h-8 w-8 mb-4 text-destructive/70" />
+              <p className="text-sm">Kan ikke vise forhåndsvisning</p>
+              <p className="text-xs mt-1">Bakeri-informasjon mangler</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -88,14 +137,29 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 <p className="text-sm">Ingen kunder med dedikert display ennå</p>
               </div>
-            ) : (
+            ) : iframeError ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <AlertTriangle className="h-8 w-8 mb-4 text-destructive/70" />
+                <p className="text-sm">Kunne ikke laste forhåndsvisning</p>
+                <button 
+                  onClick={() => { setIframeError(false); setIframeKey(prev => prev + 1); }}
+                  className="mt-2 text-xs text-primary hover:underline"
+                >
+                  Prøv igjen
+                </button>
+              </div>
+            ) : iframeUrl ? (
               <iframe
                 key={iframeKey}
                 src={iframeUrl}
                 className="w-full h-full border-0"
                 title="Display Preview"
-                sandbox="allow-same-origin allow-scripts"
+                onError={handleIframeError}
               />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p className="text-sm">Ingen forhåndsvisning tilgjengelig</p>
+              </div>
             )}
           </div>
         </CardContent>
