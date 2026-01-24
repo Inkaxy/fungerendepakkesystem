@@ -6,33 +6,28 @@ import { cn } from '@/lib/utils';
 interface SettingsSectionProps {
   value: string;
   icon: LucideIcon;
-  iconColor: string;
-  bgColor: string;
+  iconColor?: string;
+  bgColor?: string;
   title: string;
-  description: string;
+  description?: string;
   children: React.ReactNode;
 }
 
 const SettingsSection = ({
   value,
   icon: Icon,
-  iconColor,
-  bgColor,
+  iconColor = 'text-foreground',
+  bgColor = 'bg-transparent',
   title,
   description,
   children
 }: SettingsSectionProps) => {
   return (
-    <AccordionItem value={value} className="border rounded-lg bg-card shadow-sm overflow-hidden">
+    <AccordionItem value={value} className="border rounded-lg bg-card overflow-hidden">
       <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50">
         <div className="flex items-center gap-3">
-          <div className={cn("p-2 rounded-lg", bgColor)}>
-            <Icon className={cn("h-5 w-5", iconColor)} />
-          </div>
-          <div className="text-left">
-            <div className="font-semibold text-foreground">{title}</div>
-            <div className="text-xs text-muted-foreground">{description}</div>
-          </div>
+          <Icon className={cn("h-5 w-5", iconColor)} />
+          <span className="font-medium text-foreground">{title}</span>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
