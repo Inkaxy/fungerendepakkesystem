@@ -96,4 +96,6 @@ export interface DisplaySettings {
   show_line_items_count: boolean;
   customer_sort_order: 'alphabetical' | 'status' | 'progress';
   strikethrough_completed_products: boolean;
+  // Compact status/progress layout
+  compact_status_progress: boolean;
 }

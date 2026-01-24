@@ -72,7 +72,8 @@ export const useDisplaySettings = () => {
           ...newSettings,
           screen_type: (newSettings as any).screen_type || 'shared',
           packing_status_ongoing_color: (newSettings as any).status_in_progress_color || '#3b82f6',
-          packing_status_completed_color: (newSettings as any).status_completed_color || '#10b981'
+          packing_status_completed_color: (newSettings as any).status_completed_color || '#10b981',
+          compact_status_progress: (newSettings as any).compact_status_progress ?? true,
         } as DisplaySettings;
         console.log('Created new settings:', mappedSettings);
         return mappedSettings;

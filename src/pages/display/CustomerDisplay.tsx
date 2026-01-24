@@ -8,8 +8,7 @@ import { Package2, Clock } from 'lucide-react';
 import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displayStyleUtils';
 import CustomerHeader from '@/components/display/CustomerHeader';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
-import CustomerProgressBar from '@/components/display/customer/CustomerProgressBar';
-import CustomerStatusIndicator from '@/components/display/customer/CustomerStatusIndicator';
+import CustomerStatusProgress from '@/components/display/customer/CustomerStatusProgress';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import FullscreenButton from '@/components/display/FullscreenButton';
 import { 
@@ -390,14 +389,8 @@ const CustomerDisplay = () => {
           />
         )}
 
-        {/* STATUS BAR - ALLTID SYNLIG */}
-        <CustomerStatusIndicator
-          isAllPacked={sessionProgress.isCompleted}
-          settings={settings}
-        />
-
-        {/* PROGRESS BAR - ALLTID SYNLIG */}
-        <CustomerProgressBar
+        {/* STATUS & PROGRESS - KOMPAKT LAYOUT */}
+        <CustomerStatusProgress
           customerPackingData={
             customerPackingData || {
               id: customer.id,
@@ -411,6 +404,7 @@ const CustomerDisplay = () => {
               packed_line_items_all: 0,
             }
           }
+          isAllPacked={sessionProgress.isCompleted}
           settings={settings}
         />
 
