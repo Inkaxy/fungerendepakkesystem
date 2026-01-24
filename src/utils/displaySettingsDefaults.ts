@@ -1,123 +1,176 @@
-
-import { DisplaySettings } from '@/types/displaySettings';
+import type { DisplaySettings } from '@/types/displaySettings';
 
 export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id'> => ({
   bakery_id,
-  screen_type: 'shared' as const,
+  screen_type: 'shared',
   
-  // Background settings
-  background_type: 'gradient' as const,
-  background_color: '#ffffff',
-  background_gradient_start: '#f3f4f6',
-  background_gradient_end: '#e5e7eb',
-  background_image_url: undefined,
+  // === SHARED SETTINGS ===
   
-  // Typography settings
+  // Background
+  background_type: 'gradient',
+  background_color: '#f8fafc',
+  background_gradient_start: '#f1f5f9',
+  background_gradient_end: '#e2e8f0',
+  background_gradient_direction: 'to-bottom',
+  background_image_url: '',
+  background_overlay_opacity: 50,
+  
+  // Typography
   header_font_size: 32,
   body_font_size: 16,
-  text_color: '#111827',
-  header_text_color: '#111827',
+  text_color: '#1e293b',
+  header_text_color: '#0f172a',
   
-  // Card styling
+  // Card Styling
   card_background_color: '#ffffff',
-  card_border_color: '#e5e7eb',
-  card_shadow_intensity: 3,
-  border_radius: 8,
+  card_border_color: '#e2e8f0',
+  card_shadow_intensity: 2,
+  border_radius: 12,
+  card_border_width: 1,
   spacing: 16,
+  card_hover_effect: false,
   
-  // Product card styling
-  product_card_color: '#ffffff',
-  product_text_color: '#374151',
-  product_accent_color: '#3b82f6',
+  // Product Card Styling
   product_card_size: 100,
-  product_name_font_size: 24,
-  product_unit_font_size: 24,
-  line_items_count_font_size: 18,
-  status_badge_font_size: 14,
-  product_spacing: 16,
-  product_card_padding: 16,
+  product_card_color: '#ffffff',
+  product_text_color: '#334155',
+  product_accent_color: '#3b82f6',
+  product_name_font_size: 18,
+  product_quantity_font_size: 48,
+  product_unit_font_size: 14,
   product_name_font_weight: 600,
   product_quantity_font_weight: 700,
+  product_spacing: 12,
+  product_card_padding: 16,
   show_product_unit: true,
-  product_quantity_font_size: 48,
+  line_items_count_font_size: 14,
   
-  // Individual product colors
+  // Individual Product Colors
   product_1_bg_color: '#ffffff',
-  product_2_bg_color: '#f9fafb',
-  product_3_bg_color: '#f3f4f6',
-  product_1_text_color: '#1f2937',
-  product_2_text_color: '#1f2937',
-  product_3_text_color: '#1f2937',
+  product_2_bg_color: '#f8fafc',
+  product_3_bg_color: '#f1f5f9',
+  product_1_text_color: '#1e293b',
+  product_2_text_color: '#1e293b',
+  product_3_text_color: '#1e293b',
   product_1_accent_color: '#3b82f6',
   product_2_accent_color: '#10b981',
   product_3_accent_color: '#f59e0b',
   
-  // Status colors
-  packing_status_ongoing_color: '#3b82f6',
-  packing_status_completed_color: '#10b981',
+  // Status Colors
+  status_pending_color: '#f59e0b',
   status_in_progress_color: '#3b82f6',
   status_completed_color: '#10b981',
-  status_pending_color: '#f59e0b',
   status_delivered_color: '#059669',
+  packing_status_ongoing_color: '#3b82f6',
+  packing_status_completed_color: '#10b981',
   
-  // Progress bar settings
+  // Progress Bar
+  show_progress_bar: true,
   progress_bar_color: '#3b82f6',
-  progress_background_color: '#e5e7eb',
+  progress_background_color: '#e2e8f0',
   progress_height: 8,
   show_progress_percentage: true,
-  show_progress_bar: true,
+  progress_animation: true,
   
-  // Truck icon settings
+  // Truck Icon
   show_truck_icon: false,
-  truck_icon_size: 48,
+  truck_icon_size: 24,
   
-  // Status indicator settings
+  // Status Indicator
   show_status_indicator: true,
   status_indicator_font_size: 32,
   status_indicator_padding: 24,
+  status_badge_font_size: 14,
   
-  // Animation settings
+  // Animation Settings
   enable_animations: true,
-  animation_speed: 'normal' as const,
+  animation_speed: 'normal',
   fade_transitions: true,
-  progress_animation: true,
+  pulse_on_update: false,
   
-  // Compact layout toggle
-  compact_status_progress: true,
+  // === SHARED DISPLAY SPECIFIC ===
   
-  // === SHARED DISPLAY SETTINGS ===
+  // Header
   main_title: 'Felles Display',
   subtitle: 'Pakkestatus for kunder',
   show_date_indicator: true,
+  shared_show_clock: false,
+  shared_show_logo: false,
+  shared_logo_url: '',
+  shared_logo_size: 48,
+  shared_header_alignment: 'center',
   
-  // Stats cards
+  // Stats Cards
   show_stats_cards: true,
   stats_columns: 3,
+  stats_card_height: 'normal',
+  stats_card_style: 'filled',
+  stats_show_percentage: true,
+  stats_show_icons: true,
   stats_icon_color: '#3b82f6',
-  stats_card_height: 'normal' as const,
   
-  // Customer cards layout
+  // Customer Cards
   customer_cards_columns: 3,
-  customer_card_height: 'normal' as const,
-  show_customer_numbers: true,
+  customer_card_height: 'normal',
+  customer_card_style: 'card',
   customer_cards_gap: 24,
+  customer_name_font_size: 18,
+  show_customer_numbers: true,
+  show_customer_progress_bar: true,
+  customer_sort_order: 'alphabetical',
   
-  // Product list in shared display
+  // Product List
   max_products_per_card: 10,
-  product_list_style: 'normal' as const,
+  product_list_style: 'normal',
+  shared_product_font_size: 14,
   show_line_items_count: true,
-  customer_sort_order: 'alphabetical' as const,
+  shared_show_product_quantity: true,
+  shared_hide_completed_customers: false,
+  shared_completed_customer_opacity: 50,
   
-  // === CUSTOMER DISPLAY SETTINGS ===
+  // Layout
+  shared_fullscreen_mode: false,
+  shared_auto_scroll: false,
+  shared_scroll_speed: 30,
+  shared_content_padding: 24,
+  
+  // === CUSTOMER DISPLAY SPECIFIC ===
+  
+  // Customer Header
   always_show_customer_name: true,
-  show_customer_info: true,
-  show_order_numbers: true,
+  customer_display_show_date: true,
+  customer_show_bakery_name: false,
+  customer_show_delivery_info: false,
+  customer_display_header_size: 32,
+  customer_header_alignment: 'center',
+  
+  // Product Display
   show_status_badges: true,
   strikethrough_completed_products: true,
-  
-  // New: Customer display specific
-  customer_display_show_date: true,
-  customer_display_header_size: 32,
   hide_completed_products: false,
+  product_card_layout: 'horizontal',
+  product_columns: 2,
+  product_show_category: false,
+  product_group_by_status: false,
+  
+  // Status & Progress
+  compact_status_progress: true,
+  progress_bar_style: 'bar',
+  progress_show_fraction: false,
+  truck_animation_style: 'bounce',
+  
+  // Completion
+  customer_completion_message: 'Alt er pakket og klart! 🎉',
+  customer_show_completion_animation: false,
+  customer_completion_sound: false,
+  
+  // Accessibility
   high_contrast_mode: false,
+  large_touch_targets: false,
+  reduce_motion: false,
+  
+  // Layout
+  customer_fullscreen_mode: false,
+  customer_content_padding: 24,
+  customer_max_content_width: 1200,
 });

@@ -19,7 +19,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
   const getCardHeightClass = () => {
     switch (settings?.customer_card_height) {
       case 'compact': return 'py-2';
-      case 'extended': return 'py-6';
+      case 'large': return 'py-6';
       default: return 'py-4';
     }
   };

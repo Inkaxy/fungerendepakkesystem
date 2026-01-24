@@ -36,7 +36,7 @@ const CustomerCardsSettingsCard = ({ settings, onUpdate }: CustomerCardsSettings
           <Label>Kunde-kort høyde</Label>
           <Select
             value={settings.customer_card_height}
-            onValueChange={(value: 'compact' | 'normal' | 'extended') => 
+            onValueChange={(value: 'compact' | 'normal' | 'large') => 
               onUpdate({ customer_card_height: value })
             }
           >
@@ -46,7 +46,7 @@ const CustomerCardsSettingsCard = ({ settings, onUpdate }: CustomerCardsSettings
             <SelectContent>
               <SelectItem value="compact">Kompakt</SelectItem>
               <SelectItem value="normal">Normal</SelectItem>
-              <SelectItem value="extended">Utvidet</SelectItem>
+              <SelectItem value="large">Utvidet</SelectItem>
             </SelectContent>
           </Select>
         </div>

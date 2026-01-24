@@ -99,7 +99,7 @@ const SharedDisplaySettingsTab = ({ settings, onUpdate }: SharedDisplaySettingsT
                 <Label>Kort høyde</Label>
                 <Select
                   value={settings.stats_card_height}
-                  onValueChange={(value: 'compact' | 'normal' | 'extended') => 
+                  onValueChange={(value: 'compact' | 'normal' | 'large') => 
                     onUpdate({ stats_card_height: value })
                   }
                 >
@@ -109,7 +109,7 @@ const SharedDisplaySettingsTab = ({ settings, onUpdate }: SharedDisplaySettingsT
                   <SelectContent>
                     <SelectItem value="compact">Kompakt</SelectItem>
                     <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="extended">Utvidet</SelectItem>
+                    <SelectItem value="large">Utvidet</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -149,7 +149,7 @@ const SharedDisplaySettingsTab = ({ settings, onUpdate }: SharedDisplaySettingsT
             <Label>Kort høyde</Label>
             <Select
               value={settings.customer_card_height}
-              onValueChange={(value: 'compact' | 'normal' | 'extended') => 
+              onValueChange={(value: 'compact' | 'normal' | 'large') => 
                 onUpdate({ customer_card_height: value })
               }
             >
@@ -159,7 +159,7 @@ const SharedDisplaySettingsTab = ({ settings, onUpdate }: SharedDisplaySettingsT
               <SelectContent>
                 <SelectItem value="compact">Kompakt</SelectItem>
                 <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="extended">Utvidet</SelectItem>
+                <SelectItem value="large">Utvidet</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -47,7 +47,7 @@ const StatisticsSettingsCard = ({ settings, onUpdate }: StatisticsSettingsCardPr
               <Label>Statistikk-kort høyde</Label>
               <Select
                 value={settings.stats_card_height}
-                onValueChange={(value: 'compact' | 'normal' | 'extended') => 
+                onValueChange={(value: 'compact' | 'normal' | 'large') => 
                   onUpdate({ stats_card_height: value })
                 }
               >
@@ -57,7 +57,7 @@ const StatisticsSettingsCard = ({ settings, onUpdate }: StatisticsSettingsCardPr
                 <SelectContent>
                   <SelectItem value="compact">Kompakt</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="extended">Utvidet</SelectItem>
+                  <SelectItem value="large">Utvidet</SelectItem>
                 </SelectContent>
               </Select>
             </div>

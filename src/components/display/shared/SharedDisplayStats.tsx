@@ -37,7 +37,7 @@ const SharedDisplayStats = ({ settings, sharedDisplayPackingData }: SharedDispla
   const getCardHeightClass = () => {
     switch (settings?.stats_card_height) {
       case 'compact': return 'py-2';
-      case 'extended': return 'py-6';
+      case 'large': return 'py-6';
       default: return 'py-4';
     }
   };
