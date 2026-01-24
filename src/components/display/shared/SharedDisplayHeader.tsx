@@ -38,16 +38,16 @@ const SharedDisplayHeader = ({ settings, connectionStatus, activePackingDate }: 
           {settings?.subtitle || 'Pakkestatus for kunder'}
         </p>
         {settings?.show_date_indicator && activePackingDate && (
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Clock className="h-5 w-5" style={{ color: settings?.text_color || '#6b7280' }} />
             <span 
-              className={`text-sm ${!isToday ? 'font-bold' : ''}`}
+              className="text-2xl font-semibold capitalize"
               style={{ 
                 color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
               }}
             >
               {!isToday && 'PAKKING FOR: '}
-              {format(new Date(activePackingDate), 'dd.MM.yyyy', { locale: nb })}
+              {format(new Date(activePackingDate), 'EEEE dd.MM.yy', { locale: nb })}
               {!isToday && ' (ikke i dag)'}
             </span>
           </div>
