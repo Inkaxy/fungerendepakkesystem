@@ -1,20 +1,16 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Eye, RefreshCw, Palette, Sparkles, Zap, Monitor, User, Package } from 'lucide-react';
+import { Save, Eye, RefreshCw, Monitor, User } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings, DisplaySettings as DisplaySettingsType } from '@/hooks/useDisplaySettings';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useAuthStore } from '@/stores/authStore';
-import ThemePresetsTab from '@/components/display-settings/ThemePresetsTab';
-import SharedDisplaySettingsTab from '@/components/display-settings/SharedDisplaySettingsTab';
-import CustomerDisplayTab from '@/components/display-settings/CustomerDisplayTab';
-import AppearanceTab from '@/components/display-settings/AppearanceTab';
-import ProductsTab from '@/components/display-settings/ProductsTab';
-import AnimationSettingsTab from '@/components/display-settings/AnimationSettingsTab';
+import SharedDisplayTab from '@/components/display-settings/tabs/SharedDisplayTab';
+import CustomerDisplayTab from '@/components/display-settings/tabs/CustomerDisplayTab';
 import DisplayPreview from '@/components/display-settings/DisplayPreview';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 const DisplaySettings = () => {
   const { data: settings, isLoading } = useDisplaySettings();
@@ -24,6 +20,7 @@ const DisplaySettings = () => {
   const { profile } = useAuthStore();
   const { broadcastRefresh } = useDisplayRefreshBroadcast(profile?.bakery_id);
   const [localSettings, setLocalSettings] = React.useState<DisplaySettingsType | null>(settings ?? null);
+  const [activeTab, setActiveTab] = React.useState<string>('shared');
 
   React.useEffect(() => {
     if (settings) {
@@ -59,7 +56,12 @@ const DisplaySettings = () => {
   };
 
   const handlePreview = () => {
-    navigate('/dashboard/display/shared');
+    if (activeTab === 'shared') {
+      navigate('/dashboard/display/shared');
+    } else {
+      // For customer display, we'd need a specific customer URL
+      navigate('/dashboard/display/shared');
+    }
   };
 
   if (isLoading || !localSettings) {
@@ -111,89 +113,70 @@ const DisplaySettings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Settings Panel */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Palette className="h-5 w-5 mr-2" />
-                Pakkeskjerm Tilpasninger
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Organisert i 6 kategorier for enkel tilpasning
-              </p>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="themes" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6 gap-1">
-                  <TabsTrigger value="themes" className="flex items-center space-x-1">
-                    <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">Temaer</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="shared" className="flex items-center space-x-1">
-                    <Monitor className="h-4 w-4" />
-                    <span className="hidden sm:inline">Felles</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="customer" className="flex items-center space-x-1">
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">Kunde</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="appearance" className="flex items-center space-x-1">
-                    <Palette className="h-4 w-4" />
-                    <span className="hidden sm:inline">Utseende</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="products" className="flex items-center space-x-1">
-                    <Package className="h-4 w-4" />
-                    <span className="hidden sm:inline">Produkter</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="animations" className="flex items-center space-x-1">
-                    <Zap className="h-4 w-4" />
-                    <span className="hidden sm:inline">Animasjon</span>
-                  </TabsTrigger>
-                </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 h-auto p-1 bg-muted/50">
+              <TabsTrigger 
+                value="shared" 
+                className={cn(
+                  "flex items-center gap-3 py-4 px-6 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900",
+                  "transition-all duration-200"
+                )}
+              >
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  activeTab === 'shared' ? 'bg-blue-200' : 'bg-muted'
+                )}>
+                  <Monitor className={cn(
+                    "h-5 w-5",
+                    activeTab === 'shared' ? 'text-blue-700' : 'text-muted-foreground'
+                  )} />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold">Felles Skjerm</div>
+                  <div className="text-xs text-muted-foreground">
+                    Oversikt for alle kunder
+                  </div>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="customer" 
+                className={cn(
+                  "flex items-center gap-3 py-4 px-6 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900",
+                  "transition-all duration-200"
+                )}
+              >
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  activeTab === 'customer' ? 'bg-purple-200' : 'bg-muted'
+                )}>
+                  <User className={cn(
+                    "h-5 w-5",
+                    activeTab === 'customer' ? 'text-purple-700' : 'text-muted-foreground'
+                  )} />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold">Kundeskjerm</div>
+                  <div className="text-xs text-muted-foreground">
+                    Individuell kundevisning
+                  </div>
+                </div>
+              </TabsTrigger>
+            </TabsList>
 
-                <TabsContent value="themes">
-                  <ThemePresetsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
+            <TabsContent value="shared" className="mt-6">
+              <SharedDisplayTab 
+                settings={localSettings} 
+                onUpdate={handleUpdate} 
+              />
+            </TabsContent>
 
-                <TabsContent value="shared">
-                  <SharedDisplaySettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="customer">
-                  <CustomerDisplayTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="appearance">
-                  <AppearanceTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="products">
-                  <ProductsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-
-                <TabsContent value="animations">
-                  <AnimationSettingsTab 
-                    settings={localSettings} 
-                    onUpdate={handleUpdate} 
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+            <TabsContent value="customer" className="mt-6">
+              <CustomerDisplayTab 
+                settings={localSettings} 
+                onUpdate={handleUpdate} 
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Preview Panel */}
