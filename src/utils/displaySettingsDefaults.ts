@@ -85,4 +85,5 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   show_line_items_count: true,
   customer_sort_order: 'alphabetical' as const,
   strikethrough_completed_products: true,
+  compact_status_progress: true,
 });
