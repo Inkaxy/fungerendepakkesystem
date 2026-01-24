@@ -1,21 +1,17 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Save, Monitor, Users, ChevronDown, Sparkles } from 'lucide-react';
+import { Save, Monitor, Users, Sparkles } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings, DisplaySettings as DisplaySettingsType } from '@/hooks/useDisplaySettings';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useAuthStore } from '@/stores/authStore';
 import SharedDisplayTab from '@/components/display-settings/tabs/SharedDisplayTab';
 import CustomerDisplayTab from '@/components/display-settings/tabs/CustomerDisplayTab';
 import DisplayPreviewPanel from '@/components/display-settings/DisplayPreviewPanel';
+import PresetsManager from '@/components/display-settings/PresetsManager';
+import SavePresetDialog from '@/components/display-settings/SavePresetDialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 const DisplaySettings = () => {
   const { data: settings, isLoading } = useDisplaySettings();
@@ -25,6 +21,7 @@ const DisplaySettings = () => {
   const { broadcastRefresh } = useDisplayRefreshBroadcast(profile?.bakery_id);
   const [localSettings, setLocalSettings] = React.useState<DisplaySettingsType | null>(settings ?? null);
   const [activeTab, setActiveTab] = React.useState<string>('shared');
+  const [savePresetDialogOpen, setSavePresetDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (settings) {
@@ -35,6 +32,16 @@ const DisplaySettings = () => {
   const handleUpdate = (updates: Partial<DisplaySettingsType>) => {
     if (localSettings) {
       setLocalSettings({ ...localSettings, ...updates });
+    }
+  };
+
+  const handleApplyPreset = (presetSettings: Partial<DisplaySettingsType>) => {
+    if (localSettings) {
+      setLocalSettings({ ...localSettings, ...presetSettings });
+      toast({
+        title: 'Mal anvendt',
+        description: 'Husk å lagre endringene.',
+      });
     }
   };
 
@@ -97,23 +104,22 @@ const DisplaySettings = () => {
         </Button>
       </div>
 
-      {/* Templates Dropdown */}
+      {/* Templates Manager */}
       <div className="mb-6">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Maler
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>Standard</DropdownMenuItem>
-            <DropdownMenuItem>Mørkt tema</DropdownMenuItem>
-            <DropdownMenuItem>Høykontrast</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <PresetsManager
+          onApplyPreset={handleApplyPreset}
+          onOpenSaveDialog={() => setSavePresetDialogOpen(true)}
+        />
       </div>
+
+      {/* Save Preset Dialog */}
+      {localSettings && (
+        <SavePresetDialog
+          open={savePresetDialogOpen}
+          onOpenChange={setSavePresetDialogOpen}
+          currentSettings={localSettings}
+        />
+      )}
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
