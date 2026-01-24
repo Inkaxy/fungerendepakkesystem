@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +5,7 @@ import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
 import { Customer } from '@/types/database';
 import { getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { cn } from '@/lib/utils';
 
 interface CustomerPackingCardProps {
   customerData: PackingCustomer;
@@ -37,14 +37,31 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     }
   };
 
+  // Card style class based on customer_card_style
+  const getCardStyleClass = () => {
+    switch (settings?.customer_card_style) {
+      case 'minimal': return 'border-0 shadow-none';
+      case 'bordered': return 'border-2 shadow-none';
+      default: return 'shadow-lg';
+    }
+  };
+
+  // Hover effect based on card_hover_effect
+  const hoverClass = settings?.card_hover_effect 
+    ? 'hover:scale-[1.02] hover:shadow-2xl transition-all duration-300' 
+    : 'transition-shadow';
+
   return (
     <Card 
-      className="shadow-lg hover:shadow-xl transition-shadow"
+      className={cn(getCardStyleClass(), hoverClass)}
       style={{
         backgroundColor: settings?.card_background_color || '#ffffff',
         borderColor: settings?.card_border_color || '#e5e7eb',
         borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-        boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined
+        borderWidth: settings?.card_border_width ? `${settings.card_border_width}px` : undefined,
+        boxShadow: settings?.card_shadow_intensity 
+          ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` 
+          : undefined
       }}
     >
       <CardHeader className={getCardHeightClass()}>
@@ -76,7 +93,9 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
           className="text-xl text-center mb-3"
           style={{ 
             color: settings?.header_text_color || '#111827',
-            fontSize: settings?.header_font_size ? `${Math.min(settings.header_font_size * 0.6, 24)}px` : '1.25rem'
+            fontSize: settings?.customer_name_font_size 
+              ? `${settings.customer_name_font_size}px` 
+              : '1.25rem'
           }}
         >
           {customer.name}
@@ -84,17 +103,18 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
       </CardHeader>
       <CardContent className={getCardHeightClass()}>
         <div className="space-y-3">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span style={{ color: settings?.text_color || '#374151' }}>Fremgang (alle varer):</span>
-              <span 
-                className="font-semibold"
-                style={{ color: settings?.product_accent_color || '#3b82f6' }}
-              >
-                {customerData.progress_percentage}%
-              </span>
-            </div>
-            {(settings?.show_progress_bar ?? true) && (
+          {/* Progress section */}
+          {(settings?.show_customer_progress_bar ?? true) && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span style={{ color: settings?.text_color || '#374151' }}>Fremgang:</span>
+                <span 
+                  className="font-semibold"
+                  style={{ color: settings?.product_accent_color || '#3b82f6' }}
+                >
+                  {customerData.progress_percentage}%
+                </span>
+              </div>
               <div 
                 className="w-full rounded-full h-2 overflow-hidden"
                 style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
@@ -109,16 +129,17 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                   }}
                 />
               </div>
-            )}
-            {(settings?.show_line_items_count ?? true) && (
-              <div className="text-xs text-center">
-                <span style={{ color: settings?.text_color || '#6b7280' }}>
-                  {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
-                </span>
-              </div>
-            )}
-          </div>
+              {(settings?.show_line_items_count ?? true) && (
+                <div className="text-xs text-center">
+                  <span style={{ color: settings?.text_color || '#6b7280' }}>
+                    {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
+          {/* Products list */}
           <div>
             <h4 
               className="text-sm font-medium mb-2"
@@ -141,6 +162,9 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                       className="font-medium"
                       style={{ 
                         color: getProductTextColor(settings || {} as any, product.colorIndex ?? idx % 3),
+                        fontSize: settings?.shared_product_font_size 
+                          ? `${settings.shared_product_font_size}px` 
+                          : '14px',
                         textDecoration: (settings?.strikethrough_completed_products && 
                                          product.packing_status === 'completed') 
                                          ? 'line-through' 
@@ -149,21 +173,23 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     >
                       {product.product_name}
                     </span>
-                    <span 
-                      className="font-semibold"
-                      style={{ 
-                        color: getProductAccentColor(settings || {} as any, product.colorIndex ?? idx % 3),
-                        fontSize: settings?.product_quantity_font_size 
-                          ? `${settings.product_quantity_font_size * 0.5}px` 
-                          : '24px',
-                        textDecoration: (settings?.strikethrough_completed_products && 
-                                         product.packing_status === 'completed') 
-                                         ? 'line-through' 
-                                         : 'none'
-                      }}
-                    >
-                      {product.total_quantity} {product.product_unit}
-                    </span>
+                    {(settings?.shared_show_product_quantity ?? true) && (
+                      <span 
+                        className="font-semibold"
+                        style={{ 
+                          color: getProductAccentColor(settings || {} as any, product.colorIndex ?? idx % 3),
+                          fontSize: settings?.shared_product_font_size 
+                            ? `${settings.shared_product_font_size * 1.2}px` 
+                            : '16px',
+                          textDecoration: (settings?.strikethrough_completed_products && 
+                                           product.packing_status === 'completed') 
+                                           ? 'line-through' 
+                                           : 'none'
+                        }}
+                      >
+                        {product.total_quantity} {product.product_unit}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     {(settings?.show_line_items_count ?? true) && (
@@ -208,7 +234,9 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
   return (
     prevProps.customerData.progress_percentage === nextProps.customerData.progress_percentage &&
     prevProps.customerData.overall_status === nextProps.customerData.overall_status &&
-    prevProps.customerData.products.length === nextProps.customerData.products.length
+    prevProps.customerData.products.length === nextProps.customerData.products.length &&
+    prevProps.settings?.card_hover_effect === nextProps.settings?.card_hover_effect &&
+    prevProps.settings?.customer_card_style === nextProps.settings?.customer_card_style
   );
 });
 

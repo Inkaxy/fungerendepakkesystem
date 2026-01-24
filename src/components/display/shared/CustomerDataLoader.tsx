@@ -10,6 +10,8 @@ interface CustomerDataLoaderProps {
   activePackingDate: string | undefined;
   settings: DisplaySettings | undefined;
   statusColors: Record<string, string>;
+  hideWhenCompleted?: boolean;
+  completedOpacity?: number;
 }
 
 const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
@@ -18,6 +20,8 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
   activePackingDate,
   settings,
   statusColors,
+  hideWhenCompleted = false,
+  completedOpacity = 50,
 }) => {
   // ✅ NYTT: Hent activeProducts FØRST
   const { data: activeProducts, isLoading: activeLoading } = usePublicActivePackingProducts(
@@ -72,13 +76,28 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
     return null; // Ingen data for denne kunden
   }
 
+  // Sjekk om kunden er 100% ferdig og skal skjules
+  const isCompleted = customerData.progress_percentage === 100;
+  
+  if (hideWhenCompleted && isCompleted) {
+    return null; // Skjul fullførte kunder
+  }
+
+  // Opacity for fullførte kunder (hvis de ikke skal skjules helt)
+  const cardStyle = isCompleted && !hideWhenCompleted ? {
+    opacity: completedOpacity / 100,
+    transition: 'opacity 0.3s ease-in-out'
+  } : {};
+
   return (
-    <CustomerPackingCard
-      customerData={customerData}
-      customer={customer}
-      settings={settings}
-      statusColors={statusColors}
-    />
+    <div style={cardStyle}>
+      <CustomerPackingCard
+        customerData={customerData}
+        customer={customer}
+        settings={settings}
+        statusColors={statusColors}
+      />
+    </div>
   );
 };
 
