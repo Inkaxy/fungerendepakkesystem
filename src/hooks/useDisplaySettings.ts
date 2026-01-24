@@ -74,6 +74,11 @@ export const useDisplaySettings = () => {
           packing_status_ongoing_color: (newSettings as any).status_in_progress_color || '#3b82f6',
           packing_status_completed_color: (newSettings as any).status_completed_color || '#10b981',
           compact_status_progress: (newSettings as any).compact_status_progress ?? true,
+          // New customer display specific fields
+          customer_display_show_date: (newSettings as any).customer_display_show_date ?? true,
+          customer_display_header_size: (newSettings as any).customer_display_header_size ?? 32,
+          hide_completed_products: (newSettings as any).hide_completed_products ?? false,
+          high_contrast_mode: (newSettings as any).high_contrast_mode ?? false,
         } as DisplaySettings;
         console.log('Created new settings:', mappedSettings);
         return mappedSettings;
@@ -84,7 +89,13 @@ export const useDisplaySettings = () => {
         ...existingData,
         screen_type: existingData.screen_type || 'shared',
         packing_status_ongoing_color: existingData.status_in_progress_color || '#3b82f6',
-        packing_status_completed_color: existingData.status_completed_color || '#10b981'
+        packing_status_completed_color: existingData.status_completed_color || '#10b981',
+        compact_status_progress: existingData.compact_status_progress ?? true,
+        // New customer display specific fields
+        customer_display_show_date: existingData.customer_display_show_date ?? true,
+        customer_display_header_size: existingData.customer_display_header_size ?? 32,
+        hide_completed_products: existingData.hide_completed_products ?? false,
+        high_contrast_mode: existingData.high_contrast_mode ?? false,
       } as DisplaySettings;
       console.log('Found existing settings:', mappedData);
       return mappedData;

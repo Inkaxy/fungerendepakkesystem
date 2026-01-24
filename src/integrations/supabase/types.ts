@@ -261,10 +261,13 @@ export type Database = {
           card_border_color: string | null
           card_shadow_intensity: number | null
           cat_animation_speed: string | null
+          compact_status_progress: boolean | null
           created_at: string
           customer_card_height: string | null
           customer_cards_columns: number | null
           customer_cards_gap: number | null
+          customer_display_header_size: number | null
+          customer_display_show_date: boolean | null
           customer_priority_mode: string | null
           customer_sort_order: string | null
           display_margin: number | null
@@ -277,7 +280,9 @@ export type Database = {
           fullscreen_mode: boolean | null
           header_font_size: number | null
           header_text_color: string | null
+          hide_completed_products: boolean | null
           hide_empty_customers: boolean | null
+          high_contrast_mode: boolean | null
           id: string
           large_screen_optimization: boolean | null
           line_height: number | null
@@ -380,10 +385,13 @@ export type Database = {
           card_border_color?: string | null
           card_shadow_intensity?: number | null
           cat_animation_speed?: string | null
+          compact_status_progress?: boolean | null
           created_at?: string
           customer_card_height?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
+          customer_display_header_size?: number | null
+          customer_display_show_date?: boolean | null
           customer_priority_mode?: string | null
           customer_sort_order?: string | null
           display_margin?: number | null
@@ -396,7 +404,9 @@ export type Database = {
           fullscreen_mode?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
+          hide_completed_products?: boolean | null
           hide_empty_customers?: boolean | null
+          high_contrast_mode?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
           line_height?: number | null
@@ -499,10 +509,13 @@ export type Database = {
           card_border_color?: string | null
           card_shadow_intensity?: number | null
           cat_animation_speed?: string | null
+          compact_status_progress?: boolean | null
           created_at?: string
           customer_card_height?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
+          customer_display_header_size?: number | null
+          customer_display_show_date?: boolean | null
           customer_priority_mode?: string | null
           customer_sort_order?: string | null
           display_margin?: number | null
@@ -515,7 +528,9 @@ export type Database = {
           fullscreen_mode?: boolean | null
           header_font_size?: number | null
           header_text_color?: string | null
+          hide_completed_products?: boolean | null
           hide_empty_customers?: boolean | null
+          high_contrast_mode?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
           line_height?: number | null
