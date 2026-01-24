@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,8 +9,10 @@ import { generateDisplayStyles, packingStatusColorMap } from '@/utils/displaySty
 import CustomerHeader from '@/components/display/CustomerHeader';
 import CustomerProductsList from '@/components/display/customer/CustomerProductsList';
 import CustomerStatusProgress from '@/components/display/customer/CustomerStatusProgress';
+import CompletionAnimation from '@/components/display/customer/CompletionAnimation';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import FullscreenButton from '@/components/display/FullscreenButton';
+import { useCompletionSound } from '@/hooks/useCompletionSound';
 import { 
   usePublicCustomerByDisplayUrl, 
   usePublicDisplaySettings, 
@@ -281,8 +283,36 @@ const CustomerDisplay = () => {
 
   const sessionProgress = getSessionProgress();
 
+  // Completion animation and sound
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const prevProgressRef = React.useRef(sessionProgress.percentage);
+
+  // Trigger completion animation when hitting 100%
+  useEffect(() => {
+    if (sessionProgress.percentage === 100 && prevProgressRef.current < 100) {
+      setShowCompletionAnimation(true);
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => setShowCompletionAnimation(false), 5000);
+      return () => clearTimeout(timer);
+    }
+    prevProgressRef.current = sessionProgress.percentage;
+  }, [sessionProgress.percentage]);
+
+  // Completion sound
+  useCompletionSound(
+    sessionProgress.isCompleted, 
+    settings?.customer_completion_sound ?? false
+  );
+
   return (
     <div className="min-h-screen p-8" style={displayStyles}>
+      {/* Completion Animation Overlay */}
+      <CompletionAnimation 
+        isVisible={showCompletionAnimation}
+        settings={settings}
+        customerName={customer.name}
+      />
+
       <div className="max-w-4xl mx-auto space-y-8">
         <CustomerHeader
           customerName={customer.name}
