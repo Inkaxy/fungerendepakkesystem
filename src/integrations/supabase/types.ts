@@ -249,9 +249,11 @@ export type Database = {
           auto_refresh_interval: number | null
           auto_screen_detection: boolean | null
           background_color: string | null
+          background_gradient_direction: string | null
           background_gradient_end: string | null
           background_gradient_start: string | null
           background_image_url: string | null
+          background_overlay_opacity: number | null
           background_type: string | null
           bakery_id: string
           basket_display_format: string | null
@@ -259,16 +261,29 @@ export type Database = {
           border_radius: number | null
           card_background_color: string | null
           card_border_color: string | null
+          card_border_width: number | null
+          card_hover_effect: boolean | null
           card_shadow_intensity: number | null
           cat_animation_speed: string | null
           compact_status_progress: boolean | null
           created_at: string
           customer_card_height: string | null
+          customer_card_style: string | null
           customer_cards_columns: number | null
           customer_cards_gap: number | null
+          customer_completion_message: string | null
+          customer_completion_sound: boolean | null
+          customer_content_padding: number | null
           customer_display_header_size: number | null
           customer_display_show_date: boolean | null
+          customer_fullscreen_mode: boolean | null
+          customer_header_alignment: string | null
+          customer_max_content_width: number | null
+          customer_name_font_size: number | null
           customer_priority_mode: string | null
+          customer_show_bakery_name: boolean | null
+          customer_show_completion_animation: boolean | null
+          customer_show_delivery_info: boolean | null
           customer_sort_order: string | null
           display_margin: number | null
           display_padding: number | null
@@ -285,6 +300,7 @@ export type Database = {
           high_contrast_mode: boolean | null
           id: string
           large_screen_optimization: boolean | null
+          large_touch_targets: boolean | null
           line_height: number | null
           line_items_count_font_size: number | null
           main_title: string | null
@@ -303,28 +319,50 @@ export type Database = {
           product_3_text_color: string | null
           product_accent_color: string | null
           product_card_color: string | null
+          product_card_layout: string | null
           product_card_padding: number | null
           product_card_size: number | null
           product_change_animation: boolean | null
+          product_columns: number | null
+          product_group_by_status: boolean | null
           product_list_style: string | null
           product_name_font_size: number | null
           product_name_font_weight: number | null
           product_quantity_font_size: number | null
           product_quantity_font_weight: number | null
+          product_show_category: boolean | null
           product_spacing: number | null
           product_text_color: string | null
           product_unit_font_size: number | null
           progress_animation: boolean | null
           progress_background_color: string | null
           progress_bar_color: string | null
+          progress_bar_style: string | null
           progress_height: number | null
+          progress_show_fraction: boolean | null
+          pulse_on_update: boolean | null
+          reduce_motion: boolean | null
           responsive_breakpoint: string | null
           screen_size_preset: string | null
           screen_type: string
+          shared_auto_scroll: boolean | null
+          shared_completed_customer_opacity: number | null
+          shared_content_padding: number | null
+          shared_fullscreen_mode: boolean | null
+          shared_header_alignment: string | null
+          shared_hide_completed_customers: boolean | null
+          shared_logo_size: number | null
+          shared_logo_url: string | null
+          shared_product_font_size: number | null
+          shared_scroll_speed: number | null
+          shared_show_clock: boolean | null
+          shared_show_logo: boolean | null
+          shared_show_product_quantity: boolean | null
           show_basket_quantity: boolean | null
           show_bouncing_cats: boolean | null
           show_customer_info: boolean | null
           show_customer_numbers: boolean | null
+          show_customer_progress_bar: boolean | null
           show_date_indicator: boolean | null
           show_delivery_date_indicators: boolean | null
           show_delivery_dates: boolean | null
@@ -343,8 +381,11 @@ export type Database = {
           show_truck_icon: boolean | null
           spacing: number | null
           stats_card_height: string | null
+          stats_card_style: string | null
           stats_columns: number | null
           stats_icon_color: string | null
+          stats_show_icons: boolean | null
+          stats_show_percentage: boolean | null
           status_badge_font_size: number | null
           status_completed_color: string | null
           status_delivered_color: string | null
@@ -362,6 +403,7 @@ export type Database = {
           text_shadow_offset_y: number | null
           touch_friendly_sizes: boolean | null
           touch_target_size: number | null
+          truck_animation_style: string | null
           truck_icon_size: number | null
           updated_at: string
         }
@@ -373,9 +415,11 @@ export type Database = {
           auto_refresh_interval?: number | null
           auto_screen_detection?: boolean | null
           background_color?: string | null
+          background_gradient_direction?: string | null
           background_gradient_end?: string | null
           background_gradient_start?: string | null
           background_image_url?: string | null
+          background_overlay_opacity?: number | null
           background_type?: string | null
           bakery_id: string
           basket_display_format?: string | null
@@ -383,16 +427,29 @@ export type Database = {
           border_radius?: number | null
           card_background_color?: string | null
           card_border_color?: string | null
+          card_border_width?: number | null
+          card_hover_effect?: boolean | null
           card_shadow_intensity?: number | null
           cat_animation_speed?: string | null
           compact_status_progress?: boolean | null
           created_at?: string
           customer_card_height?: string | null
+          customer_card_style?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
+          customer_completion_message?: string | null
+          customer_completion_sound?: boolean | null
+          customer_content_padding?: number | null
           customer_display_header_size?: number | null
           customer_display_show_date?: boolean | null
+          customer_fullscreen_mode?: boolean | null
+          customer_header_alignment?: string | null
+          customer_max_content_width?: number | null
+          customer_name_font_size?: number | null
           customer_priority_mode?: string | null
+          customer_show_bakery_name?: boolean | null
+          customer_show_completion_animation?: boolean | null
+          customer_show_delivery_info?: boolean | null
           customer_sort_order?: string | null
           display_margin?: number | null
           display_padding?: number | null
@@ -409,6 +466,7 @@ export type Database = {
           high_contrast_mode?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
+          large_touch_targets?: boolean | null
           line_height?: number | null
           line_items_count_font_size?: number | null
           main_title?: string | null
@@ -427,28 +485,50 @@ export type Database = {
           product_3_text_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
+          product_card_layout?: string | null
           product_card_padding?: number | null
           product_card_size?: number | null
           product_change_animation?: boolean | null
+          product_columns?: number | null
+          product_group_by_status?: boolean | null
           product_list_style?: string | null
           product_name_font_size?: number | null
           product_name_font_weight?: number | null
           product_quantity_font_size?: number | null
           product_quantity_font_weight?: number | null
+          product_show_category?: boolean | null
           product_spacing?: number | null
           product_text_color?: string | null
           product_unit_font_size?: number | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
+          progress_bar_style?: string | null
           progress_height?: number | null
+          progress_show_fraction?: boolean | null
+          pulse_on_update?: boolean | null
+          reduce_motion?: boolean | null
           responsive_breakpoint?: string | null
           screen_size_preset?: string | null
           screen_type?: string
+          shared_auto_scroll?: boolean | null
+          shared_completed_customer_opacity?: number | null
+          shared_content_padding?: number | null
+          shared_fullscreen_mode?: boolean | null
+          shared_header_alignment?: string | null
+          shared_hide_completed_customers?: boolean | null
+          shared_logo_size?: number | null
+          shared_logo_url?: string | null
+          shared_product_font_size?: number | null
+          shared_scroll_speed?: number | null
+          shared_show_clock?: boolean | null
+          shared_show_logo?: boolean | null
+          shared_show_product_quantity?: boolean | null
           show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
+          show_customer_progress_bar?: boolean | null
           show_date_indicator?: boolean | null
           show_delivery_date_indicators?: boolean | null
           show_delivery_dates?: boolean | null
@@ -467,8 +547,11 @@ export type Database = {
           show_truck_icon?: boolean | null
           spacing?: number | null
           stats_card_height?: string | null
+          stats_card_style?: string | null
           stats_columns?: number | null
           stats_icon_color?: string | null
+          stats_show_icons?: boolean | null
+          stats_show_percentage?: boolean | null
           status_badge_font_size?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
@@ -486,6 +569,7 @@ export type Database = {
           text_shadow_offset_y?: number | null
           touch_friendly_sizes?: boolean | null
           touch_target_size?: number | null
+          truck_animation_style?: string | null
           truck_icon_size?: number | null
           updated_at?: string
         }
@@ -497,9 +581,11 @@ export type Database = {
           auto_refresh_interval?: number | null
           auto_screen_detection?: boolean | null
           background_color?: string | null
+          background_gradient_direction?: string | null
           background_gradient_end?: string | null
           background_gradient_start?: string | null
           background_image_url?: string | null
+          background_overlay_opacity?: number | null
           background_type?: string | null
           bakery_id?: string
           basket_display_format?: string | null
@@ -507,16 +593,29 @@ export type Database = {
           border_radius?: number | null
           card_background_color?: string | null
           card_border_color?: string | null
+          card_border_width?: number | null
+          card_hover_effect?: boolean | null
           card_shadow_intensity?: number | null
           cat_animation_speed?: string | null
           compact_status_progress?: boolean | null
           created_at?: string
           customer_card_height?: string | null
+          customer_card_style?: string | null
           customer_cards_columns?: number | null
           customer_cards_gap?: number | null
+          customer_completion_message?: string | null
+          customer_completion_sound?: boolean | null
+          customer_content_padding?: number | null
           customer_display_header_size?: number | null
           customer_display_show_date?: boolean | null
+          customer_fullscreen_mode?: boolean | null
+          customer_header_alignment?: string | null
+          customer_max_content_width?: number | null
+          customer_name_font_size?: number | null
           customer_priority_mode?: string | null
+          customer_show_bakery_name?: boolean | null
+          customer_show_completion_animation?: boolean | null
+          customer_show_delivery_info?: boolean | null
           customer_sort_order?: string | null
           display_margin?: number | null
           display_padding?: number | null
@@ -533,6 +632,7 @@ export type Database = {
           high_contrast_mode?: boolean | null
           id?: string
           large_screen_optimization?: boolean | null
+          large_touch_targets?: boolean | null
           line_height?: number | null
           line_items_count_font_size?: number | null
           main_title?: string | null
@@ -551,28 +651,50 @@ export type Database = {
           product_3_text_color?: string | null
           product_accent_color?: string | null
           product_card_color?: string | null
+          product_card_layout?: string | null
           product_card_padding?: number | null
           product_card_size?: number | null
           product_change_animation?: boolean | null
+          product_columns?: number | null
+          product_group_by_status?: boolean | null
           product_list_style?: string | null
           product_name_font_size?: number | null
           product_name_font_weight?: number | null
           product_quantity_font_size?: number | null
           product_quantity_font_weight?: number | null
+          product_show_category?: boolean | null
           product_spacing?: number | null
           product_text_color?: string | null
           product_unit_font_size?: number | null
           progress_animation?: boolean | null
           progress_background_color?: string | null
           progress_bar_color?: string | null
+          progress_bar_style?: string | null
           progress_height?: number | null
+          progress_show_fraction?: boolean | null
+          pulse_on_update?: boolean | null
+          reduce_motion?: boolean | null
           responsive_breakpoint?: string | null
           screen_size_preset?: string | null
           screen_type?: string
+          shared_auto_scroll?: boolean | null
+          shared_completed_customer_opacity?: number | null
+          shared_content_padding?: number | null
+          shared_fullscreen_mode?: boolean | null
+          shared_header_alignment?: string | null
+          shared_hide_completed_customers?: boolean | null
+          shared_logo_size?: number | null
+          shared_logo_url?: string | null
+          shared_product_font_size?: number | null
+          shared_scroll_speed?: number | null
+          shared_show_clock?: boolean | null
+          shared_show_logo?: boolean | null
+          shared_show_product_quantity?: boolean | null
           show_basket_quantity?: boolean | null
           show_bouncing_cats?: boolean | null
           show_customer_info?: boolean | null
           show_customer_numbers?: boolean | null
+          show_customer_progress_bar?: boolean | null
           show_date_indicator?: boolean | null
           show_delivery_date_indicators?: boolean | null
           show_delivery_dates?: boolean | null
@@ -591,8 +713,11 @@ export type Database = {
           show_truck_icon?: boolean | null
           spacing?: number | null
           stats_card_height?: string | null
+          stats_card_style?: string | null
           stats_columns?: number | null
           stats_icon_color?: string | null
+          stats_show_icons?: boolean | null
+          stats_show_percentage?: boolean | null
           status_badge_font_size?: number | null
           status_completed_color?: string | null
           status_delivered_color?: string | null
@@ -610,6 +735,7 @@ export type Database = {
           text_shadow_offset_y?: number | null
           touch_friendly_sizes?: boolean | null
           touch_target_size?: number | null
+          truck_animation_style?: string | null
           truck_icon_size?: number | null
           updated_at?: string
         }
