@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface SharedDisplayHeaderProps {
   settings: DisplaySettings | undefined;
-  connectionStatus: 'connected' | 'connecting' | 'disconnected';
+  connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'demo';
   activePackingDate: string | undefined;
 }
 

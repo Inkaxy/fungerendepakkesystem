@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package2, Clock } from 'lucide-react';
@@ -29,17 +29,23 @@ import { useWakeLock } from '@/hooks/useWakeLock';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { QUERY_KEYS } from '@/lib/queryKeys';
+import { DEMO_DEDICATED_CUSTOMER, DEMO_DEDICATED_PACKING_DATA, DEMO_PACKING_DATE } from '@/utils/demoDisplayData';
 
 const CustomerDisplay = () => {
   const queryClient = useQueryClient();
   const { displayUrl } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  // ✅ Demo-modus sjekk
+  const isDemo = searchParams.get('demo') === 'true';
   
   // ✅ Debounce for tom-state - forhindrer flimring ved sesjonsskifte
   const [showEmptyState, setShowEmptyState] = React.useState(false);
   
-  // ✅ KRITISK FIX: Invalidate cache ved mount (ikke remove - unngår race condition)
+  // ✅ KRITISK FIX: Invalidate cache ved mount (ikke remove - unngår race condition) - skip i demo
   React.useEffect(() => {
+    if (isDemo) return;
     console.log('🔄 CustomerDisplay mounted - invaliderer display cache');
     
     queryClient.invalidateQueries({
@@ -61,16 +67,23 @@ const CustomerDisplay = () => {
     });
     
     console.log('✅ Display cache invalidert - vil fetche fresh data');
-  }, [queryClient]);
+  }, [isDemo, queryClient]);
   
-  // Use public hooks that don't require authentication
-  const { data: customer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(displayUrl || '');
+  // Use public hooks that don't require authentication - skip i demo
+  const { data: realCustomer, isLoading: customerLoading } = usePublicCustomerByDisplayUrl(isDemo ? '' : (displayUrl || ''));
+  
+  // ✅ Demo: Bruk demo-kunde, ellers ekte kunde
+  const customer = isDemo ? DEMO_DEDICATED_CUSTOMER : realCustomer;
+  
   const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id);
-  const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(customer?.bakery_id);
+  const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(isDemo ? undefined : customer?.bakery_id);
   
-  // ✅ Invalidate packing data når aktiv dato endres (ikke remove - unngår race condition)
+  // ✅ Demo-dato eller ekte dato
+  const effectivePackingDate = isDemo ? DEMO_PACKING_DATE : activePackingDate;
+  
+  // ✅ Invalidate packing data når aktiv dato endres (ikke remove - unngår race condition) - skip i demo
   React.useEffect(() => {
-    if (!customer?.bakery_id || !activePackingDate) return;
+    if (isDemo || !customer?.bakery_id || !activePackingDate) return;
     
     queryClient.invalidateQueries({
       predicate: (query) => 
@@ -79,39 +92,39 @@ const CustomerDisplay = () => {
       refetchType: 'active'
     });
     console.log('🔄 Aktiv dato endret - invaliderte gamle packing cache entries');
-  }, [customer?.bakery_id, activePackingDate, queryClient]);
+  }, [isDemo, customer?.bakery_id, activePackingDate, queryClient]);
   
   // Bruk alltid dagens dato hvis ingen aktiv pakkesession finnes
-  const displayDate = activePackingDate || format(new Date(), 'yyyy-MM-dd');
+  const displayDate = effectivePackingDate || format(new Date(), 'yyyy-MM-dd');
   
-  // ✅ Hent activeProducts FØR usePublicPackingData
+  // ✅ Hent activeProducts FØR usePublicPackingData - skip i demo
   const { data: activeProducts, isLoading: activeProductsLoading } = usePublicActivePackingProducts(
-    customer?.bakery_id,
-    displayDate
+    isDemo ? undefined : customer?.bakery_id,
+    isDemo ? undefined : displayDate
   );
   
   const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
-    customer?.id, 
-    customer?.bakery_id, 
-    displayDate,
-    activeProducts, // ✅ KRITISK: Send activeProducts som parameter
-    customer?.name  // ✅ FIX: Send customerName for å unngå JOIN med public_display_customers
+    isDemo ? undefined : customer?.id, 
+    isDemo ? undefined : customer?.bakery_id, 
+    isDemo ? undefined : displayDate,
+    isDemo ? undefined : activeProducts,
+    isDemo ? undefined : customer?.name
   );
   const { data: packingSession } = usePublicPackingSession(
-    customer?.bakery_id, 
-    displayDate
+    isDemo ? undefined : customer?.bakery_id, 
+    isDemo ? undefined : displayDate
   );
   
-  // ✅ KRITISK: Real-time hooks MÅ kalles FØR noen conditional returns
-  // Dette sikrer at WebSocket kobles til umiddelbart ved mount
-  const { connectionStatus } = useRealTimePublicDisplay(customer?.bakery_id);
-  useDisplayRefreshBroadcast(customer?.bakery_id, true);
+  // ✅ KRITISK: Real-time hooks MÅ kalles FØR noen conditional returns - skip i demo
+  const { connectionStatus } = useRealTimePublicDisplay(isDemo ? undefined : customer?.bakery_id);
+  useDisplayRefreshBroadcast(isDemo ? undefined : customer?.bakery_id, !isDemo);
   
-  // ✅ NY: Broadcast listener for push-first oppdateringer (< 100ms latency)
-  usePackingBroadcastListener(customer?.bakery_id);
+  // ✅ NY: Broadcast listener for push-first oppdateringer (< 100ms latency) - skip i demo
+  usePackingBroadcastListener(isDemo ? undefined : customer?.bakery_id);
   
   // Wake Lock - forhindrer at skjermen slukkes
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
+
 
   // 🔄 Fallback polling - kun når WebSocket er disconnected
   React.useEffect(() => {
@@ -177,13 +190,14 @@ const CustomerDisplay = () => {
   }, [queryClient]);
   
   // ✅ GUARD: Ikke fortsett før activeProducts er lastet
-  if (activeProductsLoading) {
+  // Skip loading states i demo-modus
+  if (!isDemo && activeProductsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={settings ? generateDisplayStyles(settings) : {}}>
         <Card className="max-w-md">
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p>Henter aktive produkter...</p>
             </div>
           </CardContent>
@@ -194,10 +208,10 @@ const CustomerDisplay = () => {
 
   // ✅ Ingen early return - la STATUS og PROGRESS alltid vises
 
-  const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
+  const isToday = effectivePackingDate ? effectivePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
 
-  // Only wait for customer loading initially, then settings if customer exists
-  const isInitialLoading = customerLoading || (customer && settingsLoading);
+  // Only wait for customer loading initially, then settings if customer exists - skip i demo
+  const isInitialLoading = !isDemo && (customerLoading || (customer && settingsLoading));
   if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
@@ -205,7 +219,7 @@ const CustomerDisplay = () => {
         <Card className="max-w-md">
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p>Laster pakkeskjerm...</p>
             </div>
           </CardContent>
@@ -243,20 +257,24 @@ const CustomerDisplay = () => {
     );
   }
 
-  const customerPackingData = packingData?.find(data => data.id === customer.id);
+  // ✅ Demo-data eller ekte data
+  const customerPackingData = isDemo 
+    ? DEMO_DEDICATED_PACKING_DATA 
+    : packingData?.find(data => data.id === customer.id);
 
-  // 🧠 Filtrer kundens produkter basert på aktive produkter i DB
+  // 🧠 Filtrer kundens produkter basert på aktive produkter i DB (skip i demo)
   const maxProducts = settings?.max_products_per_card ?? 3;
-  const displayProducts =
-    customerPackingData && activeProducts
-      ? customerPackingData.products
-          .filter(p =>
-            activeProducts.some(ap => 
-              ap.product_id === p.product_id || ap.product_name === p.product_name
+  const displayProducts = isDemo
+    ? DEMO_DEDICATED_PACKING_DATA.products.slice(0, maxProducts)
+    : (customerPackingData && activeProducts
+        ? customerPackingData.products
+            .filter(p =>
+              activeProducts.some(ap => 
+                ap.product_id === p.product_id || ap.product_name === p.product_name
+              )
             )
-          )
-          .slice(0, maxProducts) // ✅ Dynamisk maks produkter
-      : customerPackingData?.products ?? [];
+            .slice(0, maxProducts)
+        : customerPackingData?.products ?? []);
 
   const displayCustomerPackingData = customerPackingData
     ? { ...customerPackingData, products: displayProducts }
@@ -266,6 +284,9 @@ const CustomerDisplay = () => {
 
   // Helper function to calculate session-based progress
   const getSessionProgress = () => {
+    if (isDemo) {
+      return { percentage: DEMO_DEDICATED_PACKING_DATA.progress_percentage, isCompleted: DEMO_DEDICATED_PACKING_DATA.progress_percentage >= 100 };
+    }
     if (packingSession && packingSession.status === 'completed') {
       return { percentage: 100, isCompleted: true };
     }
