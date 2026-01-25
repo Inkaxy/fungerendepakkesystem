@@ -1,20 +1,28 @@
 
 import { Badge } from '@/components/ui/badge';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, Eye } from 'lucide-react';
 
 interface ConnectionStatusProps {
-  status: 'connected' | 'connecting' | 'disconnected';
+  status: 'connected' | 'connecting' | 'disconnected' | 'demo';
   pollingActive?: boolean;
   className?: string;
 }
 
 export const ConnectionStatus = ({ status, pollingActive = false, className = '' }: ConnectionStatusProps) => {
   const getConfig = (): { 
-    icon: typeof Wifi | typeof RefreshCw | typeof WifiOff; 
+    icon: typeof Wifi | typeof RefreshCw | typeof WifiOff | typeof Eye; 
     label: string; 
     sublabel?: string; 
     badge: 'default' | 'secondary' | 'destructive' 
   } => {
+    if (status === 'demo') {
+      return {
+        icon: Eye,
+        label: 'Demo',
+        sublabel: 'Viser eksempeldata',
+        badge: 'secondary'
+      };
+    }
     if (status === 'connected') {
       return {
         icon: Wifi,

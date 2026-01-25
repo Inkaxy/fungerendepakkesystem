@@ -23,20 +23,20 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   // Filtrer kun kunder med dedikert display
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
 
-  // Generer iframe URL basert på valgt display type
+  // Generer iframe URL basert på valgt display type - alltid med demo=true for forhåndsvisning
   const getIframeUrl = () => {
     if (displayType === 'shared') {
-      return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
+      return bakeryId ? `/display/shared/${bakeryId}?demo=true` : '/display/shared?demo=true';
     }
     
     if (selectedCustomerId) {
       const customer = customers?.find(c => c.id === selectedCustomerId);
       if (customer?.display_url) {
-        return `/display/${customer.display_url}`;
+        return `/display/${customer.display_url}?demo=true`;
       }
     }
     
-    return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
+    return bakeryId ? `/display/shared/${bakeryId}?demo=true` : '/display/shared?demo=true';
   };
 
   const iframeUrl = getIframeUrl();

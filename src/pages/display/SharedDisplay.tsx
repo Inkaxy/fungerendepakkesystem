@@ -1,9 +1,10 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
 import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
+import DemoCustomerCard from '@/components/display/shared/DemoCustomerCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import FullscreenButton from '@/components/display/FullscreenButton';
@@ -21,36 +22,43 @@ import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils
 import { format } from 'date-fns';
 import { QUERY_KEYS } from '@/lib/queryKeys';
 import { cn } from '@/lib/utils';
+import { DEMO_CUSTOMERS, DEMO_PACKING_DATA, DEMO_PACKING_DATE } from '@/utils/demoDisplayData';
 
 const SharedDisplay = () => {
   const { bakeryId } = useParams<{ bakeryId: string }>();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [scrollDirection, setScrollDirection] = useState<'down' | 'up'>('down');
+  
+  // ✅ Demo-modus sjekk
+  const isDemo = searchParams.get('demo') === 'true';
   
   // Bruk public hooks - ingen autentisering nødvendig
   const { data: customers, isLoading: customersLoading } = usePublicSharedDisplayCustomers(bakeryId);
   const { data: settings } = usePublicDisplaySettings(bakeryId);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(bakeryId);
   
-  // Filter shared display customers (allerede filtrert i view, men dobbeltsjekk)
-  const sharedDisplayCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
+  // ✅ Ekte kunder (kun for non-demo)
+  const realCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
-  // Real-time listener for cache updates (WebSocket fra postgres_changes)
-  const { connectionStatus } = useRealTimePublicDisplay(bakeryId);
+  const effectivePackingDate = isDemo ? DEMO_PACKING_DATE : activePackingDate;
   
-  // ✅ NY: Broadcast listener for push-first oppdateringer (< 100ms latency)
-  usePackingBroadcastListener(bakeryId);
+  // Real-time listener for cache updates (WebSocket fra postgres_changes) - skip i demo
+  const { connectionStatus } = useRealTimePublicDisplay(isDemo ? undefined : bakeryId);
   
-  // Lytt på refresh broadcasts fra admin
-  useDisplayRefreshBroadcast(bakeryId, true);
+  // ✅ NY: Broadcast listener for push-first oppdateringer (< 100ms latency) - skip i demo
+  usePackingBroadcastListener(isDemo ? undefined : bakeryId);
+  
+  // Lytt på refresh broadcasts fra admin - skip i demo
+  useDisplayRefreshBroadcast(isDemo ? undefined : bakeryId, !isDemo);
 
   // Wake Lock - forhindrer at skjermen slukkes
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
-  // 🔄 Fallback polling - kun når WebSocket er disconnected
+  // 🔄 Fallback polling - kun når WebSocket er disconnected (skip i demo)
   useEffect(() => {
-    if (!bakeryId || connectionStatus === 'connected') return;
+    if (isDemo || !bakeryId || connectionStatus === 'connected') return;
 
     console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
@@ -73,14 +81,14 @@ const SharedDisplay = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [bakeryId, connectionStatus, queryClient]);
+  }, [isDemo, bakeryId, connectionStatus, queryClient]);
 
-  // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall)
-  useDisplayHeartbeat({ bakeryId, enabled: !!bakeryId });
+  // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall) - skip i demo
+  useDisplayHeartbeat({ bakeryId: isDemo ? undefined : bakeryId, enabled: !isDemo && !!bakeryId });
 
-  // ✅ Invalidate cache ved mount (ikke remove - forhindrer race condition)
+  // ✅ Invalidate cache ved mount (ikke remove - forhindrer race condition) - skip i demo
   useEffect(() => {
-    if (!bakeryId) return;
+    if (isDemo || !bakeryId) return;
     
     console.log('🔄 SharedDisplay: Invalidating cache ved mount');
     queryClient.invalidateQueries({ 
@@ -93,11 +101,11 @@ const SharedDisplay = () => {
       exact: false,
       refetchType: 'active'
     });
-  }, [bakeryId, queryClient]);
+  }, [isDemo, bakeryId, queryClient]);
 
-  // Force invalidate av packing data når aktiv dato endres
+  // Force invalidate av packing data når aktiv dato endres - skip i demo
   useEffect(() => {
-    if (!bakeryId || !activePackingDate) return;
+    if (isDemo || !bakeryId || !activePackingDate) return;
     
     queryClient.invalidateQueries({
       queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
@@ -110,7 +118,7 @@ const SharedDisplay = () => {
       refetchType: 'active'
     });
     console.log('🔄 Aktiv dato endret - invaliderer packing cache');
-  }, [bakeryId, activePackingDate, queryClient]);
+  }, [isDemo, bakeryId, activePackingDate, queryClient]);
 
   // 🔄 Auto-scroll funksjonalitet
   useEffect(() => {
@@ -154,9 +162,9 @@ const SharedDisplay = () => {
     };
   }, [settings?.shared_auto_scroll, settings?.shared_scroll_speed, scrollDirection]);
 
-  // Apply customer sorting and filtering based on settings
+  // Apply customer sorting and filtering based on settings (kun for ekte kunder)
   const sortedCustomers = useMemo(() => {
-    let customerList = [...sharedDisplayCustomers];
+    let customerList = [...realCustomers];
     
     // Skjul fullførte kunder hvis innstillingen er på
     if (settings?.shared_hide_completed_customers) {
@@ -172,7 +180,17 @@ const SharedDisplay = () => {
     }
     
     return customerList;
-  }, [sharedDisplayCustomers, settings?.customer_sort_order, settings?.shared_hide_completed_customers]);
+  }, [realCustomers, settings?.customer_sort_order, settings?.shared_hide_completed_customers]);
+  
+  // Demo-kunder sortert
+  const sortedDemoCustomers = useMemo(() => {
+    if (!isDemo) return [];
+    let demoList = DEMO_CUSTOMERS.filter(c => !c.has_dedicated_display);
+    if (settings?.customer_sort_order === 'alphabetical') {
+      return demoList.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return demoList;
+  }, [isDemo, settings?.customer_sort_order]);
 
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? statusColorMap(settings) : {
@@ -182,8 +200,8 @@ const SharedDisplay = () => {
     delivered: '#059669'
   };
 
-  const isToday = activePackingDate ? activePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
-  const isLoading = dateLoading || customersLoading;
+  const isToday = effectivePackingDate ? effectivePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
+  const isLoading = isDemo ? false : (dateLoading || customersLoading);
 
   // Determine grid columns class based on settings
   const getCustomerGridClass = () => {
@@ -241,8 +259,8 @@ const SharedDisplay = () => {
       >
         <SharedDisplayHeader 
           settings={settings}
-          connectionStatus={connectionStatus}
-          activePackingDate={activePackingDate}
+          connectionStatus={isDemo ? 'demo' : connectionStatus}
+          activePackingDate={effectivePackingDate}
         />
 
         {isLoading && (
@@ -262,7 +280,7 @@ const SharedDisplay = () => {
           </Card>
         )}
 
-        {!isLoading && !activePackingDate && (
+        {!isLoading && !effectivePackingDate && !isDemo && (
           <EmptyPackingState
             settings={settings}
             activePackingDate={null}
@@ -270,7 +288,29 @@ const SharedDisplay = () => {
           />
         )}
 
-        {!isLoading && activePackingDate && sortedCustomers.length > 0 ? (
+        {/* Demo-modus: Vis demo-kort */}
+        {isDemo && (
+          <div 
+            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
+            style={{ 
+              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+            }}
+          >
+            {DEMO_PACKING_DATA.map((demoData) => (
+              <DemoCustomerCard
+                key={demoData.id}
+                customerData={demoData}
+                settings={settings}
+                statusColors={statusColors}
+                hideWhenCompleted={settings?.shared_hide_completed_customers}
+                completedOpacity={settings?.shared_completed_customer_opacity}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Ekte data: Vis ekte kunder */}
+        {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length > 0 && (
           <div 
             className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
@@ -282,7 +322,7 @@ const SharedDisplay = () => {
                 key={customer.id}
                 customer={customer}
                 bakeryId={bakeryId}
-                activePackingDate={activePackingDate}
+                activePackingDate={effectivePackingDate}
                 settings={settings}
                 statusColors={statusColors}
                 hideWhenCompleted={settings?.shared_hide_completed_customers}
@@ -290,25 +330,33 @@ const SharedDisplay = () => {
               />
             ))}
           </div>
-        ) : !isLoading && activePackingDate && sortedCustomers.length === 0 ? (
+        )}
+
+        {/* Tom tilstand: Vis kun for ekte data */}
+        {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length === 0 && (
           <EmptyPackingState
             settings={settings}
-            activePackingDate={activePackingDate}
+            activePackingDate={effectivePackingDate}
             isToday={isToday}
           />
-        ) : null}
+        )}
 
         <div className="text-center mt-8">
           <div className="flex items-center justify-center gap-4 mb-2">
             <FullscreenButton settings={settings} />
-            <ConnectionStatus status={connectionStatus} pollingActive={connectionStatus !== 'connected'} />
+            <ConnectionStatus 
+              status={isDemo ? 'demo' : connectionStatus} 
+              pollingActive={!isDemo && connectionStatus !== 'connected'} 
+            />
           </div>
           <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
-            {connectionStatus === 'connected' 
-              ? 'Automatiske oppdateringer via websockets' 
-              : 'Fallback polling aktivt (5s interval)'}
+            {isDemo 
+              ? 'Demo-modus - viser eksempeldata'
+              : connectionStatus === 'connected' 
+                ? 'Automatiske oppdateringer via websockets' 
+                : 'Fallback polling aktivt (5s interval)'}
           </p>
-          {wakeLockSupported && (
+          {wakeLockSupported && !isDemo && (
             <div className="text-xs mt-1 flex items-center justify-center gap-1">
               <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
               <span style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>

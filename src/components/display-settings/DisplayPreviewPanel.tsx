@@ -23,22 +23,23 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
   // Filtrer kun kunder med dedikert display
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
 
-  // Generer iframe URL basert på valgt display type
+  // Generer iframe URL basert på valgt display type - alltid med demo=true for forhåndsvisning
   const getIframeUrl = (): string | null => {
     if (!bakeryId) return null;
     
     if (displayType === 'shared') {
-      return `/display/shared/${bakeryId}`;
+      return `/display/shared/${bakeryId}?demo=true`;
     }
     
     if (selectedCustomerId) {
       const customer = customers?.find(c => c.id === selectedCustomerId);
       if (customer?.display_url) {
-        return `/display/${customer.display_url}`;
+        return `/display/${customer.display_url}?demo=true`;
       }
     }
     
-    return `/display/shared/${bakeryId}`;
+    // Fallback til shared med demo
+    return `/display/shared/${bakeryId}?demo=true`;
   };
 
   const iframeUrl = getIframeUrl();
