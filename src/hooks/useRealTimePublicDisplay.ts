@@ -61,7 +61,28 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
 
     const channel = supabase
       .channel(`public-display-${bakeryId}`)
-      // ✅ NY: Lytt på packing_sessions for sesjonsskifte
+      // ✅ NY: Lytt på display_settings for innstillingsendringer
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'display_settings',
+          filter: `bakery_id=eq.${bakeryId}`
+        },
+        (payload) => {
+          console.log('⚡ WebSocket: display_settings changed', payload.eventType);
+          
+          // Invalidate display settings cache - dette oppdaterer produktfarger osv.
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+            refetchType: 'active'
+          });
+          
+          console.log('✅ Display settings endret - innstillinger cache invalidert');
+        }
+      )
+      // ✅ Lytt på packing_sessions for sesjonsskifte
       .on(
         'postgres_changes',
         {
