@@ -1,12 +1,17 @@
 // Demo data for display preview when no real data exists
 
 export interface DemoProduct {
+  id: string;
   product_id: string;
   product_name: string;
+  product_category: string;
+  product_unit: string;
   total_quantity: number;
   packed_quantity: number;
-  product_unit: string;
+  total_line_items: number;
+  packed_line_items: number;
   packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
+  colorIndex?: number;
 }
 
 export interface DemoCustomerPackingData {
@@ -14,7 +19,7 @@ export interface DemoCustomerPackingData {
   name: string;
   customer_number: string;
   products: DemoProduct[];
-  overall_status: 'pending' | 'ongoing' | 'completed';
+  overall_status: 'ongoing' | 'completed';
   progress_percentage: number;
   total_line_items: number;
   packed_line_items: number;
@@ -96,28 +101,40 @@ export const DEMO_PACKING_DATA: DemoCustomerPackingData[] = [
     customer_number: 'K-001',
     products: [
       {
+        id: 'demo-product-1',
         product_id: 'demo-product-1',
         product_name: 'Grovbrød',
+        product_category: 'Brød',
         total_quantity: 25,
         packed_quantity: 25,
         product_unit: 'stk',
         packing_status: 'packed',
+        total_line_items: 1,
+        packed_line_items: 1,
       },
       {
+        id: 'demo-product-2',
         product_id: 'demo-product-2',
         product_name: 'Kanelboller',
+        product_category: 'Boller',
         total_quantity: 48,
         packed_quantity: 24,
         product_unit: 'stk',
         packing_status: 'in_progress',
+        total_line_items: 1,
+        packed_line_items: 0,
       },
       {
+        id: 'demo-product-3',
         product_id: 'demo-product-3',
         product_name: 'Rundstykker',
+        product_category: 'Brød',
         total_quantity: 60,
         packed_quantity: 0,
         product_unit: 'stk',
         packing_status: 'pending',
+        total_line_items: 1,
+        packed_line_items: 0,
       },
     ],
     overall_status: 'ongoing',
@@ -133,28 +150,40 @@ export const DEMO_PACKING_DATA: DemoCustomerPackingData[] = [
     customer_number: 'K-002',
     products: [
       {
+        id: 'demo-product-4',
         product_id: 'demo-product-4',
         product_name: 'Loff',
+        product_category: 'Brød',
         total_quantity: 30,
         packed_quantity: 30,
         product_unit: 'stk',
         packing_status: 'packed',
+        total_line_items: 1,
+        packed_line_items: 1,
       },
       {
+        id: 'demo-product-5',
         product_id: 'demo-product-5',
         product_name: 'Wienerbrød',
+        product_category: 'Bakst',
         total_quantity: 24,
         packed_quantity: 24,
         product_unit: 'stk',
         packing_status: 'packed',
+        total_line_items: 1,
+        packed_line_items: 1,
       },
       {
+        id: 'demo-product-6',
         product_id: 'demo-product-6',
         product_name: 'Skillingsboller',
+        product_category: 'Boller',
         total_quantity: 36,
         packed_quantity: 36,
         product_unit: 'stk',
         packing_status: 'packed',
+        total_line_items: 1,
+        packed_line_items: 1,
       },
     ],
     overall_status: 'completed',
@@ -170,28 +199,40 @@ export const DEMO_PACKING_DATA: DemoCustomerPackingData[] = [
     customer_number: 'K-003',
     products: [
       {
+        id: 'demo-product-7',
         product_id: 'demo-product-7',
         product_name: 'Croissant',
+        product_category: 'Bakst',
         total_quantity: 20,
         packed_quantity: 20,
         product_unit: 'stk',
         packing_status: 'packed',
+        total_line_items: 1,
+        packed_line_items: 1,
       },
       {
+        id: 'demo-product-8',
         product_id: 'demo-product-8',
         product_name: 'Baguette',
+        product_category: 'Brød',
         total_quantity: 15,
         packed_quantity: 0,
         product_unit: 'stk',
         packing_status: 'pending',
+        total_line_items: 1,
+        packed_line_items: 0,
       },
       {
+        id: 'demo-product-9',
         product_id: 'demo-product-9',
         product_name: 'Focaccia',
+        product_category: 'Brød',
         total_quantity: 12,
         packed_quantity: 0,
         product_unit: 'stk',
         packing_status: 'pending',
+        total_line_items: 1,
+        packed_line_items: 0,
       },
     ],
     overall_status: 'ongoing',
@@ -210,28 +251,40 @@ export const DEMO_DEDICATED_PACKING_DATA: DemoCustomerPackingData = {
   customer_number: 'K-100',
   products: [
     {
+      id: 'demo-product-10',
       product_id: 'demo-product-10',
       product_name: 'Havrebrød',
+      product_category: 'Brød',
       total_quantity: 40,
       packed_quantity: 40,
       product_unit: 'stk',
       packing_status: 'packed',
+      total_line_items: 1,
+      packed_line_items: 1,
     },
     {
+      id: 'demo-product-11',
       product_id: 'demo-product-11',
       product_name: 'Kardemommeboller',
+      product_category: 'Boller',
       total_quantity: 60,
       packed_quantity: 30,
       product_unit: 'stk',
       packing_status: 'in_progress',
+      total_line_items: 1,
+      packed_line_items: 0,
     },
     {
+      id: 'demo-product-12',
       product_id: 'demo-product-12',
       product_name: 'Sjokoladekake',
+      product_category: 'Kaker',
       total_quantity: 8,
       packed_quantity: 0,
       product_unit: 'stk',
       packing_status: 'pending',
+      total_line_items: 1,
+      packed_line_items: 0,
     },
   ],
   overall_status: 'ongoing',
