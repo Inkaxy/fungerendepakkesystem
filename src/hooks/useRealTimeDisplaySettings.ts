@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores/authStore';
+import { QUERY_KEYS } from '@/lib/queryKeys';
 
 export const useRealTimeDisplaySettings = () => {
   const queryClient = useQueryClient();
@@ -38,20 +39,25 @@ export const useRealTimeDisplaySettings = () => {
           
           if (!isMountedRef.current) return;
           
-          // Invalidate bakery-specific queries
-          queryClient.invalidateQueries({ queryKey: ['display-settings', profile.bakery_id] });
+          // ✅ Invalidate both authenticated and public query keys
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.DISPLAY_SETTINGS[0], profile.bakery_id] });
           
           if (!isMountedRef.current) return;
           
-          queryClient.invalidateQueries({ queryKey: ['packing-data', profile.bakery_id] });
+          // ✅ KRITISK FIX: Invalidate public display settings for live displays
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], profile.bakery_id] });
           
           if (!isMountedRef.current) return;
           
-          queryClient.invalidateQueries({ queryKey: ['customers', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PACKING_DATA[0], profile.bakery_id] });
           
           if (!isMountedRef.current) return;
           
-          queryClient.invalidateQueries({ queryKey: ['orders', profile.bakery_id] });
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CUSTOMERS[0], profile.bakery_id] });
+          
+          if (!isMountedRef.current) return;
+          
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ORDERS[0], profile.bakery_id] });
 
           // Show a subtle notification that settings were updated
           toast({
