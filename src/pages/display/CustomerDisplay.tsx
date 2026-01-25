@@ -337,46 +337,62 @@ const CustomerDisplay = () => {
     settings?.customer_completion_sound ?? false
   );
 
+  // Apply customer-specific layout settings
+  const contentPadding = settings?.customer_content_padding ?? 32;
+  const maxContentWidth = settings?.customer_max_content_width ?? 1200;
+  
   return (
-    <div className="min-h-screen p-8" style={displayStyles}>
+    <div 
+      className="min-h-screen" 
+      style={{
+        ...displayStyles,
+        padding: `${contentPadding}px`,
+      }}
+    >
       {/* Completion Animation Overlay */}
       <CompletionAnimation 
-        isVisible={showCompletionAnimation}
+        isVisible={showCompletionAnimation && (settings?.customer_show_completion_animation ?? true)}
         settings={settings}
         customerName={customer.name}
       />
 
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div 
+        className="mx-auto space-y-8"
+        style={{ maxWidth: `${maxContentWidth}px` }}
+      >
+        {/* Customer Header - uses customer_display_header_size and customer_header_alignment */}
         <CustomerHeader
           customerName={customer.name}
           showRefresh={false}
           settings={settings}
         />
 
-        {/* Date card - vises alltid */}
-        <Card
-          style={{
-            backgroundColor: settings?.card_background_color || '#ffffff',
-            borderColor: settings?.card_border_color || '#e5e7eb',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          }}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
-              <span 
-                className="text-2xl font-semibold capitalize"
-                style={{ 
-                  color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
-                }}
-              >
-                {!isToday && 'PAKKING FOR: '}
-                {format(new Date(displayDate), 'EEEE dd.MM.yy', { locale: nb })}
-                {!isToday && ' (ikke i dag)'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Date card - controlled by customer_display_show_date */}
+        {(settings?.customer_display_show_date ?? true) && (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+            }}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
+                <span 
+                  className="text-2xl font-semibold capitalize"
+                  style={{ 
+                    color: !isToday ? '#dc2626' : (settings?.text_color || '#6b7280'),
+                  }}
+                >
+                  {!isToday && 'PAKKING FOR: '}
+                  {format(new Date(displayDate), 'EEEE dd.MM.yy', { locale: nb })}
+                  {!isToday && ' (ikke i dag)'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Content area - conditional basert på state */}
         {activeProductsLoading ? (

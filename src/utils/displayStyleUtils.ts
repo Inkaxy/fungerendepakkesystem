@@ -21,8 +21,18 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     }
   })();
 
+  // Respect reduce_motion setting
+  const shouldAnimate = settings.enable_animations && !settings.reduce_motion;
+  
   const animationDuration = settings.animation_speed === 'slow' ? '2s' : 
                            settings.animation_speed === 'fast' ? '0.5s' : '1s';
+
+  // High contrast mode adjustments
+  const contrastAdjustments = settings.high_contrast_mode ? {
+    '--high-contrast': '1',
+  } : {
+    '--high-contrast': '0',
+  };
 
   return {
     '--header-font-size': `${settings.header_font_size}px`,
@@ -53,10 +63,11 @@ export const generateDisplayStyles = (settings: DisplaySettings) => {
     '--shadow-intensity': `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)`,
     '--truck-icon-size': `${settings.truck_icon_size}px`,
     '--animation-duration': animationDuration,
-    '--enable-animations': settings.enable_animations ? '1' : '0',
-    '--fade-transitions': settings.fade_transitions ? '1' : '0',
-    '--progress-animation': settings.progress_animation ? '1' : '0',
+    '--enable-animations': shouldAnimate ? '1' : '0',
+    '--fade-transitions': settings.fade_transitions && !settings.reduce_motion ? '1' : '0',
+    '--progress-animation': settings.progress_animation && !settings.reduce_motion ? '1' : '0',
     '--product-card-size': `${settings.product_card_size}%`,
+    ...contrastAdjustments,
     ...backgroundStyle,
   } as React.CSSProperties & { [key: string]: string };
 };
