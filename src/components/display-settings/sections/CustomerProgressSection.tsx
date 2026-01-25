@@ -145,9 +145,10 @@ const CustomerProgressSection = ({ settings, onUpdate }: CustomerProgressSection
             value={settings.truck_icon_size}
             onChange={(value) => onUpdate({ truck_icon_size: value })}
             min={16}
-            max={48}
+            max={100}
             step={4}
             unit="px"
+            description="Størrelsen på varebil-ikonet"
           />
           <div className="space-y-2">
             <Label>Animasjons-stil</Label>

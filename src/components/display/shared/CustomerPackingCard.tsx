@@ -117,11 +117,16 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 </span>
               </div>
               <div 
-                className="w-full rounded-full h-2 overflow-hidden"
-                style={{ backgroundColor: settings?.progress_background_color || '#e5e7eb' }}
+                className="w-full rounded-full relative overflow-visible"
+                style={{ 
+                  backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                  height: `${settings?.progress_height || 8}px`,
+                  marginLeft: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
+                  marginRight: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
+                }}
               >
                 <div 
-                  className="h-2 rounded-full"
+                  className="rounded-full h-full"
                   style={{ 
                     backgroundColor: settings?.progress_bar_color || '#3b82f6',
                     width: `${customerData.progress_percentage}%`,
@@ -129,6 +134,21 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     willChange: 'width',
                   }}
                 />
+                {(settings?.show_truck_icon ?? false) && (
+                  <img
+                    src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
+                    alt="Varebil"
+                    className="absolute top-1/2 transform -translate-y-1/2"
+                    style={{ 
+                      left: `calc(${customerData.progress_percentage}% - ${(settings?.truck_icon_size || 24) / 2}px)`,
+                      width: `${settings?.truck_icon_size || 24}px`,
+                      height: `${settings?.truck_icon_size || 24}px`,
+                      objectFit: 'contain',
+                      transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                      zIndex: 10,
+                    }}
+                  />
+                )}
               </div>
               {(settings?.show_line_items_count ?? true) && (
                 <div className="text-xs text-center">
@@ -244,7 +264,10 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     prevProps.customerData.overall_status === nextProps.customerData.overall_status &&
     prevProps.customerData.products.length === nextProps.customerData.products.length &&
     prevProps.settings?.card_hover_effect === nextProps.settings?.card_hover_effect &&
-    prevProps.settings?.customer_card_style === nextProps.settings?.customer_card_style
+    prevProps.settings?.customer_card_style === nextProps.settings?.customer_card_style &&
+    prevProps.settings?.show_truck_icon === nextProps.settings?.show_truck_icon &&
+    prevProps.settings?.truck_icon_size === nextProps.settings?.truck_icon_size &&
+    prevProps.settings?.progress_height === nextProps.settings?.progress_height
   );
 });
 
