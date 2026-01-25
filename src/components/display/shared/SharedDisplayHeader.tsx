@@ -48,24 +48,28 @@ const SharedDisplayHeader = ({ settings, connectionStatus, activePackingDate }: 
 
       {/* Hovedinnhold (midten) */}
       <div className={cn("flex-1 flex flex-col", getAlignmentClass())}>
-        <h1 
-          className="font-bold mb-2"
-          style={{ 
-            fontSize: settings?.header_font_size ? `${settings.header_font_size}px` : '2.25rem',
-            color: settings?.header_text_color || '#111827'
-          }}
-        >
-          {settings?.main_title || 'Felles Display'}
-        </h1>
-        <p 
-          className="text-xl mb-2"
-          style={{ 
-            color: settings?.text_color || '#4b5563',
-            fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
-          }}
-        >
-          {settings?.subtitle || 'Pakkestatus for kunder'}
-        </p>
+        {(settings?.show_main_title ?? true) && (
+          <h1 
+            className="font-bold mb-2"
+            style={{ 
+              fontSize: settings?.header_font_size ? `${settings.header_font_size}px` : '2.25rem',
+              color: settings?.header_text_color || '#111827'
+            }}
+          >
+            {settings?.main_title || 'Felles Display'}
+          </h1>
+        )}
+        {(settings?.show_subtitle ?? true) && (
+          <p 
+            className="text-xl mb-2"
+            style={{ 
+              color: settings?.text_color || '#4b5563',
+              fontSize: settings?.body_font_size ? `${settings.body_font_size * 1.25}px` : '1.25rem'
+            }}
+          >
+            {settings?.subtitle || 'Pakkestatus for kunder'}
+          </p>
+        )}
         
         {/* Dato og klokke */}
         <div className="flex items-center justify-center gap-4 mt-4">

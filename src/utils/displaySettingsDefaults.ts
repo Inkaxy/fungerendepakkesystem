@@ -93,6 +93,8 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   // Header
   main_title: 'Felles Display',
   subtitle: 'Pakkestatus for kunder',
+  show_main_title: true,
+  show_subtitle: true,
   show_date_indicator: true,
   shared_show_clock: false,
   shared_show_logo: false,

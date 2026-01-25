@@ -16,6 +16,23 @@ const SharedHeaderSection = ({ settings, onUpdate }: SharedHeaderSectionProps) =
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
+        <ToggleSetting
+          id="show_main_title"
+          label="Vis hovedtittel"
+          description="Vis hovedtittelen på displayet"
+          checked={settings.show_main_title ?? true}
+          onCheckedChange={(checked) => onUpdate({ show_main_title: checked })}
+        />
+        <ToggleSetting
+          id="show_subtitle"
+          label="Vis undertittel"
+          description="Vis undertittelen på displayet"
+          checked={settings.show_subtitle ?? true}
+          onCheckedChange={(checked) => onUpdate({ show_subtitle: checked })}
+        />
+      </div>
+
+      {(settings.show_main_title ?? true) && (
         <div className="space-y-2">
           <Label htmlFor="main_title">Hovedtittel</Label>
           <Input
@@ -25,6 +42,9 @@ const SharedHeaderSection = ({ settings, onUpdate }: SharedHeaderSectionProps) =
             placeholder="Felles Display"
           />
         </div>
+      )}
+      
+      {(settings.show_subtitle ?? true) && (
         <div className="space-y-2">
           <Label htmlFor="subtitle">Undertittel</Label>
           <Input
@@ -34,7 +54,7 @@ const SharedHeaderSection = ({ settings, onUpdate }: SharedHeaderSectionProps) =
             placeholder="Pakkestatus for kunder"
           />
         </div>
-      </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <ToggleSetting
