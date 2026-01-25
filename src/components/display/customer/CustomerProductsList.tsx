@@ -112,6 +112,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
               }}
             >
               {product.product_name}
+              {(settings?.show_basket_quantity ?? false) && product.basket_quantity && (
+                <span style={{ fontWeight: 400, fontSize: '0.75em', opacity: 0.7, marginLeft: '4px' }}>
+                  - {product.basket_quantity} stk pr kurv
+                </span>
+              )}
             </h3>
             <div className="flex items-baseline justify-center gap-1">
               <span 
@@ -193,6 +198,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                 }}
               >
                 {product.product_name}
+                {(settings?.show_basket_quantity ?? false) && product.basket_quantity && (
+                  <span style={{ fontWeight: 400, fontSize: '0.75em', opacity: 0.7, marginLeft: '4px' }}>
+                    - {product.basket_quantity} stk pr kurv
+                  </span>
+                )}
               </h3>
             </div>
             <div className="text-right space-y-2">

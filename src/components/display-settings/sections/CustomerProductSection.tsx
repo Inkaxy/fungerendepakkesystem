@@ -30,6 +30,14 @@ const CustomerProductSection = ({ settings, onUpdate }: CustomerProductSectionPr
         />
       </div>
 
+      <ToggleSetting
+        id="show_basket_quantity"
+        label="Vis antall pr kurv"
+        description="Vis hvor mange enheter per kurv ved produktnavn"
+        checked={settings.show_basket_quantity}
+        onCheckedChange={(checked) => onUpdate({ show_basket_quantity: checked })}
+      />
+
       <div className="grid gap-4 md:grid-cols-2">
         <ToggleSetting
           id="strikethrough_completed_products"

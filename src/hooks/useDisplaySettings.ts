@@ -135,6 +135,7 @@ export interface DisplaySettings {
   customer_content_padding: number;
   customer_max_content_width: number;
   use_consistent_product_colors: boolean;
+  show_basket_quantity: boolean;
   show_customer_info?: boolean;
   show_order_numbers?: boolean;
   show_delivery_dates?: boolean;

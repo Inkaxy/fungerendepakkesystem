@@ -16,6 +16,7 @@ export interface PackingProduct {
   packed_line_items: number;
   packing_status: 'pending' | 'in_progress' | 'packed' | 'completed';
   colorIndex?: number;
+  basket_quantity?: number | null;
 }
 
 export interface PackingCustomer {
@@ -57,7 +58,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
             product_id,
             quantity,
             packing_status,
-            product:products(id, name, category, unit)
+            product:products(id, name, category, unit, basket_quantity)
           )
         `)
         .eq('delivery_date', targetDate)
@@ -191,6 +192,7 @@ export const usePackingData = (customerId?: string, date?: string, activeOnly: b
               packed_line_items: (op.packing_status === 'packed' || op.packing_status === 'completed') ? 1 : 0,
               packing_status: validPackingStatus,
               colorIndex: productColorMap.get(op.product_id) ?? 0,
+              basket_quantity: (op.product as any).basket_quantity ?? null,
             };
 
             customer!.products.push(newProduct);
