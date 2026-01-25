@@ -368,6 +368,7 @@ export type Database = {
           show_delivery_dates: boolean | null
           show_falling_cats: boolean | null
           show_line_items_count: boolean | null
+          show_main_title: boolean | null
           show_manual_refresh_button: boolean | null
           show_order_numbers: boolean | null
           show_product_images: boolean | null
@@ -378,6 +379,7 @@ export type Database = {
           show_stats_cards: boolean | null
           show_status_badges: boolean | null
           show_status_indicator: boolean | null
+          show_subtitle: boolean | null
           show_truck_icon: boolean | null
           spacing: number | null
           stats_card_height: string | null
@@ -535,6 +537,7 @@ export type Database = {
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
+          show_main_title?: boolean | null
           show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
@@ -545,6 +548,7 @@ export type Database = {
           show_stats_cards?: boolean | null
           show_status_badges?: boolean | null
           show_status_indicator?: boolean | null
+          show_subtitle?: boolean | null
           show_truck_icon?: boolean | null
           spacing?: number | null
           stats_card_height?: string | null
@@ -702,6 +706,7 @@ export type Database = {
           show_delivery_dates?: boolean | null
           show_falling_cats?: boolean | null
           show_line_items_count?: boolean | null
+          show_main_title?: boolean | null
           show_manual_refresh_button?: boolean | null
           show_order_numbers?: boolean | null
           show_product_images?: boolean | null
@@ -712,6 +717,7 @@ export type Database = {
           show_stats_cards?: boolean | null
           show_status_badges?: boolean | null
           show_status_indicator?: boolean | null
+          show_subtitle?: boolean | null
           show_truck_icon?: boolean | null
           spacing?: number | null
           stats_card_height?: string | null

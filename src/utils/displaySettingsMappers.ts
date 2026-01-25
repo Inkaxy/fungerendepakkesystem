@@ -93,6 +93,8 @@ export const mapDatabaseToDisplaySettings = (data: Record<string, any>): Display
     // Header
     main_title: data.main_title || 'Felles Display',
     subtitle: data.subtitle || 'Pakkestatus for kunder',
+    show_main_title: data.show_main_title ?? true,
+    show_subtitle: data.show_subtitle ?? true,
     show_date_indicator: data.show_date_indicator ?? true,
     shared_show_clock: data.shared_show_clock ?? false,
     shared_show_logo: data.shared_show_logo ?? false,

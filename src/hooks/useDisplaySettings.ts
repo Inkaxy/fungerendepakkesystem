@@ -74,6 +74,8 @@ export interface DisplaySettings {
   pulse_on_update: boolean;
   main_title: string;
   subtitle: string;
+  show_main_title: boolean;
+  show_subtitle: boolean;
   show_date_indicator: boolean;
   shared_show_clock: boolean;
   shared_show_logo: boolean;
