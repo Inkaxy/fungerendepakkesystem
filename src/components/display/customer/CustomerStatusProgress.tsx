@@ -26,53 +26,66 @@ const CustomerStatusProgress = React.memo(({
 
   // Use compact layout setting (default to true for better UX)
   const useCompactLayout = settings?.compact_status_progress ?? true;
+  
+  // Check visibility settings
+  const showStatusIndicator = settings?.show_status_indicator ?? true;
+  const showProgressBar = settings?.show_progress_bar ?? true;
+  
+  // If both are hidden, don't render anything
+  if (!showStatusIndicator && !showProgressBar) {
+    return null;
+  }
 
   if (!useCompactLayout) {
     // Original separate layout - status card + progress card
     return (
       <div className="space-y-4">
-        {/* Status Indicator */}
-        <Card
-          className="text-center"
-          style={{
-            backgroundColor: statusColor,
-            borderColor: statusColor,
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          }}
-        >
-          <CardContent 
-            style={{ 
-              padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding}px` : '32px' 
+        {/* Status Indicator - only show if enabled */}
+        {showStatusIndicator && (
+          <Card
+            className="text-center"
+            style={{
+              backgroundColor: statusColor,
+              borderColor: statusColor,
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
             }}
           >
-            <h2 
-              className="font-bold text-white"
+            <CardContent 
               style={{ 
-                fontSize: settings?.status_indicator_font_size ? `${settings.status_indicator_font_size}px` : '32px' 
+                padding: settings?.status_indicator_padding ? `${settings.status_indicator_padding}px` : '32px' 
               }}
             >
-              STATUS: {statusText}
-            </h2>
-          </CardContent>
-        </Card>
+              <h2 
+                className="font-bold text-white"
+                style={{ 
+                  fontSize: settings?.status_indicator_font_size ? `${settings.status_indicator_font_size}px` : '32px' 
+                }}
+              >
+                STATUS: {statusText}
+              </h2>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Progress Bar */}
-        <Card
-          style={{
-            backgroundColor: settings?.card_background_color || '#ffffff',
-            borderColor: settings?.card_border_color || '#e5e7eb',
-            borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined,
-            overflow: 'visible',
-          }}
-        >
-          <CardContent className="p-8 flex flex-col justify-center" style={{ overflow: 'visible' }}>
-            <div className="space-y-4 flex flex-col items-center" style={{ overflow: 'visible' }}>
-              {renderProgressBar(progress, settings)}
-              {renderPercentage(progress, settings)}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Progress Bar - only show if enabled */}
+        {showProgressBar && (
+          <Card
+            style={{
+              backgroundColor: settings?.card_background_color || '#ffffff',
+              borderColor: settings?.card_border_color || '#e5e7eb',
+              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+              boxShadow: settings?.card_shadow_intensity ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` : undefined,
+              overflow: 'visible',
+            }}
+          >
+            <CardContent className="p-8 flex flex-col justify-center" style={{ overflow: 'visible' }}>
+              <div className="space-y-4 flex flex-col items-center" style={{ overflow: 'visible' }}>
+                {renderProgressBar(progress, settings)}
+                {renderPercentage(progress, settings)}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
@@ -90,71 +103,78 @@ const CustomerStatusProgress = React.memo(({
     >
       <CardContent className="p-6" style={{ overflow: 'visible' }}>
         <div className="flex items-center gap-6" style={{ overflow: 'visible' }}>
-          {/* Status badge on the left */}
-          <div 
-            className="flex-shrink-0 rounded-lg px-6 py-3"
-            style={{
-              backgroundColor: statusColor,
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-            }}
-          >
-            <span 
-              className="font-bold text-white whitespace-nowrap"
-              style={{ 
-                fontSize: settings?.status_indicator_font_size 
-                  ? `${Math.max(16, settings.status_indicator_font_size * 0.6)}px` 
-                  : '20px' 
-              }}
-            >
-              {statusText}
-            </span>
-          </div>
-
-          {/* Progress bar in the middle */}
-          <div className="flex-1 flex items-center gap-4" style={{ overflow: 'visible' }}>
+          {/* Status badge on the left - only show if enabled */}
+          {showStatusIndicator && (
             <div 
-              className="flex-1 rounded-full relative overflow-visible"
-              style={{ 
-                backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                height: settings?.progress_height ? `${settings.progress_height * 3}px` : '24px',
+              className="flex-shrink-0 rounded-lg px-6 py-3"
+              style={{
+                backgroundColor: statusColor,
+                borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
               }}
             >
-              <div 
-                className="rounded-full h-full"
+              <span 
+                className="font-bold text-white whitespace-nowrap"
                 style={{ 
-                  backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                  width: `${progress}%`,
-                  transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                  willChange: 'width',
+                  fontSize: settings?.status_indicator_font_size 
+                    ? `${Math.max(16, settings.status_indicator_font_size * 0.6)}px` 
+                    : '20px' 
                 }}
-              />
-              {(settings?.show_truck_icon ?? true) && (
-                <img
-                  src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
-                  alt="Varebil"
-                  className="absolute top-1/2 transform -translate-y-1/2" 
+              >
+                {statusText}
+              </span>
+            </div>
+          )}
+
+          {/* Progress bar in the middle - only show if enabled */}
+          {showProgressBar && (
+            <div className="flex-1 flex items-center gap-4" style={{ overflow: 'visible' }}>
+              <div 
+                className="flex-1 rounded-full relative overflow-visible"
+                style={{ 
+                  backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                  height: settings?.progress_height ? `${settings.progress_height * 3}px` : '24px',
+                }}
+              >
+                <div 
+                  className="rounded-full h-full"
                   style={{ 
-                    left: `calc(${progress}% - ${(settings?.truck_icon_size || 20) / 2}px)`,
-                    width: `${settings?.truck_icon_size || 20}px`,
-                    height: `${settings?.truck_icon_size || 20}px`,
-                    objectFit: 'contain',
-                    transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                    zIndex: 10,
+                    backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                    width: `${progress}%`,
+                    transition: (settings?.enable_animations ?? true) ? 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                    willChange: 'width',
                   }}
                 />
+                {(settings?.show_truck_icon ?? true) && (
+                  <img
+                    src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
+                    alt="Varebil"
+                    className="absolute top-1/2 transform -translate-y-1/2" 
+                    style={{ 
+                      left: `calc(${progress}% - ${(settings?.truck_icon_size || 20) / 2}px)`,
+                      width: `${settings?.truck_icon_size || 20}px`,
+                      height: `${settings?.truck_icon_size || 20}px`,
+                      objectFit: 'contain',
+                      transition: (settings?.enable_animations ?? true) ? 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                      zIndex: 10,
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Percentage on the right */}
+              {(settings?.show_progress_percentage ?? true) && (
+                <span 
+                  className="text-2xl font-bold flex-shrink-0"
+                  style={{ color: settings?.text_color || '#374151' }}
+                >
+                  {settings?.progress_show_fraction 
+                    ? `${customerPackingData.packed_line_items_all}/${customerPackingData.total_line_items_all}`
+                    : `${progress}%`
+                  }
+                </span>
               )}
             </div>
-
-            {/* Percentage on the right */}
-            {(settings?.show_progress_percentage ?? true) && (
-              <span 
-                className="text-2xl font-bold flex-shrink-0"
-                style={{ color: settings?.text_color || '#374151' }}
-              >
-                {progress}%
-              </span>
-            )}
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -162,11 +182,18 @@ const CustomerStatusProgress = React.memo(({
 }, (prevProps, nextProps) => {
   return (
     prevProps.customerPackingData.progress_percentage === nextProps.customerPackingData.progress_percentage &&
+    prevProps.customerPackingData.packed_line_items_all === nextProps.customerPackingData.packed_line_items_all &&
+    prevProps.customerPackingData.total_line_items_all === nextProps.customerPackingData.total_line_items_all &&
     prevProps.isAllPacked === nextProps.isAllPacked &&
     prevProps.settings?.progress_bar_color === nextProps.settings?.progress_bar_color &&
     prevProps.settings?.progress_background_color === nextProps.settings?.progress_background_color &&
     prevProps.settings?.show_truck_icon === nextProps.settings?.show_truck_icon &&
-    prevProps.settings?.compact_status_progress === nextProps.settings?.compact_status_progress
+    prevProps.settings?.show_status_indicator === nextProps.settings?.show_status_indicator &&
+    prevProps.settings?.show_progress_bar === nextProps.settings?.show_progress_bar &&
+    prevProps.settings?.show_progress_percentage === nextProps.settings?.show_progress_percentage &&
+    prevProps.settings?.progress_show_fraction === nextProps.settings?.progress_show_fraction &&
+    prevProps.settings?.compact_status_progress === nextProps.settings?.compact_status_progress &&
+    prevProps.settings?.enable_animations === nextProps.settings?.enable_animations
   );
 });
 
