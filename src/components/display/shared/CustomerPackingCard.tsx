@@ -267,7 +267,13 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     prevProps.settings?.customer_card_style === nextProps.settings?.customer_card_style &&
     prevProps.settings?.show_truck_icon === nextProps.settings?.show_truck_icon &&
     prevProps.settings?.truck_icon_size === nextProps.settings?.truck_icon_size &&
-    prevProps.settings?.progress_height === nextProps.settings?.progress_height
+    prevProps.settings?.progress_height === nextProps.settings?.progress_height &&
+    prevProps.settings?.customer_cards_columns === nextProps.settings?.customer_cards_columns &&
+    prevProps.settings?.customer_name_font_size === nextProps.settings?.customer_name_font_size &&
+    prevProps.settings?.shared_product_font_size === nextProps.settings?.shared_product_font_size &&
+    prevProps.settings?.customer_card_height === nextProps.settings?.customer_card_height &&
+    prevProps.settings?.customer_cards_gap === nextProps.settings?.customer_cards_gap &&
+    prevProps.settings?.max_products_per_card === nextProps.settings?.max_products_per_card
   );
 });
 

@@ -68,15 +68,26 @@ const SharedCustomerCardsSection = ({ settings, onUpdate }: SharedCustomerCardsS
         />
       </div>
 
-      <SliderControl
-        label="Kundenavn tekststørrelse"
-        value={settings.customer_name_font_size}
-        onChange={(value) => onUpdate({ customer_name_font_size: value })}
-        min={12}
-        max={28}
-        step={1}
-        unit="px"
-      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <SliderControl
+          label="Kundenavn tekststørrelse"
+          value={settings.customer_name_font_size}
+          onChange={(value) => onUpdate({ customer_name_font_size: value })}
+          min={12}
+          max={36}
+          step={1}
+          unit="px"
+        />
+        <SliderControl
+          label="Fremdriftslinje høyde"
+          value={settings.progress_height}
+          onChange={(value) => onUpdate({ progress_height: value })}
+          min={4}
+          max={24}
+          step={2}
+          unit="px"
+        />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <ToggleSetting
