@@ -85,12 +85,13 @@ const ProductsTab = ({ settings, onUpdate }: ProductsTabProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <SliderControl
-            label="Produktkort størrelse"
+            label="Produktkort skala"
             value={settings.product_card_size}
             onChange={(value) => onUpdate({ product_card_size: value })}
             min={50}
             max={150}
             unit="%"
+            description="Skalerer tekst og padding proporsjonalt"
           />
 
           <SliderControl
@@ -226,53 +227,59 @@ const ProductsTab = ({ settings, onUpdate }: ProductsTabProps) => {
               { name: 'Rugbrød', quantity: 45, unit: 'stk', bg: settings.product_1_bg_color, text: settings.product_1_text_color, accent: settings.product_1_accent_color },
               { name: 'Grovbrød', quantity: 28, unit: 'stk', bg: settings.product_2_bg_color, text: settings.product_2_text_color, accent: settings.product_2_accent_color },
               { name: 'Kringle', quantity: 12, unit: 'kg', bg: settings.product_3_bg_color, text: settings.product_3_text_color, accent: settings.product_3_accent_color }
-            ].map((product, idx) => (
-              <div 
-                key={idx}
-                className="rounded-lg border transition-all duration-300" 
-                style={{ 
-                  backgroundColor: product.bg,
-                  borderRadius: `${settings.border_radius}px`,
-                  padding: `${settings.product_card_padding}px`,
-                  transform: `scale(${settings.product_card_size / 100})`,
-                  transformOrigin: 'top left'
-                }}
-              >
-                <div className="flex justify-between items-center">
-                  <span 
-                    style={{ 
-                      color: product.text,
-                      fontSize: `${settings.product_name_font_size}px`,
-                      fontWeight: settings.product_name_font_weight
-                    }}
-                  >
-                    {product.name}
-                  </span>
-                  <div className="flex items-baseline gap-1">
+            ].map((product, idx) => {
+              const scale = settings.product_card_size / 100;
+              const scaledNameSize = Math.round(settings.product_name_font_size * scale);
+              const scaledQuantitySize = Math.round(settings.product_quantity_font_size * scale);
+              const scaledUnitSize = Math.round(settings.product_unit_font_size * scale);
+              const scaledPadding = Math.round(settings.product_card_padding * scale);
+              
+              return (
+                <div 
+                  key={idx}
+                  className="rounded-lg border transition-all duration-300" 
+                  style={{ 
+                    backgroundColor: product.bg,
+                    borderRadius: `${settings.border_radius}px`,
+                    padding: `${scaledPadding}px`
+                  }}
+                >
+                  <div className="flex justify-between items-center">
                     <span 
                       style={{ 
-                        color: product.accent,
-                        fontSize: `${settings.product_quantity_font_size}px`,
-                        fontWeight: settings.product_quantity_font_weight
+                        color: product.text,
+                        fontSize: `${scaledNameSize}px`,
+                        fontWeight: settings.product_name_font_weight
                       }}
                     >
-                      {product.quantity}
+                      {product.name}
                     </span>
-                    {settings.show_product_unit && (
+                    <div className="flex items-baseline gap-1">
                       <span 
                         style={{ 
-                          color: product.text,
-                          fontSize: `${settings.product_unit_font_size}px`,
-                          opacity: 0.7
+                          color: product.accent,
+                          fontSize: `${scaledQuantitySize}px`,
+                          fontWeight: settings.product_quantity_font_weight
                         }}
                       >
-                        {product.unit}
+                        {product.quantity}
                       </span>
-                    )}
+                      {settings.show_product_unit && (
+                        <span 
+                          style={{ 
+                            color: product.text,
+                            fontSize: `${scaledUnitSize}px`,
+                            opacity: 0.7
+                          }}
+                        >
+                          {product.unit}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
