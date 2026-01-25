@@ -200,6 +200,11 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                       }}
                     >
                       {product.product_name}
+                      {(settings?.show_basket_quantity ?? false) && product.basket_quantity && (
+                        <span style={{ fontWeight: 400, opacity: 0.7, marginLeft: '4px' }}>
+                          - {product.basket_quantity} stk pr kurv
+                        </span>
+                      )}
                     </span>
                     {(settings?.shared_show_product_quantity ?? true) && (
                       <span 
@@ -273,7 +278,8 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     prevProps.settings?.shared_product_font_size === nextProps.settings?.shared_product_font_size &&
     prevProps.settings?.customer_card_height === nextProps.settings?.customer_card_height &&
     prevProps.settings?.customer_cards_gap === nextProps.settings?.customer_cards_gap &&
-    prevProps.settings?.max_products_per_card === nextProps.settings?.max_products_per_card
+    prevProps.settings?.max_products_per_card === nextProps.settings?.max_products_per_card &&
+    prevProps.settings?.show_basket_quantity === nextProps.settings?.show_basket_quantity
   );
 });
 

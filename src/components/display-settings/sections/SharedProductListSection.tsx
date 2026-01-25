@@ -80,6 +80,14 @@ const SharedProductListSection = ({ settings, onUpdate }: SharedProductListSecti
       </div>
 
       <ToggleSetting
+        id="show_basket_quantity"
+        label="Vis antall pr kurv"
+        description="Vis hvor mange enheter per kurv ved produktnavn"
+        checked={settings.show_basket_quantity}
+        onCheckedChange={(checked) => onUpdate({ show_basket_quantity: checked })}
+      />
+
+      <ToggleSetting
         id="shared_hide_completed_customers"
         label="Skjul ferdige kunder"
         description="Skjul kunder når all pakking er ferdig"

@@ -178,4 +178,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   
   // Product Colors
   use_consistent_product_colors: false,
+  
+  // Basket Quantity
+  show_basket_quantity: false,
 });
