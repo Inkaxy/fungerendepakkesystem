@@ -24,6 +24,7 @@ export interface Product {
   price?: number;
   unit?: string;
   is_active: boolean;
+  basket_quantity?: number | null;
   created_at: string;
   updated_at: string;
 }

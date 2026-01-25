@@ -36,6 +36,7 @@ const productSchema = z.object({
   price: z.number().min(0, 'Pris må være 0 eller høyere').optional(),
   unit: z.string().min(1, 'Enhet er påkrevd'),
   is_active: z.boolean(),
+  basket_quantity: z.number().min(0, 'Må være 0 eller høyere').nullable().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -58,6 +59,7 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
       price: 0,
       unit: 'stk',
       is_active: true,
+      basket_quantity: null,
     },
   });
 
@@ -70,6 +72,7 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
         price: product.price || 0,
         unit: product.unit || 'stk',
         is_active: product.is_active,
+        basket_quantity: product.basket_quantity ?? null,
       });
     }
   }, [product, form]);
@@ -83,6 +86,7 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
         ...data,
         product_number: data.product_number || undefined,
         price: data.price || undefined,
+        basket_quantity: data.basket_quantity ?? null,
       });
       onOpenChange(false);
     } catch (error) {
@@ -180,6 +184,28 @@ const EditProductDialog = ({ product, open, onOpenChange, onSubmit, isLoading }:
                       <SelectItem value="pakke">Pakke</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="basket_quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Antall pr kurv</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0"
+                      placeholder="F.eks. 6" 
+                      value={field.value ?? ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === '' ? null : parseInt(value, 10));
+                      }}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
