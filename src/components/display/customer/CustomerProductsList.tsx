@@ -66,19 +66,25 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
     const isVertical = settings?.product_card_layout === 'vertical';
     const isGrid = settings?.product_card_layout === 'grid';
 
+    // Calculate scaled values based on product_card_size percentage
+    const scale = (settings?.product_card_size || 100) / 100;
+    const scaledNameSize = Math.round((settings?.product_name_font_size || 24) * scale);
+    const scaledQuantitySize = Math.round((settings?.product_quantity_font_size || 48) * scale);
+    const scaledUnitSize = Math.round((settings?.product_unit_font_size || 24) * scale);
+    const scaledPadding = Math.round(16 * scale);
+
     return (
       <div 
         key={product.id}
         className={cn(
-          "p-4 rounded-lg",
+          "rounded-lg",
           isVertical || isGrid ? "text-center" : "flex justify-between items-center",
           settings?.card_hover_effect && "hover:scale-[1.02] transition-transform duration-200"
         )}
         style={{
           backgroundColor: bgColor,
           borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          transform: `scale(${(settings?.product_card_size || 100) / 100})`,
-          transformOrigin: isVertical || isGrid ? 'center' : 'left center'
+          padding: `${scaledPadding}px`
         }}
       >
         {/* Vertikal/Grid layout */}
@@ -97,7 +103,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
               className="font-bold"
               style={{ 
                 color: textColor,
-                fontSize: `${settings?.product_name_font_size || 24}px`,
+                fontSize: `${scaledNameSize}px`,
                 fontWeight: settings?.product_name_font_weight || 600,
                 textDecoration: (settings?.strikethrough_completed_products && 
                                  product.packing_status === 'completed') 
@@ -112,7 +118,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                 className="font-bold"
                 style={{ 
                   color: accentColor,
-                  fontSize: `${settings?.product_quantity_font_size || 48}px`,
+                  fontSize: `${scaledQuantitySize}px`,
                   fontWeight: settings?.product_quantity_font_weight || 700,
                   textDecoration: (settings?.strikethrough_completed_products && 
                                    product.packing_status === 'completed') 
@@ -126,7 +132,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                 <span 
                   style={{ 
                     color: accentColor,
-                    fontSize: `${settings?.product_unit_font_size || 24}px`,
+                    fontSize: `${scaledUnitSize}px`,
                   }}
                 >
                   {product.product_unit}
@@ -178,7 +184,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                 className="font-bold"
                 style={{ 
                   color: textColor,
-                  fontSize: `${settings?.product_name_font_size || 24}px`,
+                  fontSize: `${scaledNameSize}px`,
                   fontWeight: settings?.product_name_font_weight || 600,
                   textDecoration: (settings?.strikethrough_completed_products && 
                                    product.packing_status === 'completed') 
@@ -195,7 +201,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                   className="font-bold"
                   style={{ 
                     color: accentColor,
-                    fontSize: `${settings?.product_quantity_font_size || 48}px`,
+                    fontSize: `${scaledQuantitySize}px`,
                     fontWeight: settings?.product_quantity_font_weight || 700,
                     textDecoration: (settings?.strikethrough_completed_products && 
                                      product.packing_status === 'completed') 
@@ -209,7 +215,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
                   <span 
                     style={{ 
                       color: accentColor,
-                      fontSize: `${settings?.product_unit_font_size || 24}px`,
+                      fontSize: `${scaledUnitSize}px`,
                     }}
                   >
                     {product.product_unit}
