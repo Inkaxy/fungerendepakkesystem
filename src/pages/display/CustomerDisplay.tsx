@@ -258,8 +258,20 @@ const CustomerDisplay = () => {
   }
 
   // ✅ Demo-data eller ekte data
+  const demoPackingData = isDemo ? {
+    id: DEMO_DEDICATED_PACKING_DATA.id,
+    name: DEMO_DEDICATED_PACKING_DATA.name,
+    products: DEMO_DEDICATED_PACKING_DATA.products,
+    overall_status: DEMO_DEDICATED_PACKING_DATA.overall_status,
+    progress_percentage: DEMO_DEDICATED_PACKING_DATA.progress_percentage,
+    total_line_items: DEMO_DEDICATED_PACKING_DATA.total_line_items,
+    packed_line_items: DEMO_DEDICATED_PACKING_DATA.packed_line_items,
+    total_line_items_all: DEMO_DEDICATED_PACKING_DATA.total_line_items_all,
+    packed_line_items_all: DEMO_DEDICATED_PACKING_DATA.packed_line_items_all,
+  } : null;
+  
   const customerPackingData = isDemo 
-    ? DEMO_DEDICATED_PACKING_DATA 
+    ? demoPackingData 
     : packingData?.find(data => data.id === customer.id);
 
   // 🧠 Filtrer kundens produkter basert på aktive produkter i DB (skip i demo)
