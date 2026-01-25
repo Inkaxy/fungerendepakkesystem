@@ -173,4 +173,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   customer_fullscreen_mode: false,
   customer_content_padding: 24,
   customer_max_content_width: 1200,
+  
+  // Product Colors
+  use_consistent_product_colors: false,
 });

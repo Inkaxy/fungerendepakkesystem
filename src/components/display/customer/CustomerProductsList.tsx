@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { DisplaySettings } from '@/types/displaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
 import { getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
+import { getProductColorIndex } from '@/utils/productColorUtils';
 import { cn } from '@/lib/utils';
 
 interface CustomerProductsListProps {
@@ -52,7 +53,12 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
     : null;
 
   const renderProduct = (product: typeof visibleProducts[0], index: number) => {
-    const colorIndex = product.colorIndex ?? index % 3;
+    // Use consistent color based on product ID if setting is enabled
+    const colorIndex = getProductColorIndex(
+      product.id,
+      index,
+      settings?.use_consistent_product_colors ?? false
+    );
     const bgColor = getProductBackgroundColor(settings || {} as any, colorIndex);
     const textColor = getProductTextColor(settings || {} as any, colorIndex);
     const accentColor = getProductAccentColor(settings || {} as any, colorIndex);
