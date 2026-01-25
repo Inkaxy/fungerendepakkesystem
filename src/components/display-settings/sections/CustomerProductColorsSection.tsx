@@ -1,7 +1,9 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import ColorPicker from '../ColorPicker';
+import ToggleSetting from '../ToggleSetting';
 import type { DisplaySettings } from '@/types/displaySettings';
+import { getConsistentColorIndex } from '@/utils/productColorUtils';
 
 interface CustomerProductColorsSectionProps {
   settings: DisplaySettings;
@@ -11,6 +13,15 @@ interface CustomerProductColorsSectionProps {
 const CustomerProductColorsSection = ({ settings, onUpdate }: CustomerProductColorsSectionProps) => {
   return (
     <div className="space-y-4">
+      {/* Consistent Product Colors Toggle */}
+      <ToggleSetting
+        id="use_consistent_product_colors"
+        label="Konsistente produktfarger"
+        description="Samme produkt vises alltid med samme farge, uansett rekkefølge"
+        checked={settings.use_consistent_product_colors ?? false}
+        onCheckedChange={(checked) => onUpdate({ use_consistent_product_colors: checked })}
+      />
+
       <p className="text-sm text-muted-foreground">
         Definer farger for alternerende produktrader (gjentas for alle produkter)
       </p>

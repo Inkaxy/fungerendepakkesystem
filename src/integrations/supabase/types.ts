@@ -406,6 +406,7 @@ export type Database = {
           truck_animation_style: string | null
           truck_icon_size: number | null
           updated_at: string
+          use_consistent_product_colors: boolean | null
         }
         Insert: {
           always_show_customer_name?: boolean | null
@@ -572,6 +573,7 @@ export type Database = {
           truck_animation_style?: string | null
           truck_icon_size?: number | null
           updated_at?: string
+          use_consistent_product_colors?: boolean | null
         }
         Update: {
           always_show_customer_name?: boolean | null
@@ -738,6 +740,7 @@ export type Database = {
           truck_animation_style?: string | null
           truck_icon_size?: number | null
           updated_at?: string
+          use_consistent_product_colors?: boolean | null
         }
         Relationships: [
           {

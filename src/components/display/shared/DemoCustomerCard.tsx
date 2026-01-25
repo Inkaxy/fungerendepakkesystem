@@ -5,6 +5,8 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Package, Clock } from 'lucide-react';
 import { DemoCustomerPackingData } from '@/utils/demoDisplayData';
 import { DisplaySettings } from '@/types/displaySettings';
+import { getProductColorIndex } from '@/utils/productColorUtils';
+import { getProductBackgroundColor, getProductTextColor, getProductAccentColor } from '@/utils/displayStyleUtils';
 
 interface DemoCustomerCardProps {
   customerData: DemoCustomerPackingData;
@@ -112,40 +114,52 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
 
           {/* Products */}
           <div className="space-y-2">
-            {displayProducts.map((product) => (
-              <div 
-                key={product.product_id}
-                className="flex items-center justify-between p-2 rounded"
-                style={{
-                  backgroundColor: settings?.product_card_color || '#f9fafb',
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    style={{ color: getStatusColor(product.packing_status) }}
-                  >
-                    {getStatusIcon(product.packing_status)}
-                  </span>
-                  <span 
-                    className={product.packing_status === 'packed' ? 'line-through opacity-60' : ''}
-                    style={{ 
-                      color: settings?.product_text_color || '#374151',
-                      fontSize: settings?.shared_product_font_size ? `${settings.shared_product_font_size}px` : '14px'
-                    }}
-                  >
-                    {product.product_name}
-                  </span>
+            {displayProducts.map((product, idx) => {
+              // Use consistent color based on product ID if setting is enabled
+              const colorIndex = getProductColorIndex(
+                product.product_id,
+                idx,
+                settings?.use_consistent_product_colors ?? false
+              );
+              const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
+              const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);
+              const accentColor = getProductAccentColor(settings || {} as DisplaySettings, colorIndex);
+              
+              return (
+                <div 
+                  key={product.product_id}
+                  className="flex items-center justify-between p-2 rounded"
+                  style={{
+                    backgroundColor: bgColor,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      style={{ color: getStatusColor(product.packing_status) }}
+                    >
+                      {getStatusIcon(product.packing_status)}
+                    </span>
+                    <span 
+                      className={product.packing_status === 'packed' ? 'line-through opacity-60' : ''}
+                      style={{ 
+                        color: textColor,
+                        fontSize: settings?.shared_product_font_size ? `${settings.shared_product_font_size}px` : '14px'
+                      }}
+                    >
+                      {product.product_name}
+                    </span>
+                  </div>
+                  {(settings?.shared_show_product_quantity ?? true) && (
+                    <span 
+                      className="font-medium"
+                      style={{ color: accentColor }}
+                    >
+                      {product.packed_quantity}/{product.total_quantity} {product.product_unit}
+                    </span>
+                  )}
                 </div>
-                {(settings?.shared_show_product_quantity ?? true) && (
-                  <span 
-                    className="font-medium"
-                    style={{ color: settings?.text_color || '#6b7280' }}
-                  >
-                    {product.packed_quantity}/{product.total_quantity} {product.product_unit}
-                  </span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Progress */}

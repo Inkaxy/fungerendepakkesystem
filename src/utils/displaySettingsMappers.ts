@@ -173,6 +173,9 @@ export const mapDatabaseToDisplaySettings = (data: Record<string, any>): Display
     customer_fullscreen_mode: data.customer_fullscreen_mode ?? false,
     customer_content_padding: data.customer_content_padding ?? 24,
     customer_max_content_width: data.customer_max_content_width ?? 1200,
+    
+    // Product Colors
+    use_consistent_product_colors: data.use_consistent_product_colors ?? false,
   } as DisplaySettings;
 };
 
