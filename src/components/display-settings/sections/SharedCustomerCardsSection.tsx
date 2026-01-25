@@ -95,6 +95,27 @@ const SharedCustomerCardsSection = ({ settings, onUpdate }: SharedCustomerCardsS
         />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <ToggleSetting
+          id="show_truck_icon"
+          label="Vis varebil-ikon"
+          description="Vis varebil på fremdriftslinje"
+          checked={settings.show_truck_icon}
+          onCheckedChange={(checked) => onUpdate({ show_truck_icon: checked })}
+        />
+        {settings.show_truck_icon && (
+          <SliderControl
+            label="Varebil-størrelse"
+            value={settings.truck_icon_size}
+            onChange={(value) => onUpdate({ truck_icon_size: value })}
+            min={16}
+            max={100}
+            step={4}
+            unit="px"
+          />
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label>Sortering</Label>
         <Select
