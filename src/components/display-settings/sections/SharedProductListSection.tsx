@@ -40,15 +40,27 @@ const SharedProductListSection = ({ settings, onUpdate }: SharedProductListSecti
         </div>
       </div>
 
-      <SliderControl
-        label="Produktnavn tekststørrelse"
-        value={settings.shared_product_font_size}
-        onChange={(value) => onUpdate({ shared_product_font_size: value })}
-        min={10}
-        max={20}
-        step={1}
-        unit="px"
-      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <SliderControl
+          label="Produktnavn tekststørrelse"
+          value={settings.shared_product_font_size}
+          onChange={(value) => onUpdate({ shared_product_font_size: value })}
+          min={10}
+          max={24}
+          step={1}
+          unit="px"
+        />
+        <SliderControl
+          label="Produktantall tekststørrelse"
+          value={Math.round((settings.shared_product_font_size || 14) * 1.2)}
+          onChange={(value) => onUpdate({ shared_product_font_size: Math.round(value / 1.2) })}
+          min={12}
+          max={32}
+          step={1}
+          unit="px"
+          description="Antallet vises 20% større enn navn"
+        />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <ToggleSetting
