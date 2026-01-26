@@ -9,6 +9,7 @@ export const QUERY_KEYS = {
   PUBLIC_PACKING_SESSION: ['public-packing-session'] as const,
   PUBLIC_SHARED_CUSTOMERS: ['public-shared-display-customers'] as const,
   PUBLIC_ALL_CUSTOMERS_PACKING: ['public-all-customers-packing'] as const,
+  PUBLIC_BATCH_PACKING: ['public-batch-packing'] as const,
   
   // Authenticated queries
   DISPLAY_SETTINGS: ['display-settings'] as const,
