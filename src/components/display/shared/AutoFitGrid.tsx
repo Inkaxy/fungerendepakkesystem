@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
 
 interface AutoFitGridProps {
@@ -10,27 +10,21 @@ interface AutoFitGridProps {
 interface OptimalLayout {
   columns: number;
   rows: number;
-  cardMaxHeight: number;
+  cardHeight: number;
 }
 
-const MIN_CARD_HEIGHT = 150;
-const HEADER_HEIGHT = 120; // Header + stats
-const FOOTER_HEIGHT = 80;  // Footer with connection status
+const MIN_CARD_HEIGHT = 180;
+const MIN_CARD_WIDTH = 250;
 
 const calculateOptimalLayout = (
   customerCount: number,
-  screenHeight: number,
-  screenWidth: number,
-  contentPadding: number,
+  availableHeight: number,
+  availableWidth: number,
   gap: number
 ): OptimalLayout => {
-  if (customerCount === 0) {
-    return { columns: 3, rows: 1, cardMaxHeight: 300 };
+  if (customerCount === 0 || availableHeight <= 0 || availableWidth <= 0) {
+    return { columns: 3, rows: 1, cardHeight: 300 };
   }
-
-  // Available space
-  const availableHeight = screenHeight - HEADER_HEIGHT - FOOTER_HEIGHT - (contentPadding * 2);
-  const availableWidth = screenWidth - (contentPadding * 2);
 
   let bestColumns = 1;
   let bestCardHeight = MIN_CARD_HEIGHT;
@@ -39,102 +33,120 @@ const calculateOptimalLayout = (
   // Try different column configurations (1-6)
   for (let cols = 1; cols <= 6; cols++) {
     const rows = Math.ceil(customerCount / cols);
-    const totalGapHeight = (rows - 1) * gap;
-    const totalGapWidth = (cols - 1) * gap;
+    const totalGapHeight = Math.max(0, rows - 1) * gap;
+    const totalGapWidth = Math.max(0, cols - 1) * gap;
     
     const cardHeight = (availableHeight - totalGapHeight) / rows;
     const cardWidth = (availableWidth - totalGapWidth) / cols;
 
-    // Check if this configuration provides larger cards
-    // Also ensure minimum width is reasonable (200px)
-    if (cardHeight >= MIN_CARD_HEIGHT && cardWidth >= 200 && cardHeight > bestCardHeight) {
+    // Check if this configuration provides usable card sizes
+    if (cardHeight >= MIN_CARD_HEIGHT && cardWidth >= MIN_CARD_WIDTH && cardHeight > bestCardHeight) {
       bestColumns = cols;
       bestCardHeight = cardHeight;
       bestRows = rows;
     }
   }
 
-  // If no valid configuration found, use fallback
+  // Fallback: If no configuration gives MIN_CARD_HEIGHT, use minimum rows possible
   if (bestCardHeight < MIN_CARD_HEIGHT) {
-    bestCardHeight = MIN_CARD_HEIGHT;
-    bestRows = Math.ceil(customerCount / bestColumns);
+    const maxRows = Math.max(1, Math.floor(availableHeight / (MIN_CARD_HEIGHT + gap)));
+    const optimalRows = Math.max(1, Math.min(customerCount, maxRows));
+    bestColumns = Math.ceil(customerCount / optimalRows);
+    bestRows = optimalRows;
+    bestCardHeight = Math.max(MIN_CARD_HEIGHT, (availableHeight - (optimalRows - 1) * gap) / optimalRows);
   }
 
   return { 
     columns: bestColumns, 
     rows: bestRows,
-    cardMaxHeight: Math.floor(bestCardHeight)
+    cardHeight: Math.floor(bestCardHeight)
   };
 };
 
 const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) => {
-  const [dimensions, setDimensions] = useState({ 
-    width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
-    height: typeof window !== 'undefined' ? window.innerHeight : 1080 
-  });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
+    if (!containerRef.current) return;
+
     const updateDimensions = () => {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDimensions({
+          width: rect.width,
+          height: rect.height
+        });
+      }
     };
 
+    // Initial measurement
     updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    
+
+    // Use ResizeObserver for dynamic updates
+    const observer = new ResizeObserver(() => {
+      updateDimensions();
+    });
+
+    observer.observe(containerRef.current);
+
     // Also listen for fullscreen changes
     document.addEventListener('fullscreenchange', updateDimensions);
 
     return () => {
-      window.removeEventListener('resize', updateDimensions);
+      observer.disconnect();
       document.removeEventListener('fullscreenchange', updateDimensions);
     };
   }, []);
 
-  const contentPadding = settings?.shared_content_padding ?? 24;
   const gap = settings?.customer_cards_gap ?? 24;
 
-  const { columns, cardMaxHeight } = useMemo(() => 
+  const { columns, cardHeight } = useMemo(() => 
     calculateOptimalLayout(
       customerCount, 
-      dimensions.height, 
+      dimensions.height,
       dimensions.width,
-      contentPadding,
       gap
     ),
-    [customerCount, dimensions.height, dimensions.width, contentPadding, gap]
+    [customerCount, dimensions.height, dimensions.width, gap]
   );
 
   return (
     <div 
-      className="grid w-full"
-      style={{
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: `${gap}px`,
-        height: `calc(100vh - ${HEADER_HEIGHT + FOOTER_HEIGHT + contentPadding * 2}px)`,
-        overflow: 'hidden'
-      }}
+      ref={containerRef}
+      className="w-full h-full"
     >
-      {React.Children.map(children, (child, index) => (
+      {dimensions.height > 0 && (
         <div 
-          key={index}
-          style={{ 
-            maxHeight: `${cardMaxHeight}px`, 
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
+          className="grid w-full h-full"
+          style={{
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            gridTemplateRows: `repeat(${Math.ceil(customerCount / columns)}, 1fr)`,
+            gap: `${gap}px`,
           }}
         >
-          {React.isValidElement(child)
-            ? React.cloneElement(child as React.ReactElement<any>, { 
-                maxHeight: cardMaxHeight 
-              })
-            : child
-          }
+          {React.Children.map(children, (child, index) => (
+            <div 
+              key={index}
+              style={{ 
+                height: '100%',
+                minHeight: `${MIN_CARD_HEIGHT}px`,
+                maxHeight: `${cardHeight}px`,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              {React.isValidElement(child)
+                ? React.cloneElement(child as React.ReactElement<any>, { 
+                    maxHeight: cardHeight 
+                  })
+                : child
+              }
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };

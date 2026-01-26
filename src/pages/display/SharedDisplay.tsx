@@ -237,26 +237,26 @@ const SharedDisplay = () => {
     );
   }
 
+  const contentPadding = settings?.shared_content_padding ?? 24;
+
   return (
     <div 
-      className="min-h-screen"
+      className={cn(
+        "min-h-screen",
+        settings?.auto_fit_screen && "h-screen flex flex-col overflow-hidden"
+      )}
       style={{
         ...displayStyles,
-        padding: settings?.shared_content_padding !== undefined 
-          ? `${settings.shared_content_padding}px` 
-          : '24px'
+        padding: `${contentPadding}px`
       }}
     >
       <div 
         ref={scrollContainerRef}
         className={cn(
-          "mx-auto",
+          "mx-auto w-full",
           settings?.shared_auto_scroll && !settings?.auto_fit_screen && 'overflow-hidden h-screen',
-          settings?.auto_fit_screen && 'h-screen overflow-hidden'
+          settings?.auto_fit_screen && 'flex-1 min-h-0 flex flex-col overflow-hidden'
         )}
-        style={{
-          maxWidth: '100%'
-        }}
       >
         <SharedDisplayHeader 
           settings={settings}
@@ -292,21 +292,23 @@ const SharedDisplay = () => {
         {/* Demo-modus: Vis demo-kort */}
         {isDemo && (
           settings?.auto_fit_screen ? (
-            <AutoFitGrid 
-              customerCount={DEMO_PACKING_DATA.length} 
-              settings={settings}
-            >
-              {DEMO_PACKING_DATA.map((demoData) => (
-                <DemoCustomerCard
-                  key={demoData.id}
-                  customerData={demoData}
-                  settings={settings}
-                  statusColors={statusColors}
-                  hideWhenCompleted={settings?.shared_hide_completed_customers}
-                  completedOpacity={settings?.shared_completed_customer_opacity}
-                />
-              ))}
-            </AutoFitGrid>
+            <div className="flex-1 min-h-0">
+              <AutoFitGrid 
+                customerCount={DEMO_PACKING_DATA.length} 
+                settings={settings}
+              >
+                {DEMO_PACKING_DATA.map((demoData) => (
+                  <DemoCustomerCard
+                    key={demoData.id}
+                    customerData={demoData}
+                    settings={settings}
+                    statusColors={statusColors}
+                    hideWhenCompleted={settings?.shared_hide_completed_customers}
+                    completedOpacity={settings?.shared_completed_customer_opacity}
+                  />
+                ))}
+              </AutoFitGrid>
+            </div>
           ) : (
             <div 
               className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
@@ -331,23 +333,25 @@ const SharedDisplay = () => {
         {/* Ekte data: Vis ekte kunder */}
         {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length > 0 && (
           settings?.auto_fit_screen ? (
-            <AutoFitGrid 
-              customerCount={sortedCustomers.length} 
-              settings={settings}
-            >
-              {sortedCustomers.map((customer) => (
-                <CustomerDataLoader
-                  key={customer.id}
-                  customer={customer}
-                  bakeryId={bakeryId}
-                  activePackingDate={effectivePackingDate}
-                  settings={settings}
-                  statusColors={statusColors}
-                  hideWhenCompleted={settings?.shared_hide_completed_customers}
-                  completedOpacity={settings?.shared_completed_customer_opacity}
-                />
-              ))}
-            </AutoFitGrid>
+            <div className="flex-1 min-h-0">
+              <AutoFitGrid 
+                customerCount={sortedCustomers.length} 
+                settings={settings}
+              >
+                {sortedCustomers.map((customer) => (
+                  <CustomerDataLoader
+                    key={customer.id}
+                    customer={customer}
+                    bakeryId={bakeryId}
+                    activePackingDate={effectivePackingDate}
+                    settings={settings}
+                    statusColors={statusColors}
+                    hideWhenCompleted={settings?.shared_hide_completed_customers}
+                    completedOpacity={settings?.shared_completed_customer_opacity}
+                  />
+                ))}
+              </AutoFitGrid>
+            </div>
           ) : (
             <div 
               className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
@@ -380,31 +384,47 @@ const SharedDisplay = () => {
           />
         )}
 
-        <div className="text-center mt-8">
-          <div className="flex items-center justify-center gap-4 mb-2">
+        {/* Footer - kun vis inni scroll-container hvis IKKE auto_fit_screen */}
+        {!settings?.auto_fit_screen && (
+          <div className="text-center mt-8">
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <FullscreenButton settings={settings} />
+              <ConnectionStatus 
+                status={isDemo ? 'demo' : connectionStatus} 
+                pollingActive={!isDemo && connectionStatus !== 'connected'} 
+              />
+            </div>
+            <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+              {isDemo 
+                ? 'Demo-modus - viser eksempeldata'
+                : connectionStatus === 'connected' 
+                  ? 'Automatiske oppdateringer via websockets' 
+                  : 'Fallback polling aktivt (5s interval)'}
+            </p>
+            {wakeLockSupported && !isDemo && (
+              <div className="text-xs mt-1 flex items-center justify-center gap-1">
+                <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <span style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+                  {wakeLockActive ? 'Skjerm holdes våken' : 'Wake Lock inaktiv'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer - vis utenfor scroll-container hvis auto_fit_screen for korrekt høydeberegning */}
+      {settings?.auto_fit_screen && (
+        <div className="flex-shrink-0 text-center py-2">
+          <div className="flex items-center justify-center gap-4">
             <FullscreenButton settings={settings} />
             <ConnectionStatus 
               status={isDemo ? 'demo' : connectionStatus} 
               pollingActive={!isDemo && connectionStatus !== 'connected'} 
             />
           </div>
-          <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
-            {isDemo 
-              ? 'Demo-modus - viser eksempeldata'
-              : connectionStatus === 'connected' 
-                ? 'Automatiske oppdateringer via websockets' 
-                : 'Fallback polling aktivt (5s interval)'}
-          </p>
-          {wakeLockSupported && !isDemo && (
-            <div className="text-xs mt-1 flex items-center justify-center gap-1">
-              <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
-              <span style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
-                {wakeLockActive ? 'Skjerm holdes våken' : 'Wake Lock inaktiv'}
-              </span>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
