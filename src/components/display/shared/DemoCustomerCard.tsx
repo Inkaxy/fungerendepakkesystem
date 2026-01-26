@@ -86,10 +86,10 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
           borderColor: settings?.card_border_color || '#e5e7eb',
           borderWidth: settings?.card_border_width ? `${settings.card_border_width}px` : '1px',
           borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
-          maxHeight: maxHeight ? `${maxHeight}px` : undefined,
+          height: '100%',
         }}
       >
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-4 space-y-4 flex-1 overflow-hidden flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
           </div>
 
           {/* Products */}
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1 overflow-hidden">
             {displayProducts.map((product, idx) => {
               // Use consistent color based on product ID if setting is enabled
               const colorIndex = getProductColorIndex(

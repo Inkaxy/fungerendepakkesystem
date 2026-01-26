@@ -30,7 +30,7 @@ const SharedDisplayHeader = ({ settings, connectionStatus, activePackingDate }: 
   };
 
   return (
-    <div className="flex justify-between items-start mb-8">
+    <div className="flex justify-between items-start mb-4 flex-shrink-0">
       {/* Logo (venstre) */}
       <div className="flex-shrink-0 w-24">
         {settings?.shared_show_logo && settings?.shared_logo_url && (
