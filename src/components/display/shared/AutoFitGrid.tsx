@@ -13,21 +13,22 @@ interface OptimalLayout {
   cardHeight: number;
 }
 
-const MIN_CARD_HEIGHT = 180;
+const DEFAULT_MIN_CARD_HEIGHT = 180;
 const MIN_CARD_WIDTH = 250;
 
 const calculateOptimalLayout = (
   customerCount: number,
   availableHeight: number,
   availableWidth: number,
-  gap: number
+  gap: number,
+  minCardHeight: number
 ): OptimalLayout => {
   if (customerCount === 0 || availableHeight <= 0 || availableWidth <= 0) {
     return { columns: 3, rows: 1, cardHeight: 300 };
   }
 
   let bestColumns = 1;
-  let bestCardHeight = MIN_CARD_HEIGHT;
+  let bestCardHeight = minCardHeight;
   let bestRows = customerCount;
 
   // Try different column configurations (1-6)
@@ -40,20 +41,20 @@ const calculateOptimalLayout = (
     const cardWidth = (availableWidth - totalGapWidth) / cols;
 
     // Check if this configuration provides usable card sizes
-    if (cardHeight >= MIN_CARD_HEIGHT && cardWidth >= MIN_CARD_WIDTH && cardHeight > bestCardHeight) {
+    if (cardHeight >= minCardHeight && cardWidth >= MIN_CARD_WIDTH && cardHeight > bestCardHeight) {
       bestColumns = cols;
       bestCardHeight = cardHeight;
       bestRows = rows;
     }
   }
 
-  // Fallback: If no configuration gives MIN_CARD_HEIGHT, use minimum rows possible
-  if (bestCardHeight < MIN_CARD_HEIGHT) {
-    const maxRows = Math.max(1, Math.floor(availableHeight / (MIN_CARD_HEIGHT + gap)));
+  // Fallback: If no configuration gives minCardHeight, use minimum rows possible
+  if (bestCardHeight < minCardHeight) {
+    const maxRows = Math.max(1, Math.floor(availableHeight / (minCardHeight + gap)));
     const optimalRows = Math.max(1, Math.min(customerCount, maxRows));
     bestColumns = Math.ceil(customerCount / optimalRows);
     bestRows = optimalRows;
-    bestCardHeight = Math.max(MIN_CARD_HEIGHT, (availableHeight - (optimalRows - 1) * gap) / optimalRows);
+    bestCardHeight = Math.max(minCardHeight, (availableHeight - (optimalRows - 1) * gap) / optimalRows);
   }
 
   return { 
@@ -100,15 +101,17 @@ const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) =>
   }, []);
 
   const gap = settings?.customer_cards_gap ?? 24;
+  const minCardHeight = settings?.auto_fit_min_card_height ?? DEFAULT_MIN_CARD_HEIGHT;
 
   const { columns, cardHeight } = useMemo(() => 
     calculateOptimalLayout(
       customerCount, 
       dimensions.height,
       dimensions.width,
-      gap
+      gap,
+      minCardHeight
     ),
-    [customerCount, dimensions.height, dimensions.width, gap]
+    [customerCount, dimensions.height, dimensions.width, gap, minCardHeight]
   );
 
   return (
@@ -130,7 +133,7 @@ const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) =>
               key={index}
               style={{ 
                 height: '100%',
-                minHeight: `${MIN_CARD_HEIGHT}px`,
+                minHeight: `${minCardHeight}px`,
                 maxHeight: `${cardHeight}px`,
                 overflow: 'hidden',
                 display: 'flex',

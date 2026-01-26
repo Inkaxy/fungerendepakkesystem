@@ -19,27 +19,42 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
         onCheckedChange={(checked) => onUpdate({ auto_fit_screen: checked })}
       />
 
-      {!settings.auto_fit_screen && (
-        <ToggleSetting
-          id="shared_auto_scroll"
-          label="Auto-scroll"
-          description="Automatisk scrolling når innholdet er for langt"
-          checked={settings.shared_auto_scroll}
-          onCheckedChange={(checked) => onUpdate({ shared_auto_scroll: checked })}
+      {settings.auto_fit_screen && (
+        <SliderControl
+          label="Minimum kort-høyde"
+          value={settings.auto_fit_min_card_height ?? 180}
+          onChange={(value) => onUpdate({ auto_fit_min_card_height: value })}
+          min={120}
+          max={300}
+          step={10}
+          unit="px"
+          description="Garantert minimumshøyde for hvert kundekort"
         />
       )}
 
-      {!settings.auto_fit_screen && settings.shared_auto_scroll && (
-        <SliderControl
-          label="Scroll-hastighet"
-          value={settings.shared_scroll_speed}
-          onChange={(value) => onUpdate({ shared_scroll_speed: value })}
-          min={10}
-          max={100}
-          step={5}
-          unit="px/s"
-          description="Hastighet for automatisk scrolling"
-        />
+      {!settings.auto_fit_screen && (
+        <>
+          <ToggleSetting
+            id="shared_auto_scroll"
+            label="Auto-scroll"
+            description="Automatisk scrolling når innholdet er for langt"
+            checked={settings.shared_auto_scroll}
+            onCheckedChange={(checked) => onUpdate({ shared_auto_scroll: checked })}
+          />
+
+          {settings.shared_auto_scroll && (
+            <SliderControl
+              label="Scroll-hastighet"
+              value={settings.shared_scroll_speed}
+              onChange={(value) => onUpdate({ shared_scroll_speed: value })}
+              min={10}
+              max={100}
+              step={5}
+              unit="px/s"
+              description="Hastighet for automatisk scrolling"
+            />
+          )}
+        </>
       )}
 
       <SliderControl

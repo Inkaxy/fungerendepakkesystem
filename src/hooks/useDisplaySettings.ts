@@ -109,6 +109,7 @@ export interface DisplaySettings {
   shared_scroll_speed: number;
   shared_content_padding: number;
   auto_fit_screen: boolean;
+  auto_fit_min_card_height?: number;
   always_show_customer_name: boolean;
   customer_display_show_date: boolean;
   customer_show_bakery_name: boolean;
@@ -210,6 +211,7 @@ export const useDisplaySettings = () => {
           packing_status_ongoing_color: (newSettings as any).status_in_progress_color || '#3b82f6',
           packing_status_completed_color: (newSettings as any).status_completed_color || '#10b981',
           compact_status_progress: (newSettings as any).compact_status_progress ?? true,
+          auto_fit_min_card_height: (newSettings as any).auto_fit_min_card_height ?? 180,
           // New customer display specific fields
           customer_display_show_date: (newSettings as any).customer_display_show_date ?? true,
           customer_display_header_size: (newSettings as any).customer_display_header_size ?? 32,
@@ -227,6 +229,7 @@ export const useDisplaySettings = () => {
         packing_status_ongoing_color: existingData.status_in_progress_color || '#3b82f6',
         packing_status_completed_color: existingData.status_completed_color || '#10b981',
         compact_status_progress: existingData.compact_status_progress ?? true,
+        auto_fit_min_card_height: existingData.auto_fit_min_card_height ?? 180,
         // New customer display specific fields
         customer_display_show_date: existingData.customer_display_show_date ?? true,
         customer_display_header_size: existingData.customer_display_header_size ?? 32,
