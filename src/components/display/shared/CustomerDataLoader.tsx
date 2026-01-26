@@ -25,19 +25,20 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
   completedOpacity = 50,
   maxHeight,
 }) => {
-  // ✅ NYTT: Hent activeProducts FØRST
+  // ✅ Hent activeProducts
   const { data: activeProducts, isLoading: activeLoading } = usePublicActivePackingProducts(
     bakeryId,
     activePackingDate
   );
 
-  // ✅ Send activeProducts og customerName til usePublicPackingData
+  // ✅ KRITISK ENDRING: Hent ALLTID ordredata for kunden, uavhengig av om produkter er valgt
+  // Dette sikrer at kunder med ordrer for datoen ALLTID vises (viktig for sjåfører)
   const { data: packingData, isLoading: packingLoading } = usePublicPackingData(
     customer.id,
     bakeryId,
     activePackingDate,
-    activeProducts, // ✅ KRITISK: Send som parameter
-    customer.name   // ✅ FIX: Send customerName for å unngå JOIN med public_display_customers
+    activeProducts, // Produktfilter for produktlisten
+    customer.name
   );
 
   if (activeLoading || packingLoading) {
@@ -51,16 +52,15 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
     );
   }
 
-  // Returner null hvis ingen aktive produkter for denne dagen
-  if (!activeProducts || activeProducts.length === 0) {
-    return null;
-  }
-
   // Finn customerData fra packingData
   const customerData = packingData?.find(d => d.id === customer.id);
 
-  if (!customerData || customerData.products.length === 0) {
-    return null; // Ingen data for denne kunden
+  // ✅ KRITISK ENDRING: Sjekk om kunden har NOEN ordrer for datoen (total_line_items_all)
+  // Hvis ja - vis kunden ALLTID, selv om ingen produkter er valgt ennå
+  const hasOrdersForDate = customerData && customerData.total_line_items_all > 0;
+
+  if (!hasOrdersForDate) {
+    return null; // Kunden har ingen ordrer for denne datoen - ikke vis
   }
 
   // Sjekk om kunden er 100% ferdig og skal skjules

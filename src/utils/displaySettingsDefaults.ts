@@ -184,7 +184,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   customer_max_content_width: 1200,
   
   // Product Colors
-  use_consistent_product_colors: false,
+  use_consistent_product_colors: true, // ✅ Alltid konsistent produktfarge basert på produkt-ID
   
   // Basket Quantity
   show_basket_quantity: false,

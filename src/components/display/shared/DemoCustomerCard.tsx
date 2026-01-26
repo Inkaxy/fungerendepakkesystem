@@ -230,6 +230,17 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
           ) : (
             <>
               {/* Standard product list */}
+              {displayProducts.length === 0 ? (
+                <div 
+                  className="text-center py-2 opacity-60"
+                  style={{ 
+                    color: settings?.text_color || '#6b7280',
+                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                  }}
+                >
+                  Ingen produkter valgt for pakking
+                </div>
+              ) : (
               <div className="flex-1 overflow-hidden" style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
                 {displayProducts.map((product, idx) => {
                   const colorIndex = getProductColorIndex(
@@ -279,6 +290,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                   );
                 })}
               </div>
+              )}
 
               {/* Progress - only in standard mode */}
               {(settings?.show_progress_bar ?? true) && (
