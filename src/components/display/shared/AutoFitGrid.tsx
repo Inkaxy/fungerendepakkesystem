@@ -14,14 +14,15 @@ interface OptimalLayout {
 }
 
 const DEFAULT_MIN_CARD_HEIGHT = 180;
-const MIN_CARD_WIDTH = 280; // Økt fra 250 for bedre lesbarhet
+const DEFAULT_MIN_CARD_WIDTH = 280;
 
 const calculateOptimalLayout = (
   customerCount: number,
   availableHeight: number,
   availableWidth: number,
   gap: number,
-  minCardHeight: number
+  minCardHeight: number,
+  minCardWidth: number
 ): OptimalLayout => {
   if (customerCount === 0 || availableHeight <= 0 || availableWidth <= 0) {
     return { columns: 1, rows: 1, cardHeight: 300 };
@@ -40,7 +41,7 @@ const calculateOptimalLayout = (
     const cardWidth = Math.floor((availableWidth - totalGapWidth) / cols);
 
     // Sjekk om denne konfigurasjonen er gyldig
-    if (cardHeight >= minCardHeight && cardWidth >= MIN_CARD_WIDTH) {
+    if (cardHeight >= minCardHeight && cardWidth >= minCardWidth) {
       // Score basert på hvor godt kortene utnytter plassen
       const score = cardHeight * cardWidth;
       if (score > bestScore) {
@@ -98,6 +99,7 @@ const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) =>
 
   const gap = settings?.customer_cards_gap ?? 24;
   const minCardHeight = settings?.auto_fit_min_card_height ?? DEFAULT_MIN_CARD_HEIGHT;
+  const minCardWidth = settings?.auto_fit_min_card_width ?? DEFAULT_MIN_CARD_WIDTH;
 
   const { columns, cardHeight } = useMemo(() => 
     calculateOptimalLayout(
@@ -105,9 +107,10 @@ const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) =>
       dimensions.height,
       dimensions.width,
       gap,
-      minCardHeight
+      minCardHeight,
+      minCardWidth
     ),
-    [customerCount, dimensions.height, dimensions.width, gap, minCardHeight]
+    [customerCount, dimensions.height, dimensions.width, gap, minCardHeight, minCardWidth]
   );
 
   return (

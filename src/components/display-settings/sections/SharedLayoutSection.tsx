@@ -20,16 +20,28 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
       />
 
       {settings.auto_fit_screen && (
-        <SliderControl
-          label="Minimum kort-høyde"
-          value={settings.auto_fit_min_card_height ?? 180}
-          onChange={(value) => onUpdate({ auto_fit_min_card_height: value })}
-          min={120}
-          max={300}
-          step={10}
-          unit="px"
-          description="Garantert minimumshøyde for hvert kundekort"
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <SliderControl
+            label="Minimum kort-høyde"
+            value={settings.auto_fit_min_card_height ?? 180}
+            onChange={(value) => onUpdate({ auto_fit_min_card_height: value })}
+            min={120}
+            max={300}
+            step={10}
+            unit="px"
+            description="Garantert minimumshøyde for hvert kundekort"
+          />
+          <SliderControl
+            label="Minimum kort-bredde"
+            value={settings.auto_fit_min_card_width ?? 280}
+            onChange={(value) => onUpdate({ auto_fit_min_card_width: value })}
+            min={200}
+            max={500}
+            step={20}
+            unit="px"
+            description="Garantert minimumsbredde for hvert kundekort"
+          />
+        </div>
       )}
 
       {!settings.auto_fit_screen && (
