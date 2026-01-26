@@ -125,154 +125,46 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
       </CardHeader>
       <CardContent className={cn(getCardHeightClass(), 'flex-1 overflow-hidden')}>
         <div style={{ gap: `${Math.max(8, 12 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
-          {/* Progress section */}
-          {(settings?.show_customer_progress_bar ?? true) && (
-            <div style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
-              <div className="flex justify-between" style={{ fontSize: `${Math.max(10, 14 * scaleFactor)}px` }}>
-                <span style={{ color: settings?.text_color || '#374151' }}>Fremgang:</span>
-                <span 
-                  className="font-semibold"
-                  style={{ color: settings?.product_accent_color || '#3b82f6' }}
-                >
-                  {customerData.progress_percentage}%
-                </span>
-              </div>
-              <div 
-                className="w-full rounded-full relative overflow-visible"
-                style={{ 
-                  backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                  height: `${Math.max(4, (settings?.progress_height || 8) * scaleFactor)}px`,
-                  marginLeft: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
-                  marginRight: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
-                }}
-              >
-                <div 
-                  className="rounded-full h-full"
-                  style={{ 
-                    backgroundColor: settings?.progress_bar_color || '#3b82f6',
-                    width: `${customerData.progress_percentage}%`,
-                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                    willChange: 'width',
-                  }}
-                />
-                {(settings?.show_truck_icon ?? false) && (
-                  <img
-                    src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
-                    alt="Varebil"
-                    className="absolute top-1/2 transform -translate-y-1/2"
-                    style={{ 
-                      left: `calc(${customerData.progress_percentage}% - ${(settings?.truck_icon_size || 24) / 2}px)`,
-                      width: `${(settings?.truck_icon_size || 24) * scaleFactor}px`,
-                      height: `${(settings?.truck_icon_size || 24) * scaleFactor}px`,
-                      objectFit: 'contain',
-                      transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                      zIndex: 10,
-                    }}
-                  />
-                )}
-              </div>
-              {(settings?.show_line_items_count ?? true) && (
-                <div className="text-center" style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
-                  <span style={{ color: settings?.text_color || '#6b7280' }}>
-                    {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Products list */}
-          <div>
-            <h4 
-              className="font-medium mb-2"
-              style={{ 
-                color: settings?.text_color || '#374151',
-                fontSize: `${Math.max(10, 14 * scaleFactor)}px`
-              }}
-            >
-              Produkter:
-            </h4>
-            <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
-              {displayProducts.map((product, idx) => {
-                // Use consistent color based on product ID if setting is enabled
-                const colorIndex = getProductColorIndex(
-                  product.id,
-                  idx,
-                  settings?.use_consistent_product_colors ?? false
-                );
-                return (
-                <div 
-                  key={product.id} 
-                  className={`${getProductItemClass()} rounded flex justify-between items-center`}
-                  style={{
-                    backgroundColor: getProductBackgroundColor(settings || {} as any, colorIndex),
-                    borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
-                    padding: `${Math.max(4, 8 * scaleFactor)}px`,
-                  }}
-                >
-                  <div className="flex flex-col flex-1">
-                    <span 
-                      className="font-medium"
-                      style={{ 
-                        color: getProductTextColor(settings || {} as any, colorIndex),
-                        fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`,
-                        textDecoration: (settings?.strikethrough_completed_products && 
-                                         product.packing_status === 'completed') 
-                                         ? 'line-through' 
-                                         : 'none'
-                      }}
-                    >
-                      {product.product_name}
-                      {(settings?.show_basket_quantity ?? false) && product.basket_quantity && (
-                        <span style={{ fontWeight: 400, opacity: 0.7, marginLeft: '4px' }}>
-                          - {product.basket_quantity} stk pr kurv
+          {/* Compact table mode */}
+          {settings?.shared_compact_table_mode ? (
+            <div className="flex-1 overflow-hidden">
+              <table className="w-full" style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${settings?.card_border_color || '#e5e7eb'}` }}>
+                    <th className="text-left py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Produkt</th>
+                    <th className="text-center py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Antall</th>
+                    <th className="text-right py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayProducts.map((product) => (
+                    <tr key={product.id}>
+                      <td 
+                        className="py-0.5"
+                        style={{ 
+                          color: settings?.text_color || '#1f2937',
+                          textDecoration: product.packing_status === 'completed' ? 'line-through' : 'none',
+                          opacity: product.packing_status === 'completed' ? 0.6 : 1
+                        }}
+                      >
+                        {product.product_name}
+                      </td>
+                      <td 
+                        className="text-center py-0.5 font-semibold"
+                        style={{ color: settings?.product_accent_color || '#3b82f6' }}
+                      >
+                        {product.total_quantity}
+                      </td>
+                      <td className="text-right py-0.5">
+                        <span style={{ color: product.packing_status === 'completed' ? (statusColors.completed || '#10b981') : product.packing_status === 'in_progress' ? (statusColors.in_progress || '#3b82f6') : (statusColors.pending || '#f59e0b') }}>
+                          {product.packing_status === 'completed' ? '✓' : 
+                           product.packing_status === 'in_progress' ? '◐' : '○'}
                         </span>
-                      )}
-                    </span>
-                    {(settings?.shared_show_product_quantity ?? true) && (
-                      <span 
-                        className="font-semibold"
-                        style={{ 
-                          color: getProductAccentColor(settings || {} as any, colorIndex),
-                          fontSize: `${(settings?.shared_product_font_size || 14) * 1.2 * scaleFactor}px`,
-                          textDecoration: (settings?.strikethrough_completed_products && 
-                                           product.packing_status === 'completed') 
-                                           ? 'line-through' 
-                                           : 'none'
-                        }}
-                      >
-                        {product.total_quantity} {product.product_unit}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {(settings?.show_line_items_count ?? true) && (
-                      <span 
-                        style={{ 
-                          color: getProductAccentColor(settings || {} as any, colorIndex),
-                          fontSize: `${Math.max(10, 12 * scaleFactor)}px`
-                        }}
-                      >
-                        {product.packed_line_items}/{product.total_line_items}
-                      </span>
-                    )}
-                    {(settings?.show_status_badges ?? true) && (
-                      <Badge 
-                        variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                        style={{
-                          backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
-                          color: 'white',
-                          fontSize: `${Math.max(8, 12 * scaleFactor)}px`,
-                          padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
-                        }}
-                      >
-                        {product.packing_status === 'completed' ? 'Ferdig' : 
-                         product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )})}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
               {hasMoreProducts && (
                 <div 
                   className="text-center py-1"
@@ -282,11 +174,175 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     fontSize: `${Math.max(10, 12 * scaleFactor)}px`
                   }}
                 >
-                  ... og {customerData.products.length - maxProducts} flere produkter
+                  +{customerData.products.length - maxProducts} flere
                 </div>
               )}
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Progress section - only in standard mode */}
+              {(settings?.show_customer_progress_bar ?? true) && (
+                <div style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+                  <div className="flex justify-between" style={{ fontSize: `${Math.max(10, 14 * scaleFactor)}px` }}>
+                    <span style={{ color: settings?.text_color || '#374151' }}>Fremgang:</span>
+                    <span 
+                      className="font-semibold"
+                      style={{ color: settings?.product_accent_color || '#3b82f6' }}
+                    >
+                      {customerData.progress_percentage}%
+                    </span>
+                  </div>
+                  <div 
+                    className="w-full rounded-full relative overflow-visible"
+                    style={{ 
+                      backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                      height: `${Math.max(4, (settings?.progress_height || 8) * scaleFactor)}px`,
+                      marginLeft: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
+                      marginRight: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
+                    }}
+                  >
+                    <div 
+                      className="rounded-full h-full"
+                      style={{ 
+                        backgroundColor: settings?.progress_bar_color || '#3b82f6',
+                        width: `${customerData.progress_percentage}%`,
+                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                        willChange: 'width',
+                      }}
+                    />
+                    {(settings?.show_truck_icon ?? false) && (
+                      <img
+                        src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
+                        alt="Varebil"
+                        className="absolute top-1/2 transform -translate-y-1/2"
+                        style={{ 
+                          left: `calc(${customerData.progress_percentage}% - ${(settings?.truck_icon_size || 24) / 2}px)`,
+                          width: `${(settings?.truck_icon_size || 24) * scaleFactor}px`,
+                          height: `${(settings?.truck_icon_size || 24) * scaleFactor}px`,
+                          objectFit: 'contain',
+                          transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                          zIndex: 10,
+                        }}
+                      />
+                    )}
+                  </div>
+                  {(settings?.show_line_items_count ?? true) && (
+                    <div className="text-center" style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
+                      <span style={{ color: settings?.text_color || '#6b7280' }}>
+                        {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Products list - standard mode */}
+              <div>
+                <h4 
+                  className="font-medium mb-2"
+                  style={{ 
+                    color: settings?.text_color || '#374151',
+                    fontSize: `${Math.max(10, 14 * scaleFactor)}px`
+                  }}
+                >
+                  Produkter:
+                </h4>
+                <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+                  {displayProducts.map((product, idx) => {
+                    const colorIndex = getProductColorIndex(
+                      product.id,
+                      idx,
+                      settings?.use_consistent_product_colors ?? false
+                    );
+                    return (
+                    <div 
+                      key={product.id} 
+                      className={`${getProductItemClass()} rounded flex justify-between items-center`}
+                      style={{
+                        backgroundColor: getProductBackgroundColor(settings || {} as any, colorIndex),
+                        borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
+                        padding: `${Math.max(4, 8 * scaleFactor)}px`,
+                      }}
+                    >
+                      <div className="flex flex-col flex-1">
+                        <span 
+                          className="font-medium"
+                          style={{ 
+                            color: getProductTextColor(settings || {} as any, colorIndex),
+                            fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`,
+                            textDecoration: (settings?.strikethrough_completed_products && 
+                                             product.packing_status === 'completed') 
+                                             ? 'line-through' 
+                                             : 'none'
+                          }}
+                        >
+                          {product.product_name}
+                          {(settings?.show_basket_quantity ?? false) && product.basket_quantity && (
+                            <span style={{ fontWeight: 400, opacity: 0.7, marginLeft: '4px' }}>
+                              - {product.basket_quantity} stk pr kurv
+                            </span>
+                          )}
+                        </span>
+                        {(settings?.shared_show_product_quantity ?? true) && (
+                          <span 
+                            className="font-semibold"
+                            style={{ 
+                              color: getProductAccentColor(settings || {} as any, colorIndex),
+                              fontSize: `${(settings?.shared_product_font_size || 14) * 1.2 * scaleFactor}px`,
+                              textDecoration: (settings?.strikethrough_completed_products && 
+                                               product.packing_status === 'completed') 
+                                               ? 'line-through' 
+                                               : 'none'
+                            }}
+                          >
+                            {product.total_quantity} {product.product_unit}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {(settings?.show_line_items_count ?? true) && (
+                          <span 
+                            style={{ 
+                              color: getProductAccentColor(settings || {} as any, colorIndex),
+                              fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                            }}
+                          >
+                            {product.packed_line_items}/{product.total_line_items}
+                          </span>
+                        )}
+                        {(settings?.show_status_badges ?? true) && (
+                          <Badge 
+                            variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
+                            style={{
+                              backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
+                              color: 'white',
+                              fontSize: `${Math.max(8, 12 * scaleFactor)}px`,
+                              padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
+                            }}
+                          >
+                            {product.packing_status === 'completed' ? 'Ferdig' : 
+                             product.packing_status === 'in_progress' ? 'Pågår' : 'Venter'}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )})}
+                  {hasMoreProducts && (
+                    <div 
+                      className="text-center py-1"
+                      style={{ 
+                        color: settings?.text_color || '#6b7280', 
+                        opacity: 0.7,
+                        fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                      }}
+                    >
+                      ... og {customerData.products.length - maxProducts} flere produkter
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -307,7 +363,8 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     prevProps.settings?.customer_card_height === nextProps.settings?.customer_card_height &&
     prevProps.settings?.customer_cards_gap === nextProps.settings?.customer_cards_gap &&
     prevProps.settings?.max_products_per_card === nextProps.settings?.max_products_per_card &&
-    prevProps.settings?.show_basket_quantity === nextProps.settings?.show_basket_quantity
+    prevProps.settings?.show_basket_quantity === nextProps.settings?.show_basket_quantity &&
+    prevProps.settings?.shared_compact_table_mode === nextProps.settings?.shared_compact_table_mode
   );
 });
 

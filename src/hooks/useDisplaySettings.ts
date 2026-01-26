@@ -111,6 +111,7 @@ export interface DisplaySettings {
   auto_fit_screen: boolean;
   auto_fit_min_card_height?: number;
   auto_fit_min_card_width?: number;
+  shared_compact_table_mode?: boolean;
   always_show_customer_name: boolean;
   customer_display_show_date: boolean;
   customer_show_bakery_name: boolean;

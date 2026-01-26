@@ -12,6 +12,14 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
   return (
     <div className="space-y-4">
       <ToggleSetting
+        id="shared_compact_table_mode"
+        label="Kompakt tabell-modus"
+        description="Viser produkter i en kompakt tabell for å få plass til flere kunder på skjermen"
+        checked={settings.shared_compact_table_mode ?? false}
+        onCheckedChange={(checked) => onUpdate({ shared_compact_table_mode: checked })}
+      />
+
+      <ToggleSetting
         id="auto_fit_screen"
         label="Tilpass til skjerm"
         description="Skalerer automatisk slik at alle kundekort får plass på én skjerm uten scrolling"

@@ -143,98 +143,140 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
             )}
           </div>
 
-          {/* Products */}
-          <div className="flex-1 overflow-hidden" style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
-            {displayProducts.map((product, idx) => {
-              // Use consistent color based on product ID if setting is enabled
-              const colorIndex = getProductColorIndex(
-                product.product_id,
-                idx,
-                settings?.use_consistent_product_colors ?? false
-              );
-              const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
-              const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);
-              const accentColor = getProductAccentColor(settings || {} as DisplaySettings, colorIndex);
-              
-              return (
+          {/* Products - Compact table mode or standard list */}
+          {settings?.shared_compact_table_mode ? (
+            <div className="flex-1 overflow-hidden">
+              <table className="w-full" style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${settings?.card_border_color || '#e5e7eb'}` }}>
+                    <th className="text-left py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Produkt</th>
+                    <th className="text-center py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Antall</th>
+                    <th className="text-right py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayProducts.map((product) => (
+                    <tr key={product.product_id}>
+                      <td 
+                        className="py-0.5"
+                        style={{ 
+                          color: settings?.text_color || '#1f2937',
+                          textDecoration: product.packing_status === 'packed' ? 'line-through' : 'none',
+                          opacity: product.packing_status === 'packed' ? 0.6 : 1
+                        }}
+                      >
+                        {product.product_name}
+                      </td>
+                      <td 
+                        className="text-center py-0.5 font-semibold"
+                        style={{ color: settings?.product_accent_color || '#3b82f6' }}
+                      >
+                        {product.total_quantity}
+                      </td>
+                      <td className="text-right py-0.5">
+                        <span style={{ color: getStatusColor(product.packing_status) }}>
+                          {product.packing_status === 'packed' || product.packing_status === 'completed' ? '✓' : 
+                           product.packing_status === 'in_progress' ? '◐' : '○'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <>
+              {/* Standard product list */}
+              <div className="flex-1 overflow-hidden" style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+                {displayProducts.map((product, idx) => {
+                  const colorIndex = getProductColorIndex(
+                    product.product_id,
+                    idx,
+                    settings?.use_consistent_product_colors ?? false
+                  );
+                  const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
+                  const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);
+                  const accentColor = getProductAccentColor(settings || {} as DisplaySettings, colorIndex);
+                  
+                  return (
+                    <div 
+                      key={product.product_id}
+                      className="flex items-center justify-between rounded"
+                      style={{
+                        backgroundColor: bgColor,
+                        padding: `${Math.max(4, 8 * scaleFactor)}px`,
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span style={{ color: getStatusColor(product.packing_status) }}>
+                          {getStatusIcon(product.packing_status)}
+                        </span>
+                        <span 
+                          className={product.packing_status === 'packed' ? 'line-through opacity-60' : ''}
+                          style={{ 
+                            color: textColor,
+                            fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`
+                          }}
+                        >
+                          {product.product_name}
+                        </span>
+                      </div>
+                      {(settings?.shared_show_product_quantity ?? true) && (
+                        <span 
+                          className="font-medium"
+                          style={{ 
+                            color: accentColor,
+                            fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`
+                          }}
+                        >
+                          {product.packed_quantity}/{product.total_quantity} {product.product_unit}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Progress - only in standard mode */}
+              {(settings?.show_progress_bar ?? true) && (
+                <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+                  <div className="flex items-center justify-between" style={{ fontSize: `${Math.max(10, 14 * scaleFactor)}px` }}>
+                    <span style={{ color: settings?.text_color || '#6b7280' }}>
+                      Fremgang
+                    </span>
+                    {(settings?.show_progress_percentage ?? true) && (
+                      <span 
+                        className="font-medium"
+                        style={{ color: settings?.text_color || '#6b7280' }}
+                      >
+                        {customerData.progress_percentage}%
+                      </span>
+                    )}
+                  </div>
+                  <Progress 
+                    value={customerData.progress_percentage}
+                    style={{
+                      backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                      height: `${Math.max(4, 8 * scaleFactor)}px`
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Line items count - only in standard mode */}
+              {(settings?.show_line_items_count ?? true) && (
                 <div 
-                  key={product.product_id}
-                  className="flex items-center justify-between rounded"
-                  style={{
-                    backgroundColor: bgColor,
-                    padding: `${Math.max(4, 8 * scaleFactor)}px`,
+                  className="text-center"
+                  style={{ 
+                    color: settings?.text_color || '#6b7280', 
+                    opacity: 0.7,
+                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span
-                      style={{ color: getStatusColor(product.packing_status) }}
-                    >
-                      {getStatusIcon(product.packing_status)}
-                    </span>
-                    <span 
-                      className={product.packing_status === 'packed' ? 'line-through opacity-60' : ''}
-                      style={{ 
-                        color: textColor,
-                        fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`
-                      }}
-                    >
-                      {product.product_name}
-                    </span>
-                  </div>
-                  {(settings?.shared_show_product_quantity ?? true) && (
-                    <span 
-                      className="font-medium"
-                      style={{ 
-                        color: accentColor,
-                        fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`
-                      }}
-                    >
-                      {product.packed_quantity}/{product.total_quantity} {product.product_unit}
-                    </span>
-                  )}
+                  {customerData.packed_line_items} av {customerData.total_line_items} linjer pakket
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Progress */}
-          {(settings?.show_progress_bar ?? true) && (
-            <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
-              <div className="flex items-center justify-between" style={{ fontSize: `${Math.max(10, 14 * scaleFactor)}px` }}>
-                <span style={{ color: settings?.text_color || '#6b7280' }}>
-                  Fremgang
-                </span>
-                {(settings?.show_progress_percentage ?? true) && (
-                  <span 
-                    className="font-medium"
-                    style={{ color: settings?.text_color || '#6b7280' }}
-                  >
-                    {customerData.progress_percentage}%
-                  </span>
-                )}
-              </div>
-              <Progress 
-                value={customerData.progress_percentage}
-                style={{
-                  backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                  height: `${Math.max(4, 8 * scaleFactor)}px`
-                }}
-              />
-            </div>
-          )}
-
-          {/* Line items count */}
-          {(settings?.show_line_items_count ?? true) && (
-            <div 
-              className="text-center"
-              style={{ 
-                color: settings?.text_color || '#6b7280', 
-                opacity: 0.7,
-                fontSize: `${Math.max(10, 12 * scaleFactor)}px`
-              }}
-            >
-              {customerData.packed_line_items} av {customerData.total_line_items} linjer pakket
-            </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

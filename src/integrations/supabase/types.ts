@@ -349,6 +349,7 @@ export type Database = {
           screen_size_preset: string | null
           screen_type: string
           shared_auto_scroll: boolean | null
+          shared_compact_table_mode: boolean | null
           shared_completed_customer_opacity: number | null
           shared_content_padding: number | null
           shared_fullscreen_mode: boolean | null
@@ -521,6 +522,7 @@ export type Database = {
           screen_size_preset?: string | null
           screen_type?: string
           shared_auto_scroll?: boolean | null
+          shared_compact_table_mode?: boolean | null
           shared_completed_customer_opacity?: number | null
           shared_content_padding?: number | null
           shared_fullscreen_mode?: boolean | null
@@ -693,6 +695,7 @@ export type Database = {
           screen_size_preset?: string | null
           screen_type?: string
           shared_auto_scroll?: boolean | null
+          shared_compact_table_mode?: boolean | null
           shared_completed_customer_opacity?: number | null
           shared_content_padding?: number | null
           shared_fullscreen_mode?: boolean | null
