@@ -239,23 +239,23 @@ const SharedDisplay = () => {
 
   return (
     <div 
-      className={cn(
-        "min-h-screen",
-        settings?.shared_fullscreen_mode ? 'p-0' : 'p-8'
-      )}
+      className="min-h-screen"
       style={{
         ...displayStyles,
-        padding: settings?.shared_content_padding ? `${settings.shared_content_padding}px` : undefined
+        padding: settings?.shared_content_padding !== undefined 
+          ? `${settings.shared_content_padding}px` 
+          : '24px'
       }}
     >
       <div 
         ref={scrollContainerRef}
         className={cn(
           "mx-auto",
-          settings?.shared_auto_scroll && 'overflow-hidden h-screen'
+          settings?.shared_auto_scroll && !settings?.auto_fit_screen && 'overflow-hidden h-screen',
+          settings?.auto_fit_screen && 'h-screen overflow-hidden'
         )}
         style={{
-          maxWidth: settings?.shared_fullscreen_mode ? '100%' : '80rem'
+          maxWidth: '100%'
         }}
       >
         <SharedDisplayHeader 
