@@ -139,6 +139,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   auto_fit_min_card_height: 180,
   auto_fit_min_card_width: 280,
   shared_compact_table_mode: false,
+  shared_show_completion_icon: true,
   grid_layout_mode: 'auto',
   grid_fixed_rows: 3,
   grid_fixed_columns: 4,

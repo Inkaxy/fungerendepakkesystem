@@ -112,6 +112,7 @@ export interface DisplaySettings {
   auto_fit_min_card_height?: number;
   auto_fit_min_card_width?: number;
   shared_compact_table_mode?: boolean;
+  shared_show_completion_icon?: boolean;
   grid_layout_mode?: 'auto' | 'fixed';
   grid_fixed_rows?: number;
   grid_fixed_columns?: number;

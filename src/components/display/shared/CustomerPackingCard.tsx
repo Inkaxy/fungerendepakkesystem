@@ -166,6 +166,30 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
         </CardHeader>
       )}
       <CardContent className={cn(settings?.shared_compact_table_mode ? 'py-1 px-2' : getCardHeightClass(), 'flex-1 overflow-hidden')}>
+        {/* ✅ Vis ferdig-ikon når kunden er fullført og innstillingen er aktivert */}
+        {isCompleted && (settings?.shared_show_completion_icon ?? true) ? (
+          <div className="flex flex-col items-center justify-center h-full" style={{ gap: `${Math.max(8, 12 * scaleFactor)}px` }}>
+            <img
+              src="/lovable-uploads/3406f920-0e02-4d94-ae46-754d24d13db4.png"
+              alt="Loaf & Load"
+              className="object-contain"
+              style={{
+                height: `${Math.max(40, 80 * scaleFactor)}px`,
+                width: 'auto',
+                opacity: 0.9,
+              }}
+            />
+            <span 
+              className="font-semibold"
+              style={{ 
+                color: statusColors.completed || '#10b981',
+                fontSize: `${Math.max(14, 20 * scaleFactor)}px`,
+              }}
+            >
+              Ferdig ✓
+            </span>
+          </div>
+        ) : (
         <div style={{ gap: settings?.shared_compact_table_mode ? `${Math.max(2, 4 * scaleFactor)}px` : `${Math.max(8, 12 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
           {/* Compact table mode */}
           {settings?.shared_compact_table_mode ? (
@@ -391,6 +415,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
             </>
           )}
         </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -411,7 +436,8 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     prevProps.settings?.customer_cards_gap === nextProps.settings?.customer_cards_gap &&
     prevProps.settings?.max_products_per_card === nextProps.settings?.max_products_per_card &&
     prevProps.settings?.show_basket_quantity === nextProps.settings?.show_basket_quantity &&
-    prevProps.settings?.shared_compact_table_mode === nextProps.settings?.shared_compact_table_mode
+    prevProps.settings?.shared_compact_table_mode === nextProps.settings?.shared_compact_table_mode &&
+    prevProps.settings?.shared_show_completion_icon === nextProps.settings?.shared_show_completion_icon
   );
 });
 
