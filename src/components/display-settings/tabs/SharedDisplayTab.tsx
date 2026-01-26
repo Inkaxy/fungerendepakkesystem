@@ -14,9 +14,10 @@ import type { DisplaySettings } from '@/types/displaySettings';
 interface SharedDisplayTabProps {
   settings: DisplaySettings;
   onUpdate: (updates: Partial<DisplaySettings>) => void;
+  customerCount?: number;
 }
 
-const SharedDisplayTab = ({ settings, onUpdate }: SharedDisplayTabProps) => {
+const SharedDisplayTab = ({ settings, onUpdate, customerCount = 0 }: SharedDisplayTabProps) => {
   return (
     <Accordion type="multiple" defaultValue={['header']} className="space-y-2">
       <SettingsSection
@@ -66,7 +67,7 @@ const SharedDisplayTab = ({ settings, onUpdate }: SharedDisplayTabProps) => {
         bgColor="bg-transparent"
         title="Layout & Scroll"
       >
-        <SharedLayoutSection settings={settings} onUpdate={onUpdate} />
+        <SharedLayoutSection settings={settings} onUpdate={onUpdate} customerCount={customerCount} />
       </SettingsSection>
 
       <SettingsSection

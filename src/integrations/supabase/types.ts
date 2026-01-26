@@ -296,6 +296,9 @@ export type Database = {
           font_family: string | null
           force_single_screen: boolean | null
           fullscreen_mode: boolean | null
+          grid_fixed_columns: number | null
+          grid_fixed_rows: number | null
+          grid_layout_mode: string | null
           header_font_size: number | null
           header_text_color: string | null
           hide_completed_products: boolean | null
@@ -469,6 +472,9 @@ export type Database = {
           font_family?: string | null
           force_single_screen?: boolean | null
           fullscreen_mode?: boolean | null
+          grid_fixed_columns?: number | null
+          grid_fixed_rows?: number | null
+          grid_layout_mode?: string | null
           header_font_size?: number | null
           header_text_color?: string | null
           hide_completed_products?: boolean | null
@@ -642,6 +648,9 @@ export type Database = {
           font_family?: string | null
           force_single_screen?: boolean | null
           fullscreen_mode?: boolean | null
+          grid_fixed_columns?: number | null
+          grid_fixed_rows?: number | null
+          grid_layout_mode?: string | null
           header_font_size?: number | null
           header_text_color?: string | null
           hide_completed_products?: boolean | null
