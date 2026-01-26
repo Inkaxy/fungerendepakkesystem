@@ -1,113 +1,168 @@
 
-# Plan: Fiks "Tilpass til skjerm"-funksjonaliteten
+# Plan: Kompakt tabellbasert layout for SharedDisplay (Felles skjerm)
+
+## Scope-avklaring
+
+Denne planen gjelder **KUN** for:
+- `SharedDisplay.tsx` - Felles pakkeskjerm som viser flere kunder
+- `DemoCustomerCard.tsx` - Demo-kort brukt i SharedDisplay
+- `CustomerPackingCard.tsx` - Ekte kundekort brukt i SharedDisplay
+
+**IKKE** berørt:
+- `CustomerDisplay.tsx` - Individuell kundeskjerm (beholder nåværende layout)
+- `CustomerProductsList.tsx` - Produktliste for CustomerDisplay
+
+---
 
 ## Problemanalyse
 
-Undersøkelsen avdekket tre hovedproblemer:
-
-1. **Demo-modus mangler fallback-innstillinger**: Når `bakeryId` ikke finnes i databasen, returnerer `usePublicDisplaySettings` undefined. Dette bryter demo-rendringen.
-
-2. **`auto_fit_screen` er deaktivert som standard**: I `displaySettingsDefaults.ts` er `auto_fit_screen: false`. Brukeren må eksplisitt aktivere den.
-
-3. **Loading-state vises feil i demo**: Betingelsen `!isDemo && isLoading` i SharedDisplay.tsx fungerer, men demo-kortene vises ikke fordi `settings?.auto_fit_screen` er undefined/false.
+Dagens kundekort i SharedDisplay er for høye fordi:
+1. Vertikal produktliste tar mye plass
+2. Progress-bar med "Fremgang"-tekst og prosentvisning tar ekstra høyde
+3. "X av Y linjer pakket" tar unødvendig plass på felles skjerm
+4. Kortene blir lange rektangler i stedet for kompakte firkanter
 
 ---
 
 ## Teknisk løsning
 
-### 1. Opprett fallback-innstillinger for demo-modus
+### 1. Ny innstilling: `shared_compact_table_mode`
 
-**Fil:** `src/pages/display/SharedDisplay.tsx`
+Legge til en toggle i display-innstillingene som aktiverer kompakt tabell-modus for SharedDisplay.
 
-Legg til en `useMemo` som returnerer default-innstillinger når `settings` er undefined:
-
-```typescript
-const effectiveSettings = useMemo(() => {
-  if (settings) return settings;
-  
-  // Fallback for demo-modus når settings ikke er tilgjengelig
-  if (isDemo) {
-    return {
-      ...getDefaultSettings('demo'),
-      auto_fit_screen: true, // Aktiver auto-fit i demo
-      id: 'demo-settings'
-    } as DisplaySettings;
-  }
-  
-  return undefined;
-}, [settings, isDemo]);
+**Database-migrasjon:**
+```sql
+ALTER TABLE public.display_settings
+ADD COLUMN IF NOT EXISTS shared_compact_table_mode boolean DEFAULT false;
 ```
 
-Deretter bruk `effectiveSettings` i stedet for `settings` overalt i komponenten.
+**Fil:** `src/hooks/useDisplaySettings.ts`
+```typescript
+// Legg til i DisplaySettings type
+shared_compact_table_mode?: boolean;
+```
 
-### 2. Forbedre AutoFitGrid for bedre skjermtilpasning
+**Fil:** `src/utils/displaySettingsDefaults.ts`
+```typescript
+// Legg til default
+shared_compact_table_mode: false,
+```
+
+### 2. Tabellbasert produktvisning i DemoCustomerCard
+
+**Fil:** `src/components/display/shared/DemoCustomerCard.tsx`
+
+Ny tabell-struktur som erstatter vertikal liste:
+
+```text
++------------------------------------------+
+|     KUNDENAVN          [Ferdig/Pågår]    |
++------------------------------------------+
+| Produkt          | Antall |    Status    |
++------------------------------------------+
+| Grovbrød         |   25   |  ✓ Ferdig    |
+| Kanelboller      |   48   |  ◐ Pågår     |
+| Rundstykker      |   60   |  ○ Venter    |
++------------------------------------------+
+```
+
+Implementasjon:
+```tsx
+{settings?.shared_compact_table_mode ? (
+  <table className="w-full" style={{ fontSize: `${12 * scaleFactor}px` }}>
+    <thead>
+      <tr className="border-b" style={{ borderColor: settings?.card_border_color || '#e5e7eb' }}>
+        <th className="text-left py-1 font-medium" style={{ color: settings?.text_color }}>Produkt</th>
+        <th className="text-center py-1 font-medium" style={{ color: settings?.text_color }}>Antall</th>
+        <th className="text-right py-1 font-medium" style={{ color: settings?.text_color }}>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {displayProducts.map((product) => (
+        <tr key={product.product_id}>
+          <td className="py-0.5" style={{ color: settings?.text_color }}>{product.product_name}</td>
+          <td className="text-center py-0.5 font-semibold" style={{ color: accentColor }}>
+            {product.total_quantity}
+          </td>
+          <td className="text-right py-0.5">
+            <span style={{ color: getStatusColor(product.packing_status) }}>
+              {product.packing_status === 'packed' ? '✓' : 
+               product.packing_status === 'in_progress' ? '◐' : '○'}
+            </span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+) : (
+  /* Eksisterende vertikal produktliste */
+)}
+```
+
+### 3. Samme endringer i CustomerPackingCard
+
+**Fil:** `src/components/display/shared/CustomerPackingCard.tsx`
+
+Identisk tabell-logikk som DemoCustomerCard, siden begge brukes i SharedDisplay.
+
+### 4. Forenklet header i kompakt modus
+
+I kompakt modus fjernes:
+- Progress-bar (erstattes av status per produkt)
+- "Fremgang: X%" tekst
+- "X av Y linjer pakket"
+
+```tsx
+// I kompakt modus, vis kun kundenavn og status-badge i header
+// Fjern progress-section helt
+{!settings?.shared_compact_table_mode && (settings?.show_progress_bar ?? true) && (
+  /* Progress-bar vises kun i normal modus */
+)}
+```
+
+### 5. Forbedret AutoFitGrid for firkantede kort
 
 **Fil:** `src/components/display/shared/AutoFitGrid.tsx`
 
-Problemet er at algoritmen noen ganger gir for mange kolonner, noe som resulterer i for smale kort. Forbedre algoritmen:
+Oppdater scoring-algoritmen til å favorisere mer kvadratiske kort:
 
 ```typescript
-const calculateOptimalLayout = (
-  customerCount: number,
-  availableHeight: number,
-  availableWidth: number,
-  gap: number,
-  minCardHeight: number
-): OptimalLayout => {
-  if (customerCount === 0 || availableHeight <= 0 || availableWidth <= 0) {
-    return { columns: 1, rows: 1, cardHeight: 300 };
-  }
-
-  const MIN_CARD_WIDTH = 280; // Økt fra 250 for bedre lesbarhet
+const calculateOptimalLayout = (...) => {
+  // ...eksisterende kode...
   
-  let bestConfig = { columns: 1, rows: customerCount, cardHeight: minCardHeight };
-  let bestScore = 0;
-
-  // Prøv kolonner fra 1 til 6
   for (let cols = 1; cols <= Math.min(6, customerCount); cols++) {
-    const rows = Math.ceil(customerCount / cols);
-    const totalGapHeight = Math.max(0, rows - 1) * gap;
-    const totalGapWidth = Math.max(0, cols - 1) * gap;
+    // ...eksisterende beregninger...
     
-    const cardHeight = Math.floor((availableHeight - totalGapHeight) / rows);
-    const cardWidth = Math.floor((availableWidth - totalGapWidth) / cols);
-
-    // Sjekk om denne konfigurasjonen er gyldig
-    if (cardHeight >= minCardHeight && cardWidth >= MIN_CARD_WIDTH) {
-      // Score basert på hvor godt kortene utnytter plassen
-      const score = cardHeight * cardWidth;
+    if (cardHeight >= minCardHeight && cardWidth >= minCardWidth) {
+      // Beregn aspect ratio bonus (favoriserer firkantede kort)
+      const aspectRatio = cardWidth / cardHeight;
+      const squareBonus = 1 - Math.abs(1 - aspectRatio); // 0-1, 1 = perfekt firkant
+      
+      // Kombinert score: areal + bonus for firkant-form
+      const score = (cardHeight * cardWidth) * (1 + squareBonus * 0.3);
+      
       if (score > bestScore) {
         bestScore = score;
         bestConfig = { columns: cols, rows, cardHeight };
       }
     }
   }
-
-  return bestConfig;
 };
 ```
 
-### 3. Forbedre kortinnhold for dynamisk skalering
+### 6. UI-toggle i SharedLayoutSection
 
-**Fil:** `src/components/display/shared/DemoCustomerCard.tsx` og `CustomerPackingCard.tsx`
+**Fil:** `src/components/display-settings/sections/SharedLayoutSection.tsx`
 
-Legg til dynamisk fontstørrelse basert på kortstørrelse:
-
-```typescript
-// Beregn skaleringsfaktor basert på maxHeight
-const scaleFactor = maxHeight ? Math.min(1, (maxHeight - 100) / 200) : 1;
-
-// Bruk i style
-style={{
-  fontSize: `${(settings?.customer_name_font_size || 18) * scaleFactor}px`
-}}
+```tsx
+<ToggleSetting
+  id="shared_compact_table_mode"
+  label="Kompakt tabell-modus"
+  description="Viser produkter i en kompakt tabell for å få plass til flere kunder på skjermen"
+  checked={settings.shared_compact_table_mode ?? false}
+  onCheckedChange={(checked) => onUpdate({ shared_compact_table_mode: checked })}
+/>
 ```
-
-### 4. Sikre at demo-rendering bruker effectiveSettings
-
-**Fil:** `src/pages/display/SharedDisplay.tsx`
-
-Endre alle steder som bruker `settings?.auto_fit_screen` til å bruke `effectiveSettings?.auto_fit_screen`.
 
 ---
 
@@ -115,18 +170,37 @@ Endre alle steder som bruker `settings?.auto_fit_screen` til å bruke `effective
 
 | Fil | Endring |
 |-----|---------|
-| `src/pages/display/SharedDisplay.tsx` | Legg til `effectiveSettings` med demo-fallback, bruk den overalt |
-| `src/components/display/shared/AutoFitGrid.tsx` | Forbedre layout-algoritme med MIN_CARD_WIDTH = 280 og score-basert valg |
-| `src/components/display/shared/DemoCustomerCard.tsx` | Legg til dynamisk skalering av fonter/padding basert på maxHeight |
-| `src/components/display/shared/CustomerPackingCard.tsx` | Samme skalerings-logikk som DemoCustomerCard |
+| `src/hooks/useDisplaySettings.ts` | Legg til `shared_compact_table_mode: boolean` |
+| `src/utils/displaySettingsDefaults.ts` | Sett default `shared_compact_table_mode: false` |
+| `src/components/display/shared/DemoCustomerCard.tsx` | Ny tabellbasert rendering med `<table>` |
+| `src/components/display/shared/CustomerPackingCard.tsx` | Samme tabelllogikk |
+| `src/components/display/shared/AutoFitGrid.tsx` | Oppdater scoring for bedre firkant-preferanse |
+| `src/components/display-settings/sections/SharedLayoutSection.tsx` | Ny toggle for "Kompakt tabell-modus" |
+| `supabase/migrations/...` | Legg til `shared_compact_table_mode` kolonne |
+| `src/integrations/supabase/types.ts` | Oppdateres automatisk |
+
+---
+
+## Ikke berørte filer (CustomerDisplay)
+
+Følgende filer forblir **uendret**:
+- `src/pages/display/CustomerDisplay.tsx`
+- `src/components/display/customer/CustomerProductsList.tsx`
+- `src/components/display/customer/CustomerProgressBar.tsx`
+- `src/components/display/customer/CustomerStatusIndicator.tsx`
 
 ---
 
 ## Forventet resultat
 
-Etter implementering:
-- "Tilpass til skjerm"-bryteren vil fungere korrekt
-- Alle kundekort tilpasses automatisk til skjermstørrelsen
-- Ingen scrolling nødvendig - alt vises på én skjerm
-- Tekst og elementer harmoniserer med kortstørrelsen
-- Demo-modus viser 3 eksempelkort med riktig layout
+**SharedDisplay med kompakt modus aktivert:**
+- Kortere, mer firkantede kundekort
+- 4-6 kunder på én skjerm (i stedet for 2)
+- Tabellformat med kun nødvendig info: Produkt, Antall, Status
+- Automatisk skalering av font/padding
+- Fullskjerm-modus fungerer korrekt
+
+**CustomerDisplay forblir uendret:**
+- Beholder nåværende detaljerte visning
+- Stor produktliste med progress-bar
+- Optimert for én kunde per skjerm
