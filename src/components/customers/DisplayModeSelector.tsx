@@ -6,11 +6,12 @@ import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { Monitor, Users, Copy, ExternalLink, Zap, Globe, Lock, Loader2 } from 'lucide-react';
 import { Customer } from '@/types/database';
-import { getDisplayPath } from '@/utils/displayUtils';
+import { getDisplayPath, getSharedDisplayPath } from '@/utils/displayUtils';
 import { cn } from '@/lib/utils';
 
 interface DisplayModeSelectorProps {
   customer: Customer;
+  bakeryId?: string;
   onToggleDisplay: (customer: Customer, hasDedicatedDisplay: boolean) => void;
   onCopyUrl: (url: string) => void;
   onOpenUrl: (url: string) => void;
@@ -18,6 +19,7 @@ interface DisplayModeSelectorProps {
 
 const DisplayModeSelector = ({ 
   customer, 
+  bakeryId,
   onToggleDisplay, 
   onCopyUrl, 
   onOpenUrl 
@@ -103,12 +105,12 @@ const DisplayModeSelector = ({
               <p className="text-xs text-gray-500 mt-1">
                 Kostnadseffektiv løsning med delte ressurser
               </p>
-              {!hasDedicatedDisplay && (
+              {!hasDedicatedDisplay && bakeryId && (
                 <div className="flex items-center space-x-1 mt-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onCopyUrl('/dashboard/display/shared')}
+                    onClick={() => onCopyUrl(getSharedDisplayPath(bakeryId))}
                     className="h-6 text-xs"
                   >
                     <Copy className="w-3 h-3 mr-1" />
@@ -117,7 +119,7 @@ const DisplayModeSelector = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onOpenUrl('/dashboard/display/shared')}
+                    onClick={() => onOpenUrl(getSharedDisplayPath(bakeryId))}
                     className="h-6 text-xs"
                   >
                     <ExternalLink className="w-3 h-3 mr-1" />
@@ -159,13 +161,13 @@ const DisplayModeSelector = ({
               {hasDedicatedDisplay && customer.display_url && (
                 <div className="mt-2 space-y-1">
                   <code className="text-xs bg-white px-2 py-1 rounded border block truncate">
-                    {getDisplayPath(customer)}
+                    {getDisplayPath(customer, bakeryId)}
                   </code>
                   <div className="flex items-center space-x-1">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onCopyUrl(getDisplayPath(customer))}
+                      onClick={() => onCopyUrl(getDisplayPath(customer, bakeryId))}
                       className="h-6 text-xs"
                     >
                       <Copy className="w-3 h-3 mr-1" />
@@ -174,7 +176,7 @@ const DisplayModeSelector = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onOpenUrl(getDisplayPath(customer))}
+                      onClick={() => onOpenUrl(getDisplayPath(customer, bakeryId))}
                       className="h-6 text-xs"
                     >
                       <ExternalLink className="w-3 h-3 mr-1" />
