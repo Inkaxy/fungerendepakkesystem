@@ -13,11 +13,13 @@ interface CustomerPackingCardProps {
   customer: Customer;
   settings: DisplaySettings | undefined;
   statusColors: { [key: string]: string };
+  maxHeight?: number; // For auto-fit modus
 }
 
-const CustomerPackingCard = React.memo(({ customerData, customer, settings, statusColors }: CustomerPackingCardProps) => {
+const CustomerPackingCard = React.memo(({ customerData, customer, settings, statusColors, maxHeight }: CustomerPackingCardProps) => {
   // Get card height class based on settings
   const getCardHeightClass = () => {
+    if (maxHeight) return 'py-2'; // Kompakt når auto-fit er aktiv
     switch (settings?.customer_card_height) {
       case 'compact': return 'py-2';
       case 'large': return 'py-6';
@@ -25,8 +27,20 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
     }
   };
 
-  // Limit products based on max_products_per_card setting
-  const maxProducts = settings?.max_products_per_card || 10;
+  // Limit products based on max_products_per_card setting OR available height
+  const maxProducts = React.useMemo(() => {
+    if (maxHeight) {
+      // Estimer hvor mange produkter som får plass
+      const headerHeight = 60;
+      const progressHeight = 50;
+      const productItemHeight = 35;
+      const footerPadding = 20;
+      const availableForProducts = maxHeight - headerHeight - progressHeight - footerPadding;
+      return Math.max(1, Math.floor(availableForProducts / productItemHeight));
+    }
+    return settings?.max_products_per_card || 10;
+  }, [maxHeight, settings?.max_products_per_card]);
+  
   const displayProducts = customerData.products.slice(0, maxProducts);
   const hasMoreProducts = customerData.products.length > maxProducts;
 
@@ -54,7 +68,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
 
   return (
     <Card 
-      className={cn(getCardStyleClass(), hoverClass)}
+      className={cn(getCardStyleClass(), hoverClass, 'h-full flex flex-col')}
       style={{
         backgroundColor: settings?.card_background_color || '#ffffff',
         borderColor: settings?.card_border_color || '#e5e7eb',
@@ -62,7 +76,9 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
         borderWidth: settings?.card_border_width ? `${settings.card_border_width}px` : undefined,
         boxShadow: settings?.card_shadow_intensity 
           ? `0 ${settings.card_shadow_intensity}px ${settings.card_shadow_intensity * 2}px rgba(0,0,0,0.1)` 
-          : undefined
+          : undefined,
+        maxHeight: maxHeight ? `${maxHeight}px` : undefined,
+        overflow: 'hidden'
       }}
     >
       <CardHeader className={getCardHeightClass()}>
@@ -102,7 +118,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
           {customer.name}
         </CardTitle>
       </CardHeader>
-      <CardContent className={getCardHeightClass()}>
+      <CardContent className={cn(getCardHeightClass(), 'flex-1 overflow-hidden')}>
         <div className="space-y-3">
           {/* Progress section */}
           {(settings?.show_customer_progress_bar ?? true) && (

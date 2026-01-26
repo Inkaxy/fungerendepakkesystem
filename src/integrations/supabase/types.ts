@@ -244,6 +244,7 @@ export type Database = {
         Row: {
           always_show_customer_name: boolean | null
           animation_speed: string | null
+          auto_fit_screen: boolean | null
           auto_hide_completed_customers: boolean | null
           auto_hide_completed_timer: number | null
           auto_refresh_interval: number | null
@@ -413,6 +414,7 @@ export type Database = {
         Insert: {
           always_show_customer_name?: boolean | null
           animation_speed?: string | null
+          auto_fit_screen?: boolean | null
           auto_hide_completed_customers?: boolean | null
           auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null
@@ -582,6 +584,7 @@ export type Database = {
         Update: {
           always_show_customer_name?: boolean | null
           animation_speed?: string | null
+          auto_fit_screen?: boolean | null
           auto_hide_completed_customers?: boolean | null
           auto_hide_completed_timer?: number | null
           auto_refresh_interval?: number | null

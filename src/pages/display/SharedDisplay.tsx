@@ -6,6 +6,7 @@ import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader
 import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
 import DemoCustomerCard from '@/components/display/shared/DemoCustomerCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
+import AutoFitGrid from '@/components/display/shared/AutoFitGrid';
 import ConnectionStatus from '@/components/display/ConnectionStatus';
 import FullscreenButton from '@/components/display/FullscreenButton';
 import { useRealTimePublicDisplay } from '@/hooks/useRealTimePublicDisplay';
@@ -290,46 +291,84 @@ const SharedDisplay = () => {
 
         {/* Demo-modus: Vis demo-kort */}
         {isDemo && (
-          <div 
-            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
-            style={{ 
-              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
-            }}
-          >
-            {DEMO_PACKING_DATA.map((demoData) => (
-              <DemoCustomerCard
-                key={demoData.id}
-                customerData={demoData}
-                settings={settings}
-                statusColors={statusColors}
-                hideWhenCompleted={settings?.shared_hide_completed_customers}
-                completedOpacity={settings?.shared_completed_customer_opacity}
-              />
-            ))}
-          </div>
+          settings?.auto_fit_screen ? (
+            <AutoFitGrid 
+              customerCount={DEMO_PACKING_DATA.length} 
+              settings={settings}
+            >
+              {DEMO_PACKING_DATA.map((demoData) => (
+                <DemoCustomerCard
+                  key={demoData.id}
+                  customerData={demoData}
+                  settings={settings}
+                  statusColors={statusColors}
+                  hideWhenCompleted={settings?.shared_hide_completed_customers}
+                  completedOpacity={settings?.shared_completed_customer_opacity}
+                />
+              ))}
+            </AutoFitGrid>
+          ) : (
+            <div 
+              className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
+              style={{ 
+                gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+              }}
+            >
+              {DEMO_PACKING_DATA.map((demoData) => (
+                <DemoCustomerCard
+                  key={demoData.id}
+                  customerData={demoData}
+                  settings={settings}
+                  statusColors={statusColors}
+                  hideWhenCompleted={settings?.shared_hide_completed_customers}
+                  completedOpacity={settings?.shared_completed_customer_opacity}
+                />
+              ))}
+            </div>
+          )
         )}
 
         {/* Ekte data: Vis ekte kunder */}
         {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length > 0 && (
-          <div 
-            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
-            style={{ 
-              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
-            }}
-          >
-            {sortedCustomers.map((customer) => (
-              <CustomerDataLoader
-                key={customer.id}
-                customer={customer}
-                bakeryId={bakeryId}
-                activePackingDate={effectivePackingDate}
-                settings={settings}
-                statusColors={statusColors}
-                hideWhenCompleted={settings?.shared_hide_completed_customers}
-                completedOpacity={settings?.shared_completed_customer_opacity}
-              />
-            ))}
-          </div>
+          settings?.auto_fit_screen ? (
+            <AutoFitGrid 
+              customerCount={sortedCustomers.length} 
+              settings={settings}
+            >
+              {sortedCustomers.map((customer) => (
+                <CustomerDataLoader
+                  key={customer.id}
+                  customer={customer}
+                  bakeryId={bakeryId}
+                  activePackingDate={effectivePackingDate}
+                  settings={settings}
+                  statusColors={statusColors}
+                  hideWhenCompleted={settings?.shared_hide_completed_customers}
+                  completedOpacity={settings?.shared_completed_customer_opacity}
+                />
+              ))}
+            </AutoFitGrid>
+          ) : (
+            <div 
+              className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
+              style={{ 
+                gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+              }}
+            >
+              {sortedCustomers.map((customer) => (
+                <CustomerDataLoader
+                  key={customer.id}
+                  customer={customer}
+                  bakeryId={bakeryId}
+                  activePackingDate={effectivePackingDate}
+                  settings={settings}
+                  statusColors={statusColors}
+                  hideWhenCompleted={settings?.shared_hide_completed_customers}
+                  completedOpacity={settings?.shared_completed_customer_opacity}
+                />
+              ))}
+            </div>
+          )
         )}
 
         {/* Tom tilstand: Vis kun for ekte data */}

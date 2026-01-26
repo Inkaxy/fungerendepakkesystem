@@ -12,6 +12,14 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
   return (
     <div className="space-y-4">
       <ToggleSetting
+        id="auto_fit_screen"
+        label="Tilpass til skjerm"
+        description="Skalerer automatisk slik at alle kundekort får plass på én skjerm uten scrolling"
+        checked={settings.auto_fit_screen ?? false}
+        onCheckedChange={(checked) => onUpdate({ auto_fit_screen: checked })}
+      />
+
+      <ToggleSetting
         id="shared_fullscreen_mode"
         label="Fullskjerm-modus"
         description="Optimalisert for fullskjerm-visning"
@@ -19,15 +27,17 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
         onCheckedChange={(checked) => onUpdate({ shared_fullscreen_mode: checked })}
       />
 
-      <ToggleSetting
-        id="shared_auto_scroll"
-        label="Auto-scroll"
-        description="Automatisk scrolling når innholdet er for langt"
-        checked={settings.shared_auto_scroll}
-        onCheckedChange={(checked) => onUpdate({ shared_auto_scroll: checked })}
-      />
+      {!settings.auto_fit_screen && (
+        <ToggleSetting
+          id="shared_auto_scroll"
+          label="Auto-scroll"
+          description="Automatisk scrolling når innholdet er for langt"
+          checked={settings.shared_auto_scroll}
+          onCheckedChange={(checked) => onUpdate({ shared_auto_scroll: checked })}
+        />
+      )}
 
-      {settings.shared_auto_scroll && (
+      {!settings.auto_fit_screen && settings.shared_auto_scroll && (
         <SliderControl
           label="Scroll-hastighet"
           value={settings.shared_scroll_speed}
