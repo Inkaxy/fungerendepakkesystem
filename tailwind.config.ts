@@ -18,7 +18,7 @@ export default {
 			}
 		},
 		extend: {
-			colors: {
+		colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -51,6 +51,31 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				// Custom bakery colors
+				bakery: {
+					orange: 'hsl(var(--bakery-orange))',
+					'orange-light': 'hsl(var(--bakery-orange-light))',
+					brown: 'hsl(var(--bakery-brown))',
+					'brown-light': 'hsl(var(--bakery-brown-light))',
+					cream: 'hsl(var(--bakery-cream))',
+					wheat: 'hsl(var(--bakery-wheat))',
+					crust: 'hsl(var(--bakery-crust))',
+					flour: 'hsl(var(--bakery-flour))',
+					honey: 'hsl(var(--bakery-honey))'
+				},
+				// Status colors
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

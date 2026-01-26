@@ -1,13 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Users, UserCheck, Monitor, UserPlus } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCustomerActions } from '@/hooks/useCustomerActions';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import CreateCustomerDialog from '@/components/customers/CreateCustomerDialog';
 import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import CustomerDetailsCard from '@/components/customers/CustomerDetailsCard';
@@ -17,6 +14,8 @@ import EmptyCustomersState from '@/components/customers/EmptyCustomersState';
 import QrCodeModal from '@/components/customers/QrCodeModal';
 import DeleteAllCustomersDialog from '@/components/customers/DeleteAllCustomersDialog';
 import { Customer } from '@/types/database';
+import PageHeader from '@/components/shared/PageHeader';
+import LoadingState from '@/components/shared/LoadingState';
 
 const Customers = () => {
   const { data: customers, isLoading, error } = useCustomers();
@@ -51,6 +50,14 @@ const Customers = () => {
     );
   }, [customers, searchTerm]);
 
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = customers?.length || 0;
+    const withDisplay = customers?.filter(c => c.has_dedicated_display).length || 0;
+    const active = customers?.filter(c => c.status === 'active').length || 0;
+    return { total, withDisplay, active };
+  }, [customers]);
+
   const handleSelectCustomer = (customerId: string, selected: boolean) => {
     setSelectedCustomers(prev => 
       selected 
@@ -64,12 +71,10 @@ const Customers = () => {
   };
 
   const handleGenerateQrCodes = () => {
-    // TODO: Implement QR code generation for all customers
     console.log('Generate QR codes for all customers');
   };
 
   const handleBulkActions = () => {
-    // TODO: Implement bulk actions
     console.log('Bulk actions for selected customers:', selectedCustomers);
   };
 
@@ -79,23 +84,23 @@ const Customers = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500 mx-auto" />
-          <p className="text-gray-600">Laster kundedata...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Laster kundedata..." icon={Users} />;
   }
 
   if (error) {
     return (
-      <div className="text-center py-16">
-        <div className="text-red-600 space-y-2">
-          <h3 className="font-semibold text-lg">Noe gikk galt</h3>
-          <p>Feil ved lasting av kunder: {error.message}</p>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          icon={Users}
+          title="Kunder"
+          subtitle="Administrer dine kunder"
+        />
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="py-8 text-center">
+            <h3 className="font-semibold text-lg text-destructive mb-2">Noe gikk galt</h3>
+            <p className="text-muted-foreground">Feil ved lasting av kunder: {error.message}</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -104,9 +109,20 @@ const Customers = () => {
 
   if (customersData.length === 0) {
     return (
-      <div className="p-6">
-        <Card>
-          <CardContent className="p-6">
+      <div className="space-y-6">
+        <PageHeader
+          icon={Users}
+          title="Kunder"
+          subtitle="Administrer dine kunder"
+          actions={
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="hover-lift">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Ny kunde
+            </Button>
+          }
+        />
+        <Card className="card-warm">
+          <CardContent className="py-8">
             <EmptyCustomersState onCreateCustomer={() => setIsCreateDialogOpen(true)} />
           </CardContent>
         </Card>
@@ -120,7 +136,58 @@ const Customers = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <PageHeader
+        icon={Users}
+        title="Kunder"
+        subtitle="Administrer dine kunder og display-innstillinger"
+        actions={
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="hover-lift">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Ny kunde
+          </Button>
+        }
+      />
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="stat-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Totale kunder</p>
+              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+            </div>
+            <div className="stat-card-icon">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Med display</p>
+              <p className="text-2xl font-bold text-foreground">{stats.withDisplay}</p>
+            </div>
+            <div className="stat-card-icon">
+              <Monitor className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Aktive</p>
+              <p className="text-2xl font-bold text-foreground">{stats.active}</p>
+            </div>
+            <div className="stat-card-icon">
+              <UserCheck className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and filters */}
       <CustomersHeader
         customersCount={filteredCustomers.length}
         searchTerm={searchTerm}
@@ -132,7 +199,8 @@ const Customers = () => {
         selectedCount={selectedCustomers.length}
       />
 
-      <Card>
+      {/* Table */}
+      <Card className="card-warm">
         <CardContent className="p-0">
           <CustomersTable
             customers={filteredCustomers}
@@ -151,6 +219,7 @@ const Customers = () => {
         </CardContent>
       </Card>
 
+      {/* Dialogs */}
       <CreateCustomerDialog 
         open={isCreateDialogOpen} 
         onOpenChange={setIsCreateDialogOpen}
