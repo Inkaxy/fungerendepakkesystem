@@ -366,6 +366,7 @@ export type Database = {
           shared_product_font_size: number | null
           shared_scroll_speed: number | null
           shared_show_clock: boolean | null
+          shared_show_completion_icon: boolean | null
           shared_show_logo: boolean | null
           shared_show_product_quantity: boolean | null
           show_basket_quantity: boolean | null
@@ -542,6 +543,7 @@ export type Database = {
           shared_product_font_size?: number | null
           shared_scroll_speed?: number | null
           shared_show_clock?: boolean | null
+          shared_show_completion_icon?: boolean | null
           shared_show_logo?: boolean | null
           shared_show_product_quantity?: boolean | null
           show_basket_quantity?: boolean | null
@@ -718,6 +720,7 @@ export type Database = {
           shared_product_font_size?: number | null
           shared_scroll_speed?: number | null
           shared_show_clock?: boolean | null
+          shared_show_completion_icon?: boolean | null
           shared_show_logo?: boolean | null
           shared_show_product_quantity?: boolean | null
           show_basket_quantity?: boolean | null

@@ -127,6 +127,16 @@ const SharedCustomerCardsSection = ({ settings, onUpdate }: SharedCustomerCardsS
         )}
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <ToggleSetting
+          id="shared_show_completion_icon"
+          label="Vis ferdig-ikon"
+          description="Vis Loaf&Load-logo når kunde er ferdig pakket"
+          checked={settings.shared_show_completion_icon ?? true}
+          onCheckedChange={(checked) => onUpdate({ shared_show_completion_icon: checked })}
+        />
+      </div>
+
       <div className="space-y-2">
         <Label>Sortering</Label>
         <Select
