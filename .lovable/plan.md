@@ -1,260 +1,194 @@
 
-# Plan: Optimalisert lastetid og oppdateringsmekanisme for SharedDisplay
+# Plan: Forbedret Produktpakkeside - Smartere, Mer Innovativ og Brukervennlig
 
-## Analyse av nåværende arkitektur
-
-### Sammenligning: SharedDisplay vs CustomerDisplay
-
-| Aspekt | CustomerDisplay | SharedDisplay |
-|--------|-----------------|---------------|
-| Data-henting | 1 kunde - direkte hooks | N kunder via CustomerDataLoader |
-| Queries per kunde | 2 (activeProducts, packingData) | 2 per kunde = **N×2 queries** |
-| WebSocket | Delt listener | Delt listener |
-| Broadcast | Delt listener | Delt listener |
-| Cache-strategi | Samme hooks | Samme hooks |
-
-### Identifisert flaskehals: N+1 Query-problemet
-
-SharedDisplay bruker `CustomerDataLoader` som renderer **én komponent per kunde**, og hver komponent kjører sine egne hooks:
-
-```text
-SharedDisplay
-  └── CustomerDataLoader (Kunde 1)
-        ├── usePublicActivePackingProducts() ← Query 1
-        └── usePublicPackingData()           ← Query 2
-  └── CustomerDataLoader (Kunde 2)
-        ├── usePublicActivePackingProducts() ← Query 3 (DUPLIKAT!)
-        └── usePublicPackingData()           ← Query 4
-  └── CustomerDataLoader (Kunde 3)
-        ├── usePublicActivePackingProducts() ← Query 5 (DUPLIKAT!)
-        └── usePublicPackingData()           ← Query 6
-  ... (og så videre)
-```
-
-**Problem 1**: `usePublicActivePackingProducts` kalles **N ganger** med identiske parametere (bakeryId + dato).
-
-**Problem 2**: `usePublicPackingData` kjører **separate database-queries per kunde** - dette er tregt.
-
-**Problem 3**: Ved produktbytte invalideres ALLE cacher samtidig, som trigger **N parallelle refetcher**.
-
-### Eksisterende batch-hook ikke i bruk
-
-Det finnes allerede en `usePublicAllCustomersPackingData` hook (linje 467-613 i usePublicDisplayData.ts) som gjør **én enkelt batch-query** for alle kunder. Men SharedDisplay bruker den ikke.
+## Oversikt
+Basert på analysen av skjermbildet og kodebasen, ser jeg at den nåværende `PackingProductOverview`-siden og `ProductsTable`-komponenten har et funksjonelt, men statisk design. Planen er å transformere den til en moderne, intuitiv arbeidsflyt med bedre visuell hierarki, smartere interaksjon, og forbedret "flow" i tabellen.
 
 ---
 
-## Løsning: Tre-trinns optimalisering
+## Hovedforbedringer
 
-### Trinn 1: Heis activeProducts til SharedDisplay-nivå (eliminerer N-1 dupliserte queries)
+### 1. Ny Header med Statistikk-kort
+Erstatt den enkle headeren med en visuelt rik header som inkluderer:
+- Gradient-bakgrunn og moderne styling (som `ActivePackingCard`)
+- Tre statistikk-kort øverst: **Totalt antall produkter**, **Totale enheter**, **Fremgang** (hvor mange er 100% pakket)
+- Live-indikator som pulserer for å vise sanntidstilkobling
 
-I stedet for at hver `CustomerDataLoader` henter activeProducts, henter SharedDisplay det **én gang** og sender det ned som prop.
+### 2. Forbedret Valgt-produkter Panel (Floating Sidebar/Drawer)
+- Et "sticky" panel på høyre side som viser de valgte produktene (0-3)
+- Visuell representasjon med fargekoder som matcher display-fargene
+- Drag-and-drop for å endre rekkefølge (påvirker farge-slot)
+- Tydelig "Start pakking"-knapp som er alltid synlig
 
-**Endring i SharedDisplay.tsx:**
-```tsx
-// Flytt denne UTENFOR CustomerDataLoader-loopen
-const { data: activeProducts } = usePublicActivePackingProducts(
-  bakeryId,
-  activePackingDate
-);
+### 3. Smartere Tabell med Forbedret Flow
 
-// Send ned som prop
-<CustomerDataLoader
-  activeProducts={activeProducts} // ← NY PROP
-  ...
-/>
-```
+#### A) Visuell Hierarki
+- Rad-gruppering etter kategori med kollapsbare seksjoner
+- Tydeligere hover-effekter og valgt-tilstand med gradient-bakgrunn
+- Animert overgang når produkter velges/avvelges
 
-**Endring i CustomerDataLoader.tsx:**
-```tsx
-interface CustomerDataLoaderProps {
-  activeProducts?: any[]; // ← NY PROP
-  // ...andre props
-}
+#### B) Forbedret Søk og Filter
+- Inline søkefelt over tabellen med debounced input
+- Quick-filter chips for kategorier
+- Filter for status: "Alle", "Pågår", "Ferdig", "Ikke startet"
 
-// Bruk prop i stedet for egen hook
-const { data: packingData } = usePublicPackingData(
-  customer.id,
-  bakeryId,
-  activePackingDate,
-  activeProducts, // ← Fra prop, ikke egen hook
-  customer.name
-);
-```
+#### C) Smartere Progress-visning
+- Bredere, animert progressbar med gradient (grå→oransje→grønn)
+- Tooltip med detaljert info ved hover (f.eks. "5 av 9 enheter pakket")
+- Micro-animasjon når prosent oppdateres
 
-**Resultat**: Reduserer queries fra **N×2** til **N+1**.
+#### D) Forbedret Rad-interaksjon
+- Klikk på rad = velg/avvelg (allerede implementert)
+- Dobbeltklikk = gå direkte til pakking (allerede implementert)
+- Hover viser "quick actions" ikon for rask navigasjon
+- Valgte rader har en tydelig farge-indikator på venstre kant
 
-### Trinn 2: Bruk batch-query for packing data (eliminerer N-1 queries til)
+### 4. Keyboard Shortcuts Panel
+- Liten, sammenleggbar guide nederst/øverst som viser tastatursnarveier
+- Flyttes fra inline tekst til et diskret ikon med popover
 
-Erstatt N individuelle `usePublicPackingData`-kall med én `usePublicAllCustomersPackingData`.
-
-**Endring i SharedDisplay.tsx:**
-```tsx
-// Hent alle kunders data i ETT kall
-const { data: allPackingData } = usePublicAllCustomersPackingData(
-  bakeryId,
-  sortedCustomers.map(c => ({ id: c.id, name: c.name })),
-  activePackingDate,
-  activeProducts
-);
-
-// Lag en lookup-map for O(1) tilgang
-const packingDataMap = useMemo(() => {
-  const map = new Map<string, PackingCustomer>();
-  allPackingData?.forEach(d => map.set(d.id, d));
-  return map;
-}, [allPackingData]);
-
-// Send pre-fetched data til CustomerDataLoader
-<CustomerDataLoader
-  prefetchedPackingData={packingDataMap.get(customer.id)} // ← NY PROP
-  ...
-/>
-```
-
-**Endring i CustomerDataLoader.tsx:**
-```tsx
-interface CustomerDataLoaderProps {
-  prefetchedPackingData?: PackingCustomer; // ← NY PROP
-  // ...
-}
-
-// Bruk prefetched data hvis tilgjengelig
-const customerData = prefetchedPackingData || packingData?.find(...);
-```
-
-**Resultat**: Reduserer queries fra **N+1** til **2** (activeProducts + batch packing data).
-
-### Trinn 3: Granulær cache-invalidering ved produktbytte
-
-Nåværende oppførsel: Når produkter endres, invalideres ALL packing data som trigger full re-render.
-
-**Forbedring i useRealTimePublicDisplay.ts og usePackingBroadcastListener.ts:**
-
-Ved `PRODUCTS_SELECTED`/`PRODUCTS_CLEARED`:
-1. Oppdater kun `PUBLIC_ACTIVE_PRODUCTS` cache direkte (ingen full refetch)
-2. Marker `PUBLIC_PACKING_DATA` som stale, men **ikke tving umiddelbar refetch**
-3. La React Query håndtere background refetch uten loading-spinner
-
-```tsx
-case 'PRODUCTS_SELECTED': {
-  // Direkte cache-oppdatering av aktive produkter
-  queryClient.setQueryData(
-    [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId, date],
-    payload.newProducts
-  );
-  
-  // Merk som stale uten å tvinge refetch (unngår loading-spinner)
-  queryClient.invalidateQueries({
-    queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
-    exact: false,
-    refetchType: 'none', // ← Kritisk: ikke tving refetch
-  });
-  
-  // Background refetch
-  queryClient.refetchQueries({
-    queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0]],
-    exact: false,
-  });
-  break;
-}
-```
-
-**Resultat**: Produktbytte oppdaterer UI umiddelbart uten loading-spinner.
+### 5. Tomme-tilstand Forbedring
+- Illustrasjon og call-to-action når ingen produkter finnes
+- Veiledning til hvordan laste opp data
 
 ---
 
-## Tekniske detaljer
+## Teknisk Implementering
+
+### Filer som opprettes
+
+| Fil | Beskrivelse |
+|-----|-------------|
+| `src/components/packing/PackingOverviewHeader.tsx` | Ny header-komponent med statistikk og gradient |
+| `src/components/packing/SelectedProductsPanel.tsx` | Sticky panel for valgte produkter |
+| `src/components/packing/ProductRow.tsx` | Forbedret tabellrad med animasjoner |
+| `src/components/packing/ProductFilters.tsx` | Søk og filter-komponent |
+| `src/components/packing/KeyboardShortcutsHint.tsx` | Popover med tastaturhjelp |
 
 ### Filer som endres
 
 | Fil | Endring |
 |-----|---------|
-| `src/pages/display/SharedDisplay.tsx` | Heis hooks til topp, bruk batch-query |
-| `src/components/display/shared/CustomerDataLoader.tsx` | Aksepter pre-fetched data som props |
-| `src/hooks/usePackingBroadcastListener.ts` | Granulær invalidering uten loading |
-| `src/hooks/useRealTimePublicDisplay.ts` | Samme forbedring |
-| `src/lib/queryKeys.ts` | Legg til `PUBLIC_ALL_CUSTOMERS_PACKING` hvis mangler |
+| `src/pages/dashboard/PackingProductOverview.tsx` | Integrerer nye komponenter, forbedret layout |
+| `src/components/packing/ProductsTable.tsx` | Major refaktorering med nye features |
 
-### Ny data-flyt etter optimalisering
+---
 
+## Detaljert Design
+
+### A) PackingOverviewHeader.tsx
 ```text
-SharedDisplay
-  ├── usePublicActivePackingProducts()     ← 1 query (delt)
-  ├── usePublicAllCustomersPackingData()   ← 1 query (batch)
-  │
-  └── CustomerDataLoader (Kunde 1)
-        └── Bruker pre-fetched data        ← 0 queries
-  └── CustomerDataLoader (Kunde 2)
-        └── Bruker pre-fetched data        ← 0 queries
-  └── CustomerDataLoader (Kunde 3)
-        └── Bruker pre-fetched data        ← 0 queries
++------------------------------------------------------------------+
+|  ← Tilbake                                                       |
+|                                                                  |
+|  🗓️ Pakking for 26. januar 2026                      🔴 Live     |
+|  Velg opptil 3 produkter for pakking                             |
+|                                                                  |
+|  +----------------+  +----------------+  +------------------+    |
+|  | 📦 32          |  | 📊 428         |  | ✅ 28/32         |    |
+|  | Produkter      |  | Totale enheter |  | Ferdig pakket    |    |
+|  +----------------+  +----------------+  +------------------+    |
++------------------------------------------------------------------+
 ```
 
-**Total: 2 queries uansett antall kunder** (ned fra N×2)
+### B) Forbedret Tabell Layout
+```text
++------------------------------------------------------------------+
+| 🔍 Søk produkter...    [Brød ▾] [Kaker ▾] [Alle] [Pågår] [Ferdig]|
++------------------------------------------------------------------+
+| ☐ | Produktnavn ↑ | Vnr   | Kat.    | Antall | Kunder | Fremgang |
++------------------------------------------------------------------+
+| ▼ BRØD (12 produkter)                                            |
++------------------------------------------------------------------+
+| █ ☑ | Dobbelt Stekt.. | 709 | Imported | 9 stk | 4     | ████ 100%|
+| █ ☑ | Dobbeltstekt..  | 9   | Imported | 2 stk | 1     | ████ 100%|
+|   ☐ | Fiberbrød Med.. | 729 | Imported | 24 stk| 9     | ███░ 80% |
++------------------------------------------------------------------+
+| ▼ KAKER (8 produkter)                                            |
++------------------------------------------------------------------+
+| ...                                                              |
++------------------------------------------------------------------+
 
----
+█ = Fargekode for valgt produkt (grønn/blå/gul)
+```
 
-## Ytterligere optimalisering: React.memo og stabile referanser
-
-### Hindre unødvendige re-renders
-
-`CustomerPackingCard` er allerede wrapped i `React.memo`, men `CustomerDataLoader` er ikke.
-
-**Endring:**
-```tsx
-const CustomerDataLoader = React.memo(({ ... }) => {
-  // ...
-}, (prevProps, nextProps) => {
-  // Custom sammenligning - kun re-render ved faktiske data-endringer
-  return (
-    prevProps.customer.id === nextProps.customer.id &&
-    prevProps.prefetchedPackingData?.progress_percentage === 
-      nextProps.prefetchedPackingData?.progress_percentage &&
-    prevProps.prefetchedPackingData?.products.length === 
-      nextProps.prefetchedPackingData?.products.length
-  );
-});
+### C) Selected Products Panel (Sticky Høyre Side)
+```text
++------------------------+
+| Valgte produkter (2/3) |
++------------------------+
+| 🟢 Dobbelt Stekt Kneipp|
+|    9 stk • 4 kunder    |
++------------------------+
+| 🔵 Fiberbrød Med Frø   |
+|    24 stk • 9 kunder   |
++------------------------+
+| + Velg ett til...      |
++------------------------+
+|                        |
+| [🚀 Start pakking (2)] |
+|                        |
++------------------------+
 ```
 
 ---
 
-## Forventet forbedring
+## Implementeringsrekkefølge
 
-| Metrikk | Før | Etter |
-|---------|-----|-------|
-| Database-queries ved lasting | N×2 | 2 |
-| Queries ved produktbytte | N×2 | 1 (batch) |
-| Loading-spinner ved produktbytte | Ja | Nei |
-| Re-renders ved oppdatering | Alle kort | Kun endrede |
-
-For 10 kunder: **20 queries → 2 queries** (90% reduksjon)
-
----
-
-## Implementasjonsrekkefølge
-
-1. **Oppdater SharedDisplay.tsx** - Heis activeProducts hook, integrer batch-query
-2. **Oppdater CustomerDataLoader.tsx** - Aksepter prefetched data, fjern egne hooks
-3. **Oppdater broadcast/websocket hooks** - Granulær invalidering
-4. **Wrap CustomerDataLoader i React.memo** - Hindre unødvendige re-renders
-5. **Test** - Verifiser at produktbytte ikke trigger loading-spinner
+1. **Opprett PackingOverviewHeader.tsx** - Statistikk-kort og moderne header
+2. **Opprett ProductFilters.tsx** - Søk og filter-komponenter
+3. **Opprett KeyboardShortcutsHint.tsx** - Popover for tastaturhjelp
+4. **Refaktorer ProductsTable.tsx** - Legg til:
+   - Kategori-gruppering
+   - Forbedrede rad-stiler med fargekoder
+   - Animerte progress-barer
+   - Integrert søk/filter
+5. **Opprett SelectedProductsPanel.tsx** - Sticky valgt-panel
+6. **Oppdater PackingProductOverview.tsx** - Integrer alt med nytt layout
+7. **Test** - Verifiser keyboard navigation, animasjoner og responsivitet
 
 ---
 
-## Bonus: Skeleton loading i stedet for loading-spinner
+## Forventet Brukeropplevelse
 
-For enda jevnere UX kan vi vise skeleton-kort som bevarer layout under lasting:
+| Før | Etter |
+|-----|-------|
+| Statisk tabell uten visuell hierarki | Kategoridelt tabell med kollapsbare seksjoner |
+| Ingen søk/filter | Instant-søk med status-filter |
+| Enkel checkbox-valg | Fargekodede valg med visuell feedback |
+| Inline keyboard-instruksjoner | Diskret popover-guide |
+| Knapp langt opp i headeren | Alltid synlig sticky panel |
+| Enkel progress-bar | Animert gradient progress med tooltip |
 
-```tsx
-{isLoading ? (
-  <AutoFitGrid customerCount={previousCustomerCount || 6}>
-    {Array.from({ length: previousCustomerCount || 6 }).map((_, i) => (
-      <SkeletonCustomerCard key={i} settings={effectiveSettings} />
-    ))}
-  </AutoFitGrid>
-) : (
-  // Faktiske kort
-)}
-```
+---
 
-Dette bevarer grid-layouten og gir brukeren visuell kontinuitet.
+## Tekniske Detaljer
+
+### Animasjoner
+- Bruk `framer-motion` eller CSS transitions for smooth row selection
+- Progress-bar: `transition: width 0.5s ease-out`
+- Row hover: `transition: background-color 0.15s ease`
+
+### Responsivitet
+- På mobil: Selected panel blir en bottom drawer
+- Tabellen får horisontal scroll med faste kolonner (velg + navn)
+
+### Performance
+- Virtualisering av rader hvis > 50 produkter (react-window)
+- Debounced søk (300ms)
+- Memoized rad-komponenter
+
+---
+
+## Visuelt Eksempel: Før vs. Etter
+
+**Før**: Flat tabell med grunnleggende styling, alle rader ser like ut, vanskelig å skille status.
+
+**Etter**: 
+- Gradient header med pulserende live-indikator
+- Søkefelt og filter-chips for rask navigering
+- Kategoriseksjoner som kan kollapses
+- Valgte produkter har tydelig fargekode på venstre kant
+- Moderne progress-bar med smooth animasjon
+- Floating panel viser valgte produkter alltid synlig
+- "Start pakking"-knapp er alltid tilgjengelig uten scrolling
