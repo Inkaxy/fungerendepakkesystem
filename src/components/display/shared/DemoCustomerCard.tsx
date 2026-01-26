@@ -186,7 +186,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                 const colorIndex = getProductColorIndex(
                   product.product_id,
                   idx,
-                  settings?.use_consistent_product_colors ?? false
+                  settings?.use_consistent_product_colors ?? true
                 );
                 const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
                 const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);
@@ -246,7 +246,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                   const colorIndex = getProductColorIndex(
                     product.product_id,
                     idx,
-                    settings?.use_consistent_product_colors ?? false
+                    settings?.use_consistent_product_colors ?? true
                   );
                   const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
                   const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);

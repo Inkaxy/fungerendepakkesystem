@@ -171,10 +171,11 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
           {settings?.shared_compact_table_mode ? (
             <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(1, 2 * scaleFactor)}px` }}>
               {displayProducts.map((product, idx) => {
+                // ✅ KRITISK FIX: Bruk product_id (ikke id) for konsistent farge
                 const colorIndex = getProductColorIndex(
-                  product.id,
+                  product.product_id,
                   idx,
-                  settings?.use_consistent_product_colors ?? false
+                  settings?.use_consistent_product_colors ?? true
                 );
                 const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
                 const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);
@@ -301,10 +302,11 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 ) : (
                 <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
                   {displayProducts.map((product, idx) => {
+                    // ✅ KRITISK FIX: Bruk product_id (ikke id) for konsistent farge
                     const colorIndex = getProductColorIndex(
-                      product.id,
+                      product.product_id,
                       idx,
-                      settings?.use_consistent_product_colors ?? false
+                      settings?.use_consistent_product_colors ?? true
                     );
                     return (
                     <div 
