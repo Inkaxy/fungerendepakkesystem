@@ -1,160 +1,378 @@
 
+# Plan: Helhetlig UI-forbedring for Bakeri Pakkesystem
 
-# Plan: Fjern tomme rom i SharedDisplay med dynamisk auto-fit
+## Oversikt
 
-## Problemanalyse
-
-Når produkter velges for pakking, viser SharedDisplay nå korrekt kun de valgte produktene. Men griden blir beregnet basert på **alle kunder** i `sortedCustomers`-listen, mens `OptimizedCustomerCard` returnerer `null` for kunder som ikke har matchende produkter. Dette skaper "hull" i rutenettet.
-
-**Konkret årsak:**
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ SharedDisplay.tsx                                               │
-│                                                                 │
-│   sortedCustomers = [A, B, C, D, E, F, G, H, I]  (9 kunder)    │
-│                          ↓                                      │
-│   AutoFitGrid(customerCount: 9) → 3x3 grid                     │
-│                          ↓                                      │
-│   OptimizedCustomerCard rendrer:                                │
-│     - A: har produkter → vises                                  │
-│     - B: ingen produkter → return null (TOM CELLE)             │
-│     - C: har produkter → vises                                  │
-│     - D: ingen produkter → return null (TOM CELLE)             │
-│     - ...                                                       │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Løsning
-
-Flytt filtreringen **før** griden settes opp. Kun kunder som faktisk har synlige produkter (eller har ordrer men ingen valgte produkter) skal telles som "active customers".
-
-### Overordnet endringsstrategi
-
-1. **Pre-filter kunder i SharedDisplay** basert på `packingDataMap` før de sendes til `AutoFitGrid`
-2. **Fjern `return null`-logikk** i `OptimizedCustomerCard` for produktfiltrering (behold kun for completed/hide)
-3. **Vis "Ingen produkter valgt"-tekst** når en kunde har ordrer men ingen matchende produkter
+En omfattende designoppgradering som gjor systemet mer profesjonelt, varmt og innbydende - i trad med bakeri-estetikken. Forbedringene fokuserer pa konsistens, brukeropplevelse og visuell harmoni pa tvers av alle sider.
 
 ---
 
-## Tekniske endringer
+## Del 1: Design System Forbedringer
 
-### Fil 1: `src/pages/display/SharedDisplay.tsx`
+### 1.1 Utvidet Fargepalett (src/styles/base.css)
 
-**Endring:** Pre-filter `sortedCustomers` til kun de som har data i `packingDataMap`
+Legge til flere bakeri-inspirerte nyanser og utility-farger:
 
-**Før (linje 385-405):**
-```tsx
-{sortedCustomers.map((customer) => (
-  <OptimizedCustomerCard
-    key={customer.id}
-    customer={customer}
-    packingData={packingDataMap.get(customer.id)}
-    ...
-  />
-))}
-```
+| Ny Variabel | Bruk |
+|-------------|------|
+| `--bakery-wheat` | Subtil bakgrunnsvarme |
+| `--bakery-crust` | Markerte elementer |
+| `--success` | Positive statuser |
+| `--warning` | Advarsler |
+| `--info` | Informative meldinger |
 
-**Etter:**
-```tsx
-// Beregn synlige kunder basert på packingData
-const visibleCustomers = useMemo(() => {
-  return sortedCustomers.filter(c => {
-    const data = packingDataMap.get(c.id);
-    // Vis kunder som har ordrer (total_line_items_all > 0)
-    return data && data.total_line_items_all > 0;
-  });
-}, [sortedCustomers, packingDataMap]);
+### 1.2 Forbedret Typografi
 
-// Bruk visibleCustomers.length for grid-beregning
-<AutoFitGrid customerCount={visibleCustomers.length} settings={effectiveSettings}>
-  {visibleCustomers.map((customer) => (
-    <OptimizedCustomerCard
-      key={customer.id}
-      customer={customer}
-      packingData={packingDataMap.get(customer.id)}
-      ...
-    />
-  ))}
-</AutoFitGrid>
+- Legge til font-weight variabler for konsistent tekststil
+- Definere heading-storrelser med bedre hierarki
+- Forbedre lesbarhet med optimalisert line-height
+
+### 1.3 Nye Utility-klasser (src/styles/theme-colors.css)
+
+```css
+/* Status-farger */
+.status-success { ... }
+.status-warning { ... }
+.status-info { ... }
+
+/* Bakeri-gradienter */
+.gradient-warm { ... }
+.gradient-fresh { ... }
+
+/* Moderne skygger */
+.shadow-bakery-sm { ... }
+.shadow-bakery-md { ... }
+.shadow-bakery-lg { ... }
 ```
 
 ---
 
-### Fil 2: `src/components/display/shared/OptimizedCustomerCard.tsx`
+## Del 2: Layoutforbedringer
 
-**Endring:** Fjern `return null` for kunder uten ordrer (dette håndteres nå i SharedDisplay)
+### 2.1 AuthLayout (src/components/layouts/AuthLayout.tsx)
 
-**Før (linje 60-63):**
+**Forbedringer:**
+- Varmere bakgrunnsfarge (fra grå til kremfarget)
+- Forbedret navigasjon med subtile ikoner
+- Bedre visuell separasjon mellom navigasjonselementer
+- Sticky header med elegantere skygge
+- Forbedret mobilmeny med bedre animasjoner
+
+**Endringer:**
 ```tsx
-// Kunden har ingen ordrer - ikke vis
-if (!hasOrdersForDate) {
-  return null;
+// Fra:
+<div className="min-h-screen bg-gray-50">
+
+// Til:
+<div className="min-h-screen bg-gradient-to-b from-bakery-cream to-background">
+```
+
+### 2.2 Konsistent Page Header-komponent
+
+Opprette en gjenbrukbar `PageHeader`-komponent som brukes pa alle sider:
+
+```tsx
+// src/components/shared/PageHeader.tsx
+interface PageHeaderProps {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+  breadcrumbs?: { label: string; href?: string }[];
 }
 ```
 
-**Etter:**
-```tsx
-// Kunden har ingen ordrer - vis kort med melding
-// (Filtrering skjer nå i SharedDisplay)
-```
-
-Behold `hideWhenCompleted`-logikken som den er.
+**Gir:**
+- Konsistent gradient-bakgrunn
+- Ikon + tittel-kombinasjon
+- Breadcrumbs for navigasjon
+- Plass til handlingsknapper
 
 ---
 
-### Fil 3: `src/components/display/shared/CustomerPackingCard.tsx`
+## Del 3: Sideforbedringer
 
-**Endring:** Håndter tom produktliste også i kompakt tabell-modus
+### 3.1 Dashboard (src/pages/Dashboard.tsx)
 
-**Legg til i kompakt modus (ca. linje 195-240):**
+**Status:** Allerede godt designet med gradient-header
+
+**Forbedringer:**
+- Legge til velkomsttekst som endres basert pa tid og sesong
+- Forbedre stat-kort med mikroanimasjoner pa hover
+- Legge til "tips"-seksjon for nye brukere
+
+### 3.2 Ordrer & Pakking (src/pages/dashboard/Orders.tsx)
+
+**Status:** Godt designet, men noen inkonsistenser
+
+**Forbedringer:**
+- Ensrette knappestiler med resten av systemet
+- Forbedre kalender-legenden med bedre fargekontrast
+- Legge til "tomme tilstander" med illustrasjoner
+
+### 3.3 Produkter (src/pages/dashboard/Products.tsx)
+
+**Nodvendige forbedringer:**
+- Erstatte enkel header med PageHeader-komponent
+- Oppgradere stat-kort til samme stil som Dashboard
+- Forbedre tabelldesign med hover-states
+- Legge til bedre tomme tilstander
+- Forbedre loading-state med skeleton-komponenter
+
+**Endringer:**
 ```tsx
-{settings?.shared_compact_table_mode ? (
-  <div className="flex-1 overflow-hidden" style={{ ... }}>
-    {displayProducts.length === 0 ? (
-      // ✅ NY: Tom-state for kompakt modus
-      <div 
-        className="flex items-center justify-center h-full opacity-60"
-        style={{ 
-          color: settings?.text_color || '#6b7280',
-          fontSize: `${Math.max(9, 11 * scaleFactor)}px`
-        }}
-      >
-        Ingen produkter valgt
-      </div>
-    ) : (
-      displayProducts.map((product, idx) => { ... })
-    )}
+// Fra enkel header:
+<div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-2xl font-bold text-gray-900">Produkter</h1>
+    ...
+
+// Til PageHeader med gradient:
+<PageHeader
+  icon={Package}
+  title="Produkter"
+  subtitle="Administrer produkter for ditt bakeri"
+  actions={...}
+/>
+```
+
+### 3.4 Kunder (src/pages/dashboard/Customers.tsx)
+
+**Nodvendige forbedringer:**
+- Legge til PageHeader-komponent med gradient
+- Forbedre CustomersHeader med bedre visuelt hierarki
+- Legge til stat-kort (totale kunder, med display, uten display)
+- Forbedre tabelldesign med zebra-striping
+- Bedre ikoner og handlingsknapper
+
+**Ny struktur:**
+```text
+┌─────────────────────────────────────────────────┐
+│ [Gradient Header med ikon og tittel]            │
+├─────────────────────────────────────────────────┤
+│ [Stat-kort: Totalt | Med display | Uten]        │
+├─────────────────────────────────────────────────┤
+│ [Sok og filtre]                                 │
+├─────────────────────────────────────────────────┤
+│ [Forbedret tabell]                              │
+└─────────────────────────────────────────────────┘
+```
+
+### 3.5 Rapporter (src/pages/dashboard/Reports.tsx)
+
+**Forbedringer:**
+- Erstatte ikon-header med PageHeader-komponent
+- Forbedre datovelger-UI
+- Legge til bedre visualisering av avviksdata
+- Forbedre tomme tilstander
+
+### 3.6 Admin (src/pages/dashboard/Admin.tsx)
+
+**Forbedringer:**
+- Oppgradere AdminHeader med gradient-stil
+- Forbedre AdminStats med samme design som Dashboard
+- Legge til bedre seksjonsseparasjon
+- Forbedre tilgangsnektet-melding
+
+### 3.7 Innstillinger (src/pages/dashboard/Settings.tsx)
+
+**Forbedringer:**
+- Legge til PageHeader-komponent
+- Forbedre OneDrive-kortet med bedre visuell feedback
+- Legge til flere innstillingskategorier med tydelige seksjoner
+
+### 3.8 Pakkeoversikt (src/pages/dashboard/PackingProductOverview.tsx)
+
+**Status:** Kompakt og funksjonelt design
+
+**Forbedringer:**
+- Forbedre header med varmere farger
+- Legge til bedre visuelle indikatorer for fremgang
+- Forbedre valgt-produkter-panelet med fargekodet status
+
+### 3.9 Login-side (src/pages/Login.tsx)
+
+**Forbedringer:**
+- Forbedre demo-boks med varmere farger
+- Bedre visuell separasjon mellom faner
+- Legge til subtile bakgrunnsdekorasjoner
+
+### 3.10 404-side (src/pages/NotFound.tsx)
+
+**Forbedringer:**
+- Legge til bakeri-tema med illustrasjon
+- Norsk tekst
+- Bedre navigasjonsmuligheter
+
+---
+
+## Del 4: Komponentforbedringer
+
+### 4.1 Felles Komponenter
+
+**PageHeader (NY)**
+```
+src/components/shared/PageHeader.tsx
+```
+
+**EmptyState (NY)**
+```tsx
+// src/components/shared/EmptyState.tsx
+interface EmptyStateProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: { label: string; onClick: () => void };
+}
+```
+
+**StatusBadge (NY)**
+Konsistent badge for statuser pa tvers av systemet.
+
+### 4.2 Dashboard-komponenter
+
+- DashboardStats: Legge til mikroanimasjoner
+- QuickActions: Forbedre hover-effekter
+- RecentActivity: Legge til tidslinje-visualisering
+
+### 4.3 Tabell-forbedringer
+
+Forbedre alle tabeller med:
+- Hover-states pa rader
+- Bedre header-styling
+- Konsistente handlingsknapper
+- Responsive design for mobil
+
+---
+
+## Del 5: Loading og Feilhåndtering
+
+### 5.1 Loading States
+
+Erstatte enkle spinners med:
+- Skeleton-komponenter for tabeller
+- Animerte plassholdere for kort
+- Varmere loading-meldinger
+
+**Eksempel:**
+```tsx
+// Fra:
+<Loader2 className="h-8 w-8 animate-spin" />
+<p className="text-gray-600">Laster...</p>
+
+// Til:
+<div className="space-y-4">
+  <div className="flex justify-center">
+    <div className="relative">
+      <div className="h-16 w-16 rounded-full border-4 border-muted animate-pulse" />
+      <Loader2 className="h-8 w-8 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
+    </div>
   </div>
-) : ( ... )}
+  <p className="text-muted-foreground text-center animate-pulse">
+    Laster produkter...
+  </p>
+</div>
 ```
 
----
+### 5.2 Feilmeldinger
 
-## Forventet resultat
-
-| Scenario | Før | Etter |
-|----------|-----|-------|
-| 9 kunder, 4 med valgte produkter | 3×3 grid med 5 tomme hull | 2×2 grid med 4 synlige kort |
-| Kunde med ordrer men ingen valgte produkter | Tomt kort (i hull) | Kort med "Ingen produkter valgt"-tekst |
-| Ingen produkter valgt globalt | Tom skjerm med hull | Kort for hver kunde med ordrer, alle viser "Ingen produkter valgt" |
+Forbedre ErrorBoundary og inline-feil med:
+- Vennligere sprak
+- Handlingsalternativer
+- Kontaktinformasjon for hjelp
 
 ---
 
-## Filer som endres
+## Del 6: Responsive Design
 
-| Fil | Type | Beskrivelse |
-|-----|------|-------------|
-| `src/pages/display/SharedDisplay.tsx` | Modifisering | Pre-filter kunder før grid-rendering |
-| `src/components/display/shared/OptimizedCustomerCard.tsx` | Modifisering | Fjern `return null` for ingen ordrer |
-| `src/components/display/shared/CustomerPackingCard.tsx` | Modifisering | Legg til tom-state i kompakt modus |
+### 6.1 Mobiloptimalisering
+
+- Forbedre mobilmeny i AuthLayout
+- Gjore stat-kort stablede pa mobil
+- Forbedre tabeller med horisontal scroll
+- Legge til touch-vennlige knapper
+
+### 6.2 Nettbrett-stotte
+
+- Optimalisere grid-layout for mellomstore skjermer
+- Forbedre sidebar-oppforsel pa iPad
 
 ---
 
-## Konsekvenser
+## Filer som Endres
 
-- **Auto-fit grid** vil alltid ha riktig antall celler basert på faktisk synlige kunder
-- **Ingen tomme hull** i rutenettet
-- **Dynamisk tilpasning** når kunder legges til/fjernes
-- **Meldinger** vises tydelig når en kunde ikke har matchende produkter
+### Nye Filer
 
+| Fil | Beskrivelse |
+|-----|-------------|
+| `src/components/shared/PageHeader.tsx` | Gjenbrukbar side-header |
+| `src/components/shared/EmptyState.tsx` | Tom-tilstand komponent |
+| `src/components/shared/StatusBadge.tsx` | Konsistent status-badge |
+| `src/components/shared/LoadingState.tsx` | Forbedret loading-komponent |
+
+### Modifiserte Filer
+
+| Fil | Endringer |
+|-----|-----------|
+| `src/styles/base.css` | Nye fargevariabler |
+| `src/styles/theme-colors.css` | Nye utility-klasser |
+| `src/components/layouts/AuthLayout.tsx` | Varmere design, forbedret navigasjon |
+| `src/pages/Dashboard.tsx` | Mikroanimasjoner, tips-seksjon |
+| `src/pages/dashboard/Products.tsx` | PageHeader, forbedrede kort og tabell |
+| `src/pages/dashboard/Customers.tsx` | PageHeader, stat-kort, forbedret tabell |
+| `src/pages/dashboard/Reports.tsx` | PageHeader, forbedret datovelger |
+| `src/pages/dashboard/Settings.tsx` | PageHeader, seksjoner |
+| `src/pages/dashboard/Admin.tsx` | Gradient-header, forbedrede stats |
+| `src/pages/Login.tsx` | Varmere demo-boks, subtile dekorasjoner |
+| `src/pages/NotFound.tsx` | Bakeri-tema, norsk tekst |
+| `src/components/admin/AdminHeader.tsx` | Gradient-stil |
+| `src/components/admin/AdminStats.tsx` | Ny kortdesign |
+| `src/components/customers/CustomersHeader.tsx` | Forbedret visuelt hierarki |
+| `src/components/customers/CustomersTable.tsx` | Hover-states, bedre design |
+
+---
+
+## Implementeringsrekkefølge
+
+1. **Fase 1 - Design System** (grunnlag)
+   - Oppdatere CSS-variabler
+   - Legge til utility-klasser
+   - Opprette PageHeader-komponent
+
+2. **Fase 2 - Layout**
+   - Forbedre AuthLayout
+   - Opprette gjenbrukbare komponenter
+
+3. **Fase 3 - Hovedsider**
+   - Dashboard
+   - Orders
+   - Products
+   - Customers
+
+4. **Fase 4 - Sekundære Sider**
+   - Reports
+   - Admin
+   - Settings
+   - Login
+   - NotFound
+
+5. **Fase 5 - Polish**
+   - Mikroanimasjoner
+   - Loading states
+   - Responsive finjustering
+
+---
+
+## Forventet Resultat
+
+| Omrade | For | Etter |
+|--------|-----|-------|
+| Fargepalett | Kalde grafarger | Varme bakeri-toner |
+| Header-design | Inkonsistent | Ensartet gradient-stil |
+| Stat-kort | Varierende design | Konsistent, elegant design |
+| Tabeller | Enkle | Hover-states, bedre UX |
+| Loading | Enkel spinner | Animert, kontekstuell |
+| Tomme tilstander | Minimal | Illustrert, handlingsorientert |
+| Feilmeldinger | Tekniske | Vennlige, losningsorienterte |
+
+Systemet vil fremsta som et profesjonelt, moderne og varmt verktoy som reflekterer kvaliteten og omsorgen som gar inn i et tradisjonelt bakeri.
