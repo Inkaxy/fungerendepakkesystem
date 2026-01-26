@@ -542,8 +542,12 @@ export const usePublicAllCustomersPackingData = (
           }
 
           // Skip if not in activeProducts (for display filtering)
+          // ✅ FIX: Hvis activeProducts finnes (selv tom array), vis KUN valgte produkter
           let activeProduct: any = null;
-          if (activeProducts?.length) {
+          if (activeProducts !== undefined) {
+            // Hvis activeProducts er tom array, ikke vis noen produkter
+            if (activeProducts.length === 0) return;
+            
             activeProduct = activeProducts.find(ap => 
               ap.product_id === op.product_id || ap.product_name === product.name
             );
