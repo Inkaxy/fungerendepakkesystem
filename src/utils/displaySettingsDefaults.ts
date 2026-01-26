@@ -137,6 +137,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   shared_content_padding: 24,
   auto_fit_screen: false,
   auto_fit_min_card_height: 180,
+  auto_fit_min_card_width: 280,
   
   // === CUSTOMER DISPLAY SPECIFIC ===
   
