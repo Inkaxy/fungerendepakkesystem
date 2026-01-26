@@ -5,6 +5,7 @@ import { Save, Monitor, Users, Sparkles } from 'lucide-react';
 import { useDisplaySettings, useUpdateDisplaySettings, DisplaySettings as DisplaySettingsType } from '@/hooks/useDisplaySettings';
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useAuthStore } from '@/stores/authStore';
+import { useCustomers } from '@/hooks/useCustomers';
 import SharedDisplayTab from '@/components/display-settings/tabs/SharedDisplayTab';
 import CustomerDisplayTab from '@/components/display-settings/tabs/CustomerDisplayTab';
 import DisplayPreviewPanel from '@/components/display-settings/DisplayPreviewPanel';
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 const DisplaySettings = () => {
   const { data: settings, isLoading } = useDisplaySettings();
+  const { data: customers } = useCustomers();
   const updateSettings = useUpdateDisplaySettings();
   const { toast } = useToast();
   const { profile } = useAuthStore();
@@ -22,6 +24,11 @@ const DisplaySettings = () => {
   const [localSettings, setLocalSettings] = React.useState<DisplaySettingsType | null>(settings ?? null);
   const [activeTab, setActiveTab] = React.useState<string>('shared');
   const [savePresetDialogOpen, setSavePresetDialogOpen] = React.useState(false);
+  
+  // Beregn antall kunder for delt visning (uten dedikert display)
+  const sharedDisplayCustomerCount = React.useMemo(() => {
+    return customers?.filter(c => !c.has_dedicated_display && c.status === 'active').length || 0;
+  }, [customers]);
 
   React.useEffect(() => {
     if (settings) {
@@ -149,7 +156,8 @@ const DisplaySettings = () => {
         <TabsContent value="shared" className="mt-6">
           <SharedDisplayTab 
             settings={localSettings} 
-            onUpdate={handleUpdate} 
+            onUpdate={handleUpdate}
+            customerCount={sharedDisplayCustomerCount}
           />
         </TabsContent>
 

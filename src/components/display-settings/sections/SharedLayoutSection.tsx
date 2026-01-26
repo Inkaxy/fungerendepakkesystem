@@ -1,14 +1,16 @@
 import React from 'react';
 import ToggleSetting from '../ToggleSetting';
 import SliderControl from '../SliderControl';
+import GridLayoutSelector from '../GridLayoutSelector';
 import type { DisplaySettings } from '@/types/displaySettings';
 
 interface SharedLayoutSectionProps {
   settings: DisplaySettings;
   onUpdate: (updates: Partial<DisplaySettings>) => void;
+  customerCount?: number;
 }
 
-const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) => {
+const SharedLayoutSection = ({ settings, onUpdate, customerCount = 0 }: SharedLayoutSectionProps) => {
   return (
     <div className="space-y-4">
       <ToggleSetting
@@ -28,27 +30,38 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
       />
 
       {settings.auto_fit_screen && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <SliderControl
-            label="Minimum kort-høyde"
-            value={settings.auto_fit_min_card_height ?? 180}
-            onChange={(value) => onUpdate({ auto_fit_min_card_height: value })}
-            min={120}
-            max={300}
-            step={10}
-            unit="px"
-            description="Garantert minimumshøyde for hvert kundekort"
+        <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+          <GridLayoutSelector 
+            settings={settings} 
+            onUpdate={onUpdate}
+            customerCount={customerCount}
           />
-          <SliderControl
-            label="Minimum kort-bredde"
-            value={settings.auto_fit_min_card_width ?? 280}
-            onChange={(value) => onUpdate({ auto_fit_min_card_width: value })}
-            min={200}
-            max={500}
-            step={20}
-            unit="px"
-            description="Garantert minimumsbredde for hvert kundekort"
-          />
+          
+          {/* Vis kun min-størrelse kontroller i automatisk modus */}
+          {settings.grid_layout_mode !== 'fixed' && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <SliderControl
+                label="Minimum kort-høyde"
+                value={settings.auto_fit_min_card_height ?? 180}
+                onChange={(value) => onUpdate({ auto_fit_min_card_height: value })}
+                min={120}
+                max={300}
+                step={10}
+                unit="px"
+                description="Garantert minimumshøyde for hvert kundekort"
+              />
+              <SliderControl
+                label="Minimum kort-bredde"
+                value={settings.auto_fit_min_card_width ?? 280}
+                onChange={(value) => onUpdate({ auto_fit_min_card_width: value })}
+                min={200}
+                max={500}
+                step={20}
+                unit="px"
+                description="Garantert minimumsbredde for hvert kundekort"
+              />
+            </div>
+          )}
         </div>
       )}
 
