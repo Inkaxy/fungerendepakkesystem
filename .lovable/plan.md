@@ -1,93 +1,260 @@
 
-## Mål (basert på det du beskriver)
-1) Produktene skal få farge fra **paletten du velger i Display-innstillinger** (typisk 3 farger).
-2) Hvert produkt (Kneipp/Hvasser/Loff) skal ha **sin faste “slot-farge”** (1/2/3) på tvers av alle displayer.
-3) Denne slot-tilordningen skal være **stabil selv om en kunde bare har 1 av produktene** (f.eks. bare Loff) – Loff skal fortsatt ha sin farge.
+# Plan: Optimalisert lastetid og oppdateringsmekanisme for SharedDisplay
 
-## Hvorfor alt blir grønt nå
-Dagens “konsistent farge” bygger på `hash(product_id) % 3`. Det gir ofte riktig, men kan gi kollisjoner: to forskjellige produkter kan få samme index (0/1/2). Hvis både Kneipp og Hvasser tilfeldigvis får samme index, og den indexen peker til “grønn” i innstillingene, ser du “alt blir grønt”.
+## Analyse av nåværende arkitektur
 
-I tillegg finnes det allerede en `colorIndex` i datalaget (hooks), men UI-komponentene re-beregner ofte farge lokalt på nytt, som gjør at resultat kan avvike mellom ulike displayer.
+### Sammenligning: SharedDisplay vs CustomerDisplay
 
-## Løsning: Lagre farge-slot per valgt produkt (kilde = active_packing_products)
-Vi gjør farge-slot til en del av “aktiv pakking” for valgt dato:
+| Aspekt | CustomerDisplay | SharedDisplay |
+|--------|-----------------|---------------|
+| Data-henting | 1 kunde - direkte hooks | N kunder via CustomerDataLoader |
+| Queries per kunde | 2 (activeProducts, packingData) | 2 per kunde = **N×2 queries** |
+| WebSocket | Delt listener | Delt listener |
+| Broadcast | Delt listener | Delt listener |
+| Cache-strategi | Samme hooks | Samme hooks |
 
-### A) Database: legg til `color_index` i `active_packing_products`
-- Ny kolonne: `color_index int` (0..2).
-- Backfill for eksisterende rader (f.eks. basert på product_name sortert eller created_at) slik at dagens aktive produkter får 0/1/2.
+### Identifisert flaskehals: N+1 Query-problemet
 
-Dette gjør at:
-- Kneipp får f.eks. slot 2 (gul),
-- Hvasser får slot 1 (blå),
-- Loff får slot 0 (grønn),
-og de beholder dette uansett hvilke kunder som har hvilke produkter.
+SharedDisplay bruker `CustomerDataLoader` som renderer **én komponent per kunde**, og hver komponent kjører sine egne hooks:
 
-### B) Endre “velg aktive produkter”-lagring slik at color_index bevares
-I dag gjør `useSetActivePackingProducts`:
-1) delete alt
-2) insert på nytt  
-Dette sletter all “hukommelse” om fargene.
+```text
+SharedDisplay
+  └── CustomerDataLoader (Kunde 1)
+        ├── usePublicActivePackingProducts() ← Query 1
+        └── usePublicPackingData()           ← Query 2
+  └── CustomerDataLoader (Kunde 2)
+        ├── usePublicActivePackingProducts() ← Query 3 (DUPLIKAT!)
+        └── usePublicPackingData()           ← Query 4
+  └── CustomerDataLoader (Kunde 3)
+        ├── usePublicActivePackingProducts() ← Query 5 (DUPLIKAT!)
+        └── usePublicPackingData()           ← Query 6
+  ... (og så videre)
+```
 
-Vi endrer den til:
-1) Hent eksisterende rader for bakery+date (inkl `product_id`, `color_index`, `id`)
-2) Bygg `existingColorMap: product_id -> color_index`
-3) For produktene brukeren nå velger:
-   - hvis produktet finnes fra før: behold samme `color_index`
-   - hvis nytt produkt: tildel første ledige slot (0/1/2) som ikke er brukt blant de som er valgt
-4) Slett kun rader som er fjernet
-5) Update eksisterende rader (by `id`) og insert nye rader (med `color_index`)
+**Problem 1**: `usePublicActivePackingProducts` kalles **N ganger** med identiske parametere (bakeryId + dato).
 
-Resultat: Når du fjerner Hvasser, endres ikke Kneipp/Loff sine farger. Hvis du legger Hvasser tilbake igjen senere, får den sin gamle slot hvis den fortsatt finnes (eller en ledig slot hvis det var helt nytt).
+**Problem 2**: `usePublicPackingData` kjører **separate database-queries per kunde** - dette er tregt.
 
-### C) Bruk `color_index` i alle display-komponenter (slutt å re-hashe)
-Vi standardiserer at UI bruker:
-- `product.colorIndex` (fra datalaget), eller
-- `activeProducts.color_index` map, som fallback
-Ikke `hash(product_id) % 3` for SharedDisplay/CustomerDisplay når vi har lagret mapping.
+**Problem 3**: Ved produktbytte invalideres ALLE cacher samtidig, som trigger **N parallelle refetcher**.
 
-Konkrete endringer:
-1) `useActivePackingProducts` og `usePublicActivePackingProducts` må returnere `color_index`.
-2) `usePublicPackingData` (og evt batch-varianten `usePublicAllCustomersPackingData`) bygger `productColorMap` fra `activeProducts.color_index` først:
-   - `productColorMap.set(ap.product_id, ap.color_index)`
-3) `CustomerPackingCard.tsx` og `CustomerProductsList.tsx` bruker `product.colorIndex` når den finnes.
-4) `CustomerProductsList.tsx` må også bytte fra `product.id` til `product.product_id` (i de tilfellene den fortsatt beregner fallback).
+### Eksisterende batch-hook ikke i bruk
 
-Dette sikrer at:
-- Samme produkt får samme farge på alle displayer
-- Fargen påvirkes ikke av om kunden har 1 eller 3 produkter
-- Fargene kommer fra de tre fargene i display-innstillinger (Produktrad 1/2/3)
+Det finnes allerede en `usePublicAllCustomersPackingData` hook (linje 467-613 i usePublicDisplayData.ts) som gjør **én enkelt batch-query** for alle kunder. Men SharedDisplay bruker den ikke.
 
-## Viktig UX-regel (slik du ønsker)
-- Fargene velges i Display-innstillinger: “Produktrad 1/2/3”.
-- Produktene får “slot” 1/2/3 når de velges til pakking for datoen, og beholder slotten.
+---
 
-## Testing (konkret)
-1) Sett Produktrad 1/2/3 til (Grønn/Blå/Gul).
-2) Velg aktive produkter for dagen: Kneipp, Hvasser, Loff.
-   - Verifiser at de får tre ulike farger.
-3) Fjern Hvasser fra aktive produkter:
-   - Kneipp og Loff skal beholde sine opprinnelige farger.
-4) Åpne både fellesdisplay og kundedisplay:
-   - Samme produkt skal ha samme farge begge steder.
-5) Endre rekkefølge på produktene i valgskjermen:
-   - Fargene skal ikke “bytte” hvis produktene var de samme.
+## Løsning: Tre-trinns optimalisering
 
-## Filer som må endres / legges til
-- DB migration: `supabase/migrations/...add_color_index_to_active_packing_products.sql`
-- `src/integrations/supabase/types.ts` (for typegenerering/typing av `color_index`)
-- `src/hooks/useActivePackingProducts.ts` (inkluder/bruk `color_index`)
-- `src/hooks/usePublicDisplayData.ts`
-  - `usePublicActivePackingProducts` (inkluder `color_index` + gjerne `.order('color_index')`)
-  - `usePublicPackingData` + `usePublicAllCustomersPackingData` (bruk `color_index`)
-- `src/components/display/shared/CustomerPackingCard.tsx` (bruk `product.colorIndex` fremfor ny beregning)
-- `src/components/display/customer/CustomerProductsList.tsx` (bruk `product.colorIndex` og korriger `product.product_id`)
-- (Valgfritt) `src/components/display/shared/DemoCustomerCard.tsx` kan fortsatt bruke index/preview-logikk, men vi kan også simulere color_index der for å matche live.
+### Trinn 1: Heis activeProducts til SharedDisplay-nivå (eliminerer N-1 dupliserte queries)
 
-## Mulige fallgruver og hvordan vi håndterer dem
-- Hvis noen velger mer enn 3 produkter: vi må enten (a) tillate gjenbruk av slots eller (b) begrense til 3 i UI. (Per beskrivelsen din virker “max 3” som ønsket praksis.)
-- Eksisterende aktive produkter etter migrasjon: backfill gir dem midlertidig slot 0/1/2 slik at displayet ser riktig ut uten at dere må re-velge.
+I stedet for at hver `CustomerDataLoader` henter activeProducts, henter SharedDisplay det **én gang** og sender det ned som prop.
 
-## Leveranse etter endringen
-- Kneipp/Hvasser/Loff får hver sin faste farge-slot.
-- Ingen hash-kollisjoner, ingen “alle blir grønne”.
-- Fargene styres kun av Display-innstillingene (Produktrad 1/2/3).
+**Endring i SharedDisplay.tsx:**
+```tsx
+// Flytt denne UTENFOR CustomerDataLoader-loopen
+const { data: activeProducts } = usePublicActivePackingProducts(
+  bakeryId,
+  activePackingDate
+);
+
+// Send ned som prop
+<CustomerDataLoader
+  activeProducts={activeProducts} // ← NY PROP
+  ...
+/>
+```
+
+**Endring i CustomerDataLoader.tsx:**
+```tsx
+interface CustomerDataLoaderProps {
+  activeProducts?: any[]; // ← NY PROP
+  // ...andre props
+}
+
+// Bruk prop i stedet for egen hook
+const { data: packingData } = usePublicPackingData(
+  customer.id,
+  bakeryId,
+  activePackingDate,
+  activeProducts, // ← Fra prop, ikke egen hook
+  customer.name
+);
+```
+
+**Resultat**: Reduserer queries fra **N×2** til **N+1**.
+
+### Trinn 2: Bruk batch-query for packing data (eliminerer N-1 queries til)
+
+Erstatt N individuelle `usePublicPackingData`-kall med én `usePublicAllCustomersPackingData`.
+
+**Endring i SharedDisplay.tsx:**
+```tsx
+// Hent alle kunders data i ETT kall
+const { data: allPackingData } = usePublicAllCustomersPackingData(
+  bakeryId,
+  sortedCustomers.map(c => ({ id: c.id, name: c.name })),
+  activePackingDate,
+  activeProducts
+);
+
+// Lag en lookup-map for O(1) tilgang
+const packingDataMap = useMemo(() => {
+  const map = new Map<string, PackingCustomer>();
+  allPackingData?.forEach(d => map.set(d.id, d));
+  return map;
+}, [allPackingData]);
+
+// Send pre-fetched data til CustomerDataLoader
+<CustomerDataLoader
+  prefetchedPackingData={packingDataMap.get(customer.id)} // ← NY PROP
+  ...
+/>
+```
+
+**Endring i CustomerDataLoader.tsx:**
+```tsx
+interface CustomerDataLoaderProps {
+  prefetchedPackingData?: PackingCustomer; // ← NY PROP
+  // ...
+}
+
+// Bruk prefetched data hvis tilgjengelig
+const customerData = prefetchedPackingData || packingData?.find(...);
+```
+
+**Resultat**: Reduserer queries fra **N+1** til **2** (activeProducts + batch packing data).
+
+### Trinn 3: Granulær cache-invalidering ved produktbytte
+
+Nåværende oppførsel: Når produkter endres, invalideres ALL packing data som trigger full re-render.
+
+**Forbedring i useRealTimePublicDisplay.ts og usePackingBroadcastListener.ts:**
+
+Ved `PRODUCTS_SELECTED`/`PRODUCTS_CLEARED`:
+1. Oppdater kun `PUBLIC_ACTIVE_PRODUCTS` cache direkte (ingen full refetch)
+2. Marker `PUBLIC_PACKING_DATA` som stale, men **ikke tving umiddelbar refetch**
+3. La React Query håndtere background refetch uten loading-spinner
+
+```tsx
+case 'PRODUCTS_SELECTED': {
+  // Direkte cache-oppdatering av aktive produkter
+  queryClient.setQueryData(
+    [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId, date],
+    payload.newProducts
+  );
+  
+  // Merk som stale uten å tvinge refetch (unngår loading-spinner)
+  queryClient.invalidateQueries({
+    queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+    exact: false,
+    refetchType: 'none', // ← Kritisk: ikke tving refetch
+  });
+  
+  // Background refetch
+  queryClient.refetchQueries({
+    queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0]],
+    exact: false,
+  });
+  break;
+}
+```
+
+**Resultat**: Produktbytte oppdaterer UI umiddelbart uten loading-spinner.
+
+---
+
+## Tekniske detaljer
+
+### Filer som endres
+
+| Fil | Endring |
+|-----|---------|
+| `src/pages/display/SharedDisplay.tsx` | Heis hooks til topp, bruk batch-query |
+| `src/components/display/shared/CustomerDataLoader.tsx` | Aksepter pre-fetched data som props |
+| `src/hooks/usePackingBroadcastListener.ts` | Granulær invalidering uten loading |
+| `src/hooks/useRealTimePublicDisplay.ts` | Samme forbedring |
+| `src/lib/queryKeys.ts` | Legg til `PUBLIC_ALL_CUSTOMERS_PACKING` hvis mangler |
+
+### Ny data-flyt etter optimalisering
+
+```text
+SharedDisplay
+  ├── usePublicActivePackingProducts()     ← 1 query (delt)
+  ├── usePublicAllCustomersPackingData()   ← 1 query (batch)
+  │
+  └── CustomerDataLoader (Kunde 1)
+        └── Bruker pre-fetched data        ← 0 queries
+  └── CustomerDataLoader (Kunde 2)
+        └── Bruker pre-fetched data        ← 0 queries
+  └── CustomerDataLoader (Kunde 3)
+        └── Bruker pre-fetched data        ← 0 queries
+```
+
+**Total: 2 queries uansett antall kunder** (ned fra N×2)
+
+---
+
+## Ytterligere optimalisering: React.memo og stabile referanser
+
+### Hindre unødvendige re-renders
+
+`CustomerPackingCard` er allerede wrapped i `React.memo`, men `CustomerDataLoader` er ikke.
+
+**Endring:**
+```tsx
+const CustomerDataLoader = React.memo(({ ... }) => {
+  // ...
+}, (prevProps, nextProps) => {
+  // Custom sammenligning - kun re-render ved faktiske data-endringer
+  return (
+    prevProps.customer.id === nextProps.customer.id &&
+    prevProps.prefetchedPackingData?.progress_percentage === 
+      nextProps.prefetchedPackingData?.progress_percentage &&
+    prevProps.prefetchedPackingData?.products.length === 
+      nextProps.prefetchedPackingData?.products.length
+  );
+});
+```
+
+---
+
+## Forventet forbedring
+
+| Metrikk | Før | Etter |
+|---------|-----|-------|
+| Database-queries ved lasting | N×2 | 2 |
+| Queries ved produktbytte | N×2 | 1 (batch) |
+| Loading-spinner ved produktbytte | Ja | Nei |
+| Re-renders ved oppdatering | Alle kort | Kun endrede |
+
+For 10 kunder: **20 queries → 2 queries** (90% reduksjon)
+
+---
+
+## Implementasjonsrekkefølge
+
+1. **Oppdater SharedDisplay.tsx** - Heis activeProducts hook, integrer batch-query
+2. **Oppdater CustomerDataLoader.tsx** - Aksepter prefetched data, fjern egne hooks
+3. **Oppdater broadcast/websocket hooks** - Granulær invalidering
+4. **Wrap CustomerDataLoader i React.memo** - Hindre unødvendige re-renders
+5. **Test** - Verifiser at produktbytte ikke trigger loading-spinner
+
+---
+
+## Bonus: Skeleton loading i stedet for loading-spinner
+
+For enda jevnere UX kan vi vise skeleton-kort som bevarer layout under lasting:
+
+```tsx
+{isLoading ? (
+  <AutoFitGrid customerCount={previousCustomerCount || 6}>
+    {Array.from({ length: previousCustomerCount || 6 }).map((_, i) => (
+      <SkeletonCustomerCard key={i} settings={effectiveSettings} />
+    ))}
+  </AutoFitGrid>
+) : (
+  // Faktiske kort
+)}
+```
+
+Dette bevarer grid-layouten og gir brukeren visuell kontinuitet.
