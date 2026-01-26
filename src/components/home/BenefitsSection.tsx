@@ -7,50 +7,56 @@ const BenefitsSection = () => {
     {
       icon: Shield,
       title: "Pålitelig System",
-      description: "Stabil plattform du kan stole på"
+      description: "Stabil plattform du kan stole på, med 99.9% oppetid"
     },
     {
       icon: Zap,
       title: "Enkelt å Bruke",
-      description: "Intuitivt grensesnitt for alle"
+      description: "Intuitivt grensesnitt designet for travle hender"
     },
     {
       icon: CheckCircle,
       title: "Komplett Løsning",
-      description: "Alt du trenger på ett sted"
+      description: "Alt du trenger for pakking og levering på ett sted"
     },
     {
       icon: Clock,
       title: "Spar Tid",
-      description: "Automatiser repetitive oppgaver"
+      description: "Automatiser oppgaver og fokuser på det som betyr mest"
     }
   ];
 
   return (
-    <section className="py-16 bg-bakery-cream">
+    <section className="py-20 bg-gradient-to-b from-secondary/50 to-background">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-bakery-brown mb-4">
+        <div className="text-center mb-16">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            Fordeler
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Hvorfor velge Loaf & Load?
           </h2>
-          <p className="text-lg text-gray-600">
-            Vi gjør bakeri-drift enklere og mer effektiv
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Vi gjør bakeri-drift enklere og mer effektiv med moderne teknologi
           </p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {benefits.map((benefit, index) => (
-            <div key={index} className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="p-3 rounded-lg bg-bakery-orange/10">
-                  <benefit.icon className="h-8 w-8 text-bakery-orange" />
+            <div 
+              key={index} 
+              className="group text-center p-8 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
+            >
+              <div className="flex justify-center mb-6">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-colors">
+                  <benefit.icon className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <div className="text-xl font-semibold text-bakery-brown mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
                 {benefit.title}
-              </div>
-              <div className="text-sm text-gray-600">
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
                 {benefit.description}
-              </div>
+              </p>
             </div>
           ))}
         </div>
