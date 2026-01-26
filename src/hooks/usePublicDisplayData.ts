@@ -214,11 +214,11 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         customerId,
         bakeryId,
         targetDate,
-        activeProductsCount: activeProducts.length,
-        activeProductDetails: activeProducts.map(ap => ({
+        activeProductsCount: activeProducts?.length ?? 0,
+        activeProductDetails: activeProducts?.map(ap => ({
           id: ap.product_id,
           name: ap.product_name
-        }))
+        })) ?? []
       });
 
       // ✅ FIX: Hent ordrer UTEN customer-join siden public_display_customers
