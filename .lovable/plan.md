@@ -1,211 +1,93 @@
 
-# Plan: Forbedret kundevisning på SharedDisplay
+## Mål (basert på det du beskriver)
+1) Produktene skal få farge fra **paletten du velger i Display-innstillinger** (typisk 3 farger).
+2) Hvert produkt (Kneipp/Hvasser/Loff) skal ha **sin faste “slot-farge”** (1/2/3) på tvers av alle displayer.
+3) Denne slot-tilordningen skal være **stabil selv om en kunde bare har 1 av produktene** (f.eks. bare Loff) – Loff skal fortsatt ha sin farge.
 
-## Problemanalyse
+## Hvorfor alt blir grønt nå
+Dagens “konsistent farge” bygger på `hash(product_id) % 3`. Det gir ofte riktig, men kan gi kollisjoner: to forskjellige produkter kan få samme index (0/1/2). Hvis både Kneipp og Hvasser tilfeldigvis får samme index, og den indexen peker til “grønn” i innstillingene, ser du “alt blir grønt”.
 
-Basert på dine tre krav:
+I tillegg finnes det allerede en `colorIndex` i datalaget (hooks), men UI-komponentene re-beregner ofte farge lokalt på nytt, som gjør at resultat kan avvike mellom ulike displayer.
 
-1. **Ingen faste plasser** - Kunder skal automatisk fylle griddet basert på antall aktive kunder
-2. **Vis kunder selv uten valgte produkter** - Kunder med ordrer for pakkedatoen skal ALLTID vises, selv før produkter er valgt for pakking (viktig for sjåfører som skal se status)
-3. **Konsistent produktfarge** - Samme produkt skal alltid ha samme farge uansett antall produkter kunden har
+## Løsning: Lagre farge-slot per valgt produkt (kilde = active_packing_products)
+Vi gjør farge-slot til en del av “aktiv pakking” for valgt dato:
 
----
+### A) Database: legg til `color_index` i `active_packing_products`
+- Ny kolonne: `color_index int` (0..2).
+- Backfill for eksisterende rader (f.eks. basert på product_name sortert eller created_at) slik at dagens aktive produkter får 0/1/2.
 
-## Tekniske løsninger
+Dette gjør at:
+- Kneipp får f.eks. slot 2 (gul),
+- Hvasser får slot 1 (blå),
+- Loff får slot 0 (grønn),
+og de beholder dette uansett hvilke kunder som har hvilke produkter.
 
-### 1. Dynamisk plassering (allerede fungerer)
+### B) Endre “velg aktive produkter”-lagring slik at color_index bevares
+I dag gjør `useSetActivePackingProducts`:
+1) delete alt
+2) insert på nytt  
+Dette sletter all “hukommelse” om fargene.
 
-Dagens `AutoFitGrid`-komponent plasserer allerede kunder dynamisk uten faste plasser. Griddet beregner automatisk kolonner og rader basert på:
-- Tilgjengelig skjermplass
-- Antall kunder med data
+Vi endrer den til:
+1) Hent eksisterende rader for bakery+date (inkl `product_id`, `color_index`, `id`)
+2) Bygg `existingColorMap: product_id -> color_index`
+3) For produktene brukeren nå velger:
+   - hvis produktet finnes fra før: behold samme `color_index`
+   - hvis nytt produkt: tildel første ledige slot (0/1/2) som ikke er brukt blant de som er valgt
+4) Slett kun rader som er fjernet
+5) Update eksisterende rader (by `id`) og insert nye rader (med `color_index`)
 
-Dette er korrekt implementert - ingen endring nødvendig.
+Resultat: Når du fjerner Hvasser, endres ikke Kneipp/Loff sine farger. Hvis du legger Hvasser tilbake igjen senere, får den sin gamle slot hvis den fortsatt finnes (eller en ledig slot hvis det var helt nytt).
 
-### 2. Vis kunder med ordrer UAVHENGIG av valgte produkter
+### C) Bruk `color_index` i alle display-komponenter (slutt å re-hashe)
+Vi standardiserer at UI bruker:
+- `product.colorIndex` (fra datalaget), eller
+- `activeProducts.color_index` map, som fallback
+Ikke `hash(product_id) % 3` for SharedDisplay/CustomerDisplay når vi har lagret mapping.
 
-**Nåværende problem:**
-I `CustomerDataLoader.tsx` (linje 55-57) returnerer komponenten `null` hvis ingen produkter er valgt:
-```typescript
-if (!activeProducts || activeProducts.length === 0) {
-  return null; // ← Skjuler kunden helt!
-}
-```
+Konkrete endringer:
+1) `useActivePackingProducts` og `usePublicActivePackingProducts` må returnere `color_index`.
+2) `usePublicPackingData` (og evt batch-varianten `usePublicAllCustomersPackingData`) bygger `productColorMap` fra `activeProducts.color_index` først:
+   - `productColorMap.set(ap.product_id, ap.color_index)`
+3) `CustomerPackingCard.tsx` og `CustomerProductsList.tsx` bruker `product.colorIndex` når den finnes.
+4) `CustomerProductsList.tsx` må også bytte fra `product.id` til `product.product_id` (i de tilfellene den fortsatt beregner fallback).
 
-**Løsning:**
-Endre logikken slik at kunder med ordrer for pakkedatoen ALLTID vises, med status-indikator (blå/grønn), selv om ingen produkter er valgt ennå.
+Dette sikrer at:
+- Samme produkt får samme farge på alle displayer
+- Fargen påvirkes ikke av om kunden har 1 eller 3 produkter
+- Fargene kommer fra de tre fargene i display-innstillinger (Produktrad 1/2/3)
 
-#### Fil: `src/components/display/shared/CustomerDataLoader.tsx`
+## Viktig UX-regel (slik du ønsker)
+- Fargene velges i Display-innstillinger: “Produktrad 1/2/3”.
+- Produktene får “slot” 1/2/3 når de velges til pakking for datoen, og beholder slotten.
 
-```typescript
-// GAMMEL LOGIKK (linje 54-57):
-if (!activeProducts || activeProducts.length === 0) {
-  return null;
-}
+## Testing (konkret)
+1) Sett Produktrad 1/2/3 til (Grønn/Blå/Gul).
+2) Velg aktive produkter for dagen: Kneipp, Hvasser, Loff.
+   - Verifiser at de får tre ulike farger.
+3) Fjern Hvasser fra aktive produkter:
+   - Kneipp og Loff skal beholde sine opprinnelige farger.
+4) Åpne både fellesdisplay og kundedisplay:
+   - Samme produkt skal ha samme farge begge steder.
+5) Endre rekkefølge på produktene i valgskjermen:
+   - Fargene skal ikke “bytte” hvis produktene var de samme.
 
-// NY LOGIKK:
-// Hent ordredata UAVHENGIG av valgte produkter
-// Vis kunden med status-indikator selv om ingen produkter er valgt ennå
-```
+## Filer som må endres / legges til
+- DB migration: `supabase/migrations/...add_color_index_to_active_packing_products.sql`
+- `src/integrations/supabase/types.ts` (for typegenerering/typing av `color_index`)
+- `src/hooks/useActivePackingProducts.ts` (inkluder/bruk `color_index`)
+- `src/hooks/usePublicDisplayData.ts`
+  - `usePublicActivePackingProducts` (inkluder `color_index` + gjerne `.order('color_index')`)
+  - `usePublicPackingData` + `usePublicAllCustomersPackingData` (bruk `color_index`)
+- `src/components/display/shared/CustomerPackingCard.tsx` (bruk `product.colorIndex` fremfor ny beregning)
+- `src/components/display/customer/CustomerProductsList.tsx` (bruk `product.colorIndex` og korriger `product.product_id`)
+- (Valgfritt) `src/components/display/shared/DemoCustomerCard.tsx` kan fortsatt bruke index/preview-logikk, men vi kan også simulere color_index der for å matche live.
 
-**Ny tilnærming:**
-1. Sjekk om kunden har ordrer for pakkedatoen (via `usePublicPackingData` uten produkt-filter)
-2. Hvis ja: Vis kundekortet med status-indikator
-3. Produktlisten viser kun valgte produkter (eller "Ingen produkter valgt" melding)
-4. Status-indikatoren (blå/grønn prikk) baseres på ALLE ordrer for dagen, ikke bare valgte produkter
+## Mulige fallgruver og hvordan vi håndterer dem
+- Hvis noen velger mer enn 3 produkter: vi må enten (a) tillate gjenbruk av slots eller (b) begrense til 3 i UI. (Per beskrivelsen din virker “max 3” som ønsket praksis.)
+- Eksisterende aktive produkter etter migrasjon: backfill gir dem midlertidig slot 0/1/2 slik at displayet ser riktig ut uten at dere må re-velge.
 
-#### Fil: `src/hooks/usePublicDisplayData.ts`
-
-Må oppdatere `usePublicPackingData` til å:
-1. Alltid hente ordredata for kunden på den aktuelle datoen
-2. Beregne overall_status basert på ALLE produkter (ikke bare de valgte)
-3. Returnere produktliste kun for visning (filtrert på valgte produkter)
-
-```typescript
-// Ny parameter: alwaysShowCustomer?: boolean
-export const usePublicPackingData = (
-  customerId?: string, 
-  bakeryId?: string, 
-  date?: string, 
-  activeProducts?: any[], 
-  customerName?: string,
-  alwaysShowCustomer?: boolean // ← NY
-) => {
-  // ...
-  
-  // ✅ KRITISK ENDRING: Hent ALLTID alle ordrer for kunden
-  // Status beregnes på ALLE produkter
-  // Produktlisten filtreres kun for VISNING
-}
-```
-
-### 3. Konsistent produktfarge uavhengig av antall
-
-**Nåværende problem:**
-Innstillingen `use_consistent_product_colors` eksisterer, men er satt til `false` som standard. Når den er `false`, brukes `index % 3` som gir forskjellige farger avhengig av produktets posisjon i listen.
-
-**Løsning:**
-Endre standardverdien til `true` slik at `getConsistentColorIndex(productId)` alltid brukes. Dette sikrer at:
-- "Grovbrød" alltid får farge 0 (uansett antall produkter)
-- "Kanelboller" alltid får farge 1 (basert på produkt-ID hash)
-- Samme produkt = samme farge på alle displays
-
-#### Fil: `src/utils/displaySettingsDefaults.ts`
-
-```typescript
-// GAMMEL (linje 187):
-use_consistent_product_colors: false,
-
-// NY:
-use_consistent_product_colors: true, // ← Alltid konsistent farge
-```
-
----
-
-## Detaljerte filendringer
-
-### 1. `src/components/display/shared/CustomerDataLoader.tsx`
-
-| Linje | Endring |
-|-------|---------|
-| 54-57 | Fjern `if (!activeProducts) return null` |
-| 62-64 | Endre til å vise kort selv uten produkter - vis "Venter på valg" |
-
-**Ny logikk:**
-```typescript
-// Hent ordredata UTEN avhengighet av activeProducts
-const { data: allOrdersData } = usePublicPackingData(
-  customer.id,
-  bakeryId,
-  activePackingDate,
-  undefined, // ← Ingen filter
-  customer.name,
-  true // ← alwaysShowCustomer
-);
-
-// Sjekk om kunden har ordrer for denne datoen
-const hasOrdersForDate = allOrdersData && allOrdersData.length > 0 && 
-  allOrdersData[0]?.total_line_items_all > 0;
-
-// Hvis ingen ordrer for datoen - ikke vis
-if (!hasOrdersForDate) {
-  return null;
-}
-
-// Vis kortet - produktlisten kan være tom, men status vises alltid
-```
-
-### 2. `src/hooks/usePublicDisplayData.ts`
-
-Oppdater `usePublicPackingData` til å separere:
-- **Status-beregning:** Basert på ALLE produkter for datoen
-- **Produktvisning:** Kun valgte produkter
-
-### 3. `src/utils/displaySettingsDefaults.ts`
-
-```typescript
-// Linje 187
-use_consistent_product_colors: true, // Endret fra false
-```
-
-### 4. `src/components/display/shared/CustomerPackingCard.tsx`
-
-Legg til støtte for visning når ingen produkter er valgt:
-
-```typescript
-{displayProducts.length === 0 && (
-  <div className="text-center py-2 opacity-60" style={{ color: settings?.text_color }}>
-    <span style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
-      Ingen produkter valgt for pakking
-    </span>
-  </div>
-)}
-```
-
-### 5. `src/components/display/shared/DemoCustomerCard.tsx`
-
-Samme endring for demo-visning.
-
----
-
-## Oppsummering
-
-| Krav | Løsning | Fil |
-|------|---------|-----|
-| Dynamisk plassering | Allerede implementert i AutoFitGrid | Ingen endring |
-| Vis kunder med ordrer | Fjern avhengighet av activeProducts | CustomerDataLoader.tsx, usePublicDisplayData.ts |
-| Konsistent produktfarge | Endre default til true | displaySettingsDefaults.ts |
-
----
-
-## Forventet resultat
-
-**Før:**
-- Kunde A har 3 ordrer for 27. januar, men ingen produkter er valgt → Kunden er USYNLIG
-- Produkt "Grovbrød" vises med farge 0 hos kunde A, men farge 1 hos kunde B (fordi rekkefølgen er annerledes)
-
-**Etter:**
-- Kunde A har 3 ordrer for 27. januar → Vises med blå status-prikk + "Ingen produkter valgt"
-- Når produkter velges → Vises med produktliste + grønn prikk når ferdig
-- "Grovbrød" har ALLTID samme farge på alle displays (basert på produkt-ID hash)
-
----
-
-## Visuelt eksempel
-
-```text
-FØR (kunde skjult):                 ETTER (kunde synlig):
-+---------------------------+       +---------------------------+
-|                           |       | Cafe Solberg          (●) |  ← Blå = venter
-|     (TOMT - INGEN KORT)   |       +---------------------------+
-|                           |       | Ingen produkter valgt     |
-+---------------------------+       +---------------------------+
-
-Når produkter velges:
-+---------------------------+
-| Cafe Solberg          (●) |  ← Grønn når ferdig
-+---------------------------+
-| Grovbrød     25  ✓        |  ← Samme farge som på alle andre displays
-| Kanelboller  48  ◐        |
-| Rundstykker  60  ○        |
-+---------------------------+
-```
+## Leveranse etter endringen
+- Kneipp/Hvasser/Loff får hver sin faste farge-slot.
+- Ingen hash-kollisjoner, ingen “alle blir grønne”.
+- Fargene styres kun av Display-innstillingene (Produktrad 1/2/3).
