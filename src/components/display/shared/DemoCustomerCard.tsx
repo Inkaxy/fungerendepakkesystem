@@ -27,18 +27,25 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
 }) => {
   const isCompleted = customerData.progress_percentage === 100;
   
-  // Beregn maks antall produkter basert på tilgjengelig høyde - hook FØRST
+  // Beregn skaleringsfaktor basert på maxHeight for dynamisk skalering
+  const scaleFactor = React.useMemo(() => {
+    if (!maxHeight) return 1;
+    // Skaler ned fra 300px som "normal" høyde
+    return Math.min(1, Math.max(0.6, (maxHeight - 100) / 200));
+  }, [maxHeight]);
+  
+  // Beregn maks antall produkter basert på tilgjengelig høyde
   const maxProducts = React.useMemo(() => {
     if (maxHeight) {
-      const headerHeight = 50;
-      const progressHeight = 40;
-      const productItemHeight = 35;
-      const footerPadding = 30;
+      const headerHeight = 50 * scaleFactor;
+      const progressHeight = 40 * scaleFactor;
+      const productItemHeight = 35 * scaleFactor;
+      const footerPadding = 30 * scaleFactor;
       const availableForProducts = maxHeight - headerHeight - progressHeight - footerPadding;
       return Math.max(1, Math.floor(availableForProducts / productItemHeight));
     }
     return settings?.max_products_per_card ?? 3;
-  }, [maxHeight, settings?.max_products_per_card]);
+  }, [maxHeight, settings?.max_products_per_card, scaleFactor]);
   
   const displayProducts = customerData.products.slice(0, maxProducts);
   
@@ -89,17 +96,24 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
           height: '100%',
         }}
       >
-        <CardContent className="p-4 space-y-4 flex-1 overflow-hidden flex flex-col">
+        <CardContent 
+          className="flex-1 overflow-hidden flex flex-col"
+          style={{ 
+            padding: `${Math.max(8, 16 * scaleFactor)}px`,
+            gap: `${Math.max(8, 16 * scaleFactor)}px`
+          }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {settings?.show_customer_numbers && (
                 <Badge 
                   variant="outline" 
-                  className="text-xs"
                   style={{ 
                     borderColor: settings?.card_border_color || '#e5e7eb',
-                    color: settings?.text_color || '#6b7280'
+                    color: settings?.text_color || '#6b7280',
+                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
+                    padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
                   }}
                 >
                   {customerData.customer_number}
@@ -109,7 +123,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                 className="font-semibold"
                 style={{ 
                   color: settings?.text_color || '#1f2937',
-                  fontSize: settings?.customer_name_font_size ? `${settings.customer_name_font_size}px` : '18px'
+                  fontSize: `${(settings?.customer_name_font_size || 18) * scaleFactor}px`
                 }}
               >
                 {customerData.name}
@@ -119,7 +133,9 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
               <Badge
                 style={{ 
                   backgroundColor: getStatusColor(customerData.overall_status),
-                  color: '#ffffff'
+                  color: '#ffffff',
+                  fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
+                  padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
                 }}
               >
                 {isCompleted ? 'Ferdig' : 'Pågår'}
@@ -128,7 +144,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
           </div>
 
           {/* Products */}
-          <div className="space-y-2 flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden" style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
             {displayProducts.map((product, idx) => {
               // Use consistent color based on product ID if setting is enabled
               const colorIndex = getProductColorIndex(
@@ -143,9 +159,10 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
               return (
                 <div 
                   key={product.product_id}
-                  className="flex items-center justify-between p-2 rounded"
+                  className="flex items-center justify-between rounded"
                   style={{
                     backgroundColor: bgColor,
+                    padding: `${Math.max(4, 8 * scaleFactor)}px`,
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -158,7 +175,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                       className={product.packing_status === 'packed' ? 'line-through opacity-60' : ''}
                       style={{ 
                         color: textColor,
-                        fontSize: settings?.shared_product_font_size ? `${settings.shared_product_font_size}px` : '14px'
+                        fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`
                       }}
                     >
                       {product.product_name}
@@ -167,7 +184,10 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                   {(settings?.shared_show_product_quantity ?? true) && (
                     <span 
                       className="font-medium"
-                      style={{ color: accentColor }}
+                      style={{ 
+                        color: accentColor,
+                        fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`
+                      }}
                     >
                       {product.packed_quantity}/{product.total_quantity} {product.product_unit}
                     </span>
@@ -179,8 +199,8 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
 
           {/* Progress */}
           {(settings?.show_progress_bar ?? true) && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
+            <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+              <div className="flex items-center justify-between" style={{ fontSize: `${Math.max(10, 14 * scaleFactor)}px` }}>
                 <span style={{ color: settings?.text_color || '#6b7280' }}>
                   Fremgang
                 </span>
@@ -195,9 +215,9 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
               </div>
               <Progress 
                 value={customerData.progress_percentage}
-                className="h-2"
                 style={{
                   backgroundColor: settings?.progress_background_color || '#e5e7eb',
+                  height: `${Math.max(4, 8 * scaleFactor)}px`
                 }}
               />
             </div>
@@ -206,8 +226,12 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
           {/* Line items count */}
           {(settings?.show_line_items_count ?? true) && (
             <div 
-              className="text-center text-sm"
-              style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+              className="text-center"
+              style={{ 
+                color: settings?.text_color || '#6b7280', 
+                opacity: 0.7,
+                fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+              }}
             >
               {customerData.packed_line_items} av {customerData.total_line_items} linjer pakket
             </div>

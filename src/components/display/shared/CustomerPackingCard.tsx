@@ -17,9 +17,16 @@ interface CustomerPackingCardProps {
 }
 
 const CustomerPackingCard = React.memo(({ customerData, customer, settings, statusColors, maxHeight }: CustomerPackingCardProps) => {
+  // Beregn skaleringsfaktor basert på maxHeight for dynamisk skalering
+  const scaleFactor = React.useMemo(() => {
+    if (!maxHeight) return 1;
+    // Skaler ned fra 300px som "normal" høyde
+    return Math.min(1, Math.max(0.6, (maxHeight - 100) / 200));
+  }, [maxHeight]);
+  
   // Get card height class based on settings
   const getCardHeightClass = () => {
-    if (maxHeight) return 'py-2'; // Kompakt når auto-fit er aktiv
+    if (maxHeight) return 'py-1'; // Kompakt når auto-fit er aktiv
     switch (settings?.customer_card_height) {
       case 'compact': return 'py-2';
       case 'large': return 'py-6';
@@ -31,15 +38,15 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
   const maxProducts = React.useMemo(() => {
     if (maxHeight) {
       // Estimer hvor mange produkter som får plass
-      const headerHeight = 60;
-      const progressHeight = 50;
-      const productItemHeight = 35;
-      const footerPadding = 20;
+      const headerHeight = 60 * scaleFactor;
+      const progressHeight = 50 * scaleFactor;
+      const productItemHeight = 35 * scaleFactor;
+      const footerPadding = 20 * scaleFactor;
       const availableForProducts = maxHeight - headerHeight - progressHeight - footerPadding;
       return Math.max(1, Math.floor(availableForProducts / productItemHeight));
     }
     return settings?.max_products_per_card || 10;
-  }, [maxHeight, settings?.max_products_per_card]);
+  }, [maxHeight, settings?.max_products_per_card, scaleFactor]);
   
   const displayProducts = customerData.products.slice(0, maxProducts);
   const hasMoreProducts = customerData.products.length > maxProducts;
@@ -107,23 +114,21 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
           )}
         </div>
         <CardTitle 
-          className="text-xl text-center mb-3"
+          className="text-center mb-3"
           style={{ 
             color: settings?.header_text_color || '#111827',
-            fontSize: settings?.customer_name_font_size 
-              ? `${settings.customer_name_font_size}px` 
-              : '1.25rem'
+            fontSize: `${(settings?.customer_name_font_size || 20) * scaleFactor}px`
           }}
         >
           {customer.name}
         </CardTitle>
       </CardHeader>
       <CardContent className={cn(getCardHeightClass(), 'flex-1 overflow-hidden')}>
-        <div className="space-y-3">
+        <div style={{ gap: `${Math.max(8, 12 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
           {/* Progress section */}
           {(settings?.show_customer_progress_bar ?? true) && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+            <div style={{ gap: `${Math.max(4, 8 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+              <div className="flex justify-between" style={{ fontSize: `${Math.max(10, 14 * scaleFactor)}px` }}>
                 <span style={{ color: settings?.text_color || '#374151' }}>Fremgang:</span>
                 <span 
                   className="font-semibold"
@@ -136,7 +141,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 className="w-full rounded-full relative overflow-visible"
                 style={{ 
                   backgroundColor: settings?.progress_background_color || '#e5e7eb',
-                  height: `${settings?.progress_height || 8}px`,
+                  height: `${Math.max(4, (settings?.progress_height || 8) * scaleFactor)}px`,
                   marginLeft: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
                   marginRight: (settings?.show_truck_icon ?? false) ? `${(settings?.truck_icon_size || 24) / 2}px` : undefined,
                 }}
@@ -157,8 +162,8 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     className="absolute top-1/2 transform -translate-y-1/2"
                     style={{ 
                       left: `calc(${customerData.progress_percentage}% - ${(settings?.truck_icon_size || 24) / 2}px)`,
-                      width: `${settings?.truck_icon_size || 24}px`,
-                      height: `${settings?.truck_icon_size || 24}px`,
+                      width: `${(settings?.truck_icon_size || 24) * scaleFactor}px`,
+                      height: `${(settings?.truck_icon_size || 24) * scaleFactor}px`,
                       objectFit: 'contain',
                       transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                       zIndex: 10,
@@ -167,7 +172,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 )}
               </div>
               {(settings?.show_line_items_count ?? true) && (
-                <div className="text-xs text-center">
+                <div className="text-center" style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
                   <span style={{ color: settings?.text_color || '#6b7280' }}>
                     {customerData.packed_line_items_all}/{customerData.total_line_items_all} varelinjer pakket
                   </span>
@@ -179,12 +184,15 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
           {/* Products list */}
           <div>
             <h4 
-              className="text-sm font-medium mb-2"
-              style={{ color: settings?.text_color || '#374151' }}
+              className="font-medium mb-2"
+              style={{ 
+                color: settings?.text_color || '#374151',
+                fontSize: `${Math.max(10, 14 * scaleFactor)}px`
+              }}
             >
               Produkter:
             </h4>
-            <div className="space-y-1">
+            <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
               {displayProducts.map((product, idx) => {
                 // Use consistent color based on product ID if setting is enabled
                 const colorIndex = getProductColorIndex(
@@ -199,6 +207,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                   style={{
                     backgroundColor: getProductBackgroundColor(settings || {} as any, colorIndex),
                     borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
+                    padding: `${Math.max(4, 8 * scaleFactor)}px`,
                   }}
                 >
                   <div className="flex flex-col flex-1">
@@ -206,9 +215,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                       className="font-medium"
                       style={{ 
                         color: getProductTextColor(settings || {} as any, colorIndex),
-                        fontSize: settings?.shared_product_font_size 
-                          ? `${settings.shared_product_font_size}px` 
-                          : '14px',
+                        fontSize: `${(settings?.shared_product_font_size || 14) * scaleFactor}px`,
                         textDecoration: (settings?.strikethrough_completed_products && 
                                          product.packing_status === 'completed') 
                                          ? 'line-through' 
@@ -227,9 +234,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                         className="font-semibold"
                         style={{ 
                           color: getProductAccentColor(settings || {} as any, colorIndex),
-                          fontSize: settings?.shared_product_font_size 
-                            ? `${settings.shared_product_font_size * 1.2}px` 
-                            : '16px',
+                          fontSize: `${(settings?.shared_product_font_size || 14) * 1.2 * scaleFactor}px`,
                           textDecoration: (settings?.strikethrough_completed_products && 
                                            product.packing_status === 'completed') 
                                            ? 'line-through' 
@@ -243,8 +248,10 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                   <div className="flex items-center space-x-2">
                     {(settings?.show_line_items_count ?? true) && (
                       <span 
-                        className="text-xs"
-                        style={{ color: getProductAccentColor(settings || {} as any, colorIndex) }}
+                        style={{ 
+                          color: getProductAccentColor(settings || {} as any, colorIndex),
+                          fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                        }}
                       >
                         {product.packed_line_items}/{product.total_line_items}
                       </span>
@@ -252,10 +259,11 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     {(settings?.show_status_badges ?? true) && (
                       <Badge 
                         variant={product.packing_status === 'completed' ? 'default' : 'secondary'}
-                        className="text-xs"
                         style={{
                           backgroundColor: product.packing_status === 'completed' ? statusColors.completed : statusColors.in_progress,
-                          color: 'white'
+                          color: 'white',
+                          fontSize: `${Math.max(8, 12 * scaleFactor)}px`,
+                          padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
                         }}
                       >
                         {product.packing_status === 'completed' ? 'Ferdig' : 
@@ -267,8 +275,12 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
               )})}
               {hasMoreProducts && (
                 <div 
-                  className="text-xs text-center py-1"
-                  style={{ color: settings?.text_color || '#6b7280', opacity: 0.7 }}
+                  className="text-center py-1"
+                  style={{ 
+                    color: settings?.text_color || '#6b7280', 
+                    opacity: 0.7,
+                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                  }}
                 >
                   ... og {customerData.products.length - maxProducts} flere produkter
                 </div>
