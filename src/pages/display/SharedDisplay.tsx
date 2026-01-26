@@ -264,7 +264,8 @@ const SharedDisplay = () => {
           activePackingDate={effectivePackingDate}
         />
 
-        {isLoading && (
+        {/* Loading state - kun for ikke-demo */}
+        {!isDemo && isLoading && (
           <Card
             style={{
               backgroundColor: settings?.card_background_color || '#ffffff',
@@ -281,7 +282,8 @@ const SharedDisplay = () => {
           </Card>
         )}
 
-        {!isLoading && !effectivePackingDate && !isDemo && (
+        {/* Tom tilstand når ingen aktiv pakkingsdato - kun for ikke-demo */}
+        {!isDemo && !isLoading && !effectivePackingDate && (
           <EmptyPackingState
             settings={settings}
             activePackingDate={null}
@@ -290,31 +292,11 @@ const SharedDisplay = () => {
         )}
 
         {/* Demo-modus: Vis demo-kort */}
-        {isDemo && (
-          settings?.auto_fit_screen ? (
-            <div className="flex-1 min-h-0">
-              <AutoFitGrid 
-                customerCount={DEMO_PACKING_DATA.length} 
-                settings={settings}
-              >
-                {DEMO_PACKING_DATA.map((demoData) => (
-                  <DemoCustomerCard
-                    key={demoData.id}
-                    customerData={demoData}
-                    settings={settings}
-                    statusColors={statusColors}
-                    hideWhenCompleted={settings?.shared_hide_completed_customers}
-                    completedOpacity={settings?.shared_completed_customer_opacity}
-                  />
-                ))}
-              </AutoFitGrid>
-            </div>
-          ) : (
-            <div 
-              className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
-              style={{ 
-                gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
-              }}
+        {isDemo && settings?.auto_fit_screen && (
+          <div className="flex-1 min-h-0">
+            <AutoFitGrid 
+              customerCount={DEMO_PACKING_DATA.length} 
+              settings={settings}
             >
               {DEMO_PACKING_DATA.map((demoData) => (
                 <DemoCustomerCard
@@ -326,8 +308,28 @@ const SharedDisplay = () => {
                   completedOpacity={settings?.shared_completed_customer_opacity}
                 />
               ))}
-            </div>
-          )
+            </AutoFitGrid>
+          </div>
+        )}
+
+        {isDemo && !settings?.auto_fit_screen && (
+          <div 
+            className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
+            style={{ 
+              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+            }}
+          >
+            {DEMO_PACKING_DATA.map((demoData) => (
+              <DemoCustomerCard
+                key={demoData.id}
+                customerData={demoData}
+                settings={settings}
+                statusColors={statusColors}
+                hideWhenCompleted={settings?.shared_hide_completed_customers}
+                completedOpacity={settings?.shared_completed_customer_opacity}
+              />
+            ))}
+          </div>
         )}
 
         {/* Ekte data: Vis ekte kunder */}
