@@ -103,8 +103,16 @@ const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) =>
   }, []);
 
   const gap = settings?.customer_cards_gap ?? 24;
-  const minCardHeight = settings?.auto_fit_min_card_height ?? DEFAULT_MIN_CARD_HEIGHT;
-  const minCardWidth = settings?.auto_fit_min_card_width ?? DEFAULT_MIN_CARD_WIDTH;
+  const baseMinCardHeight = settings?.auto_fit_min_card_height ?? DEFAULT_MIN_CARD_HEIGHT;
+  const baseMinCardWidth = settings?.auto_fit_min_card_width ?? DEFAULT_MIN_CARD_WIDTH;
+  
+  // I kompakt modus: Bruk lavere minimumsverdier for å få plass til flere kort
+  const minCardHeight = settings?.shared_compact_table_mode 
+    ? Math.min(baseMinCardHeight, 100) // Maks 100px i kompakt modus
+    : baseMinCardHeight;
+  const minCardWidth = settings?.shared_compact_table_mode
+    ? Math.min(baseMinCardWidth, 180) // Maks 180px i kompakt modus
+    : baseMinCardWidth;
 
   const { columns, cardHeight } = useMemo(() => 
     calculateOptimalLayout(
