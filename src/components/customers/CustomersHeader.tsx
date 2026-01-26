@@ -1,14 +1,8 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, UserPlus, QrCode, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Search, QrCode, Trash2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface CustomersHeaderProps {
   customersCount: number;
@@ -32,54 +26,47 @@ const CustomersHeader = ({
   selectedCount
 }: CustomersHeaderProps) => {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 rounded bg-muted flex items-center justify-center">
-            <span className="text-xs">👥</span>
+    <Card className="card-warm">
+      <CardContent className="py-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Søk etter kundenavn, adresse eller kontaktinfo..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10"
+            />
           </div>
-          <h1 className="text-xl font-semibold">
-            Kundeoversikt ({customersCount} kunder)
-          </h1>
-        </div>
-      </div>
 
-      <div className="flex items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Søk etter kundenavn, adresse eller kontaktinfo..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {selectedCount > 0 && (
-            <Button variant="outline" onClick={onBulkActions}>
-              Flere handlinger
+          {/* Actions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedCount > 0 && (
+              <Button variant="outline" size="sm" onClick={onBulkActions}>
+                Flere handlinger ({selectedCount})
+              </Button>
+            )}
+            
+            <Button variant="outline" size="sm" onClick={onGenerateQrCodes}>
+              <QrCode className="w-4 h-4 mr-2" />
+              QR-koder
             </Button>
-          )}
-          
-          <Button variant="outline" onClick={onGenerateQrCodes}>
-            <QrCode className="w-4 h-4 mr-2" />
-            Generer alle QR-koder
-          </Button>
 
-          {customersCount > 0 && (
-            <Button variant="destructive" onClick={onDeleteAllCustomers}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Slett alle kunder
-            </Button>
-          )}
+            {customersCount > 0 && (
+              <Button variant="destructive" size="sm" onClick={onDeleteAllCustomers}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Slett alle
+              </Button>
+            )}
 
-          <span className="text-sm text-muted-foreground">
-            Viser {customersCount} av {customersCount} resultater
-          </span>
+            <span className="text-sm text-muted-foreground hidden md:inline">
+              Viser {customersCount} kunder
+            </span>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

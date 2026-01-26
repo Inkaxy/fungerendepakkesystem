@@ -16,6 +16,14 @@
   background-color: hsl(var(--bakery-cream));
 }
 
+.bg-bakery-wheat {
+  background-color: hsl(var(--bakery-wheat));
+}
+
+.bg-bakery-flour {
+  background-color: hsl(var(--bakery-flour));
+}
+
 .text-bakery-orange {
   color: hsl(var(--bakery-orange));
 }
@@ -28,6 +36,31 @@
   border-color: hsl(var(--bakery-orange));
 }
 
+/* Status colors */
+.bg-success {
+  background-color: hsl(var(--success));
+}
+
+.text-success {
+  color: hsl(var(--success));
+}
+
+.bg-warning {
+  background-color: hsl(var(--warning));
+}
+
+.text-warning {
+  color: hsl(var(--warning));
+}
+
+.bg-info {
+  background-color: hsl(var(--info));
+}
+
+.text-info {
+  color: hsl(var(--info));
+}
+
 /* Gradient backgrounds inspired by bread colors */
 .gradient-bread {
   background: linear-gradient(135deg, hsl(var(--bakery-orange-light)) 0%, hsl(var(--bakery-orange)) 100%);
@@ -37,6 +70,23 @@
   background: linear-gradient(135deg, hsl(var(--bakery-cream)) 0%, rgba(255,255,255,0.9) 100%);
 }
 
+/* Warm bakery gradients */
+.gradient-warm {
+  background: linear-gradient(180deg, hsl(var(--bakery-cream)) 0%, hsl(var(--background)) 100%);
+}
+
+.gradient-warm-horizontal {
+  background: linear-gradient(90deg, hsl(var(--bakery-wheat)) 0%, hsl(var(--bakery-cream)) 100%);
+}
+
+.gradient-fresh {
+  background: linear-gradient(135deg, hsl(var(--bakery-flour)) 0%, hsl(var(--bakery-wheat)) 50%, hsl(var(--bakery-cream)) 100%);
+}
+
+.gradient-header {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--bakery-wheat) / 0.5) 50%, hsl(var(--bakery-cream)) 100%);
+}
+
 /* Cat-themed gradients */
 .gradient-cat {
   background: linear-gradient(135deg, #fef7ed 0%, #fed7aa 50%, #fdba74 100%);
@@ -44,4 +94,89 @@
 
 .gradient-cat-paws {
   background: linear-gradient(45deg, #f3f4f6 0%, #fef7ed 50%, #fed7aa 100%);
+}
+
+/* Bakery-themed shadows */
+.shadow-bakery-sm {
+  box-shadow: 0 1px 2px 0 hsl(var(--bakery-brown) / 0.05);
+}
+
+.shadow-bakery-md {
+  box-shadow: 0 4px 6px -1px hsl(var(--bakery-brown) / 0.08), 0 2px 4px -2px hsl(var(--bakery-brown) / 0.05);
+}
+
+.shadow-bakery-lg {
+  box-shadow: 0 10px 15px -3px hsl(var(--bakery-brown) / 0.1), 0 4px 6px -4px hsl(var(--bakery-brown) / 0.05);
+}
+
+.shadow-bakery-xl {
+  box-shadow: 0 20px 25px -5px hsl(var(--bakery-brown) / 0.1), 0 8px 10px -6px hsl(var(--bakery-brown) / 0.05);
+}
+
+/* Warm card styling */
+.card-warm {
+  @apply bg-card border border-border rounded-xl shadow-bakery-md;
+  background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--bakery-flour) / 0.3) 100%);
+}
+
+.card-warm:hover {
+  @apply shadow-bakery-lg;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Status badges */
+.status-success {
+  @apply bg-success/10 text-success border border-success/20;
+}
+
+.status-warning {
+  @apply bg-warning/10 text-warning border border-warning/20;
+}
+
+.status-info {
+  @apply bg-info/10 text-info border border-info/20;
+}
+
+.status-error {
+  @apply bg-destructive/10 text-destructive border border-destructive/20;
+}
+
+/* Interactive hover effects */
+.hover-lift {
+  @apply transition-all duration-200;
+}
+
+.hover-lift:hover {
+  @apply -translate-y-0.5 shadow-bakery-lg;
+}
+
+/* Warm table styling */
+.table-warm tbody tr:hover {
+  background-color: hsl(var(--bakery-wheat) / 0.3);
+}
+
+.table-warm tbody tr:nth-child(even) {
+  background-color: hsl(var(--bakery-flour) / 0.5);
+}
+
+/* Page header styling */
+.page-header {
+  @apply rounded-xl p-6 mb-6;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--bakery-wheat) / 0.6) 50%, hsl(var(--bakery-cream)) 100%);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+/* Stat card styling */
+.stat-card {
+  @apply bg-card rounded-xl p-5 border border-border transition-all duration-200;
+}
+
+.stat-card:hover {
+  @apply shadow-bakery-md -translate-y-0.5;
+  border-color: hsl(var(--primary) / 0.3);
+}
+
+.stat-card-icon {
+  @apply p-2.5 rounded-lg;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 100%);
 }

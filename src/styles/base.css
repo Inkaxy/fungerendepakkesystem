@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 40 33% 99%;
     --foreground: 30 26% 8%;
     --card: 0 0% 100%;
     --card-foreground: 30 26% 8%;
@@ -32,6 +32,20 @@
     --bakery-brown: 30 26% 8%;
     --bakery-brown-light: 30 15% 25%;
     --bakery-cream: 45 29% 97%;
+    
+    /* Extended bakery palette */
+    --bakery-wheat: 43 47% 92%;
+    --bakery-crust: 25 70% 35%;
+    --bakery-flour: 40 20% 98%;
+    --bakery-honey: 38 92% 50%;
+    
+    /* Status colors */
+    --success: 142 76% 36%;
+    --success-foreground: 60 9% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 30 26% 8%;
+    --info: 199 89% 48%;
+    --info-foreground: 60 9% 98%;
   }
 
   .dark {
@@ -54,6 +68,20 @@
     --border: 30 15% 15%;
     --input: 30 15% 15%;
     --ring: 24 95% 53%;
+    
+    /* Extended bakery palette - dark mode */
+    --bakery-wheat: 43 47% 15%;
+    --bakery-crust: 25 70% 25%;
+    --bakery-flour: 40 20% 12%;
+    --bakery-honey: 38 92% 40%;
+    
+    /* Status colors - dark mode */
+    --success: 142 76% 30%;
+    --success-foreground: 60 9% 98%;
+    --warning: 38 92% 40%;
+    --warning-foreground: 60 9% 98%;
+    --info: 199 89% 40%;
+    --info-foreground: 60 9% 98%;
   }
 }
 
@@ -64,5 +92,19 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Typography improvements */
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  h3 {
+    @apply text-xl font-semibold;
+  }
+  h4 {
+    @apply text-lg font-medium;
   }
 }

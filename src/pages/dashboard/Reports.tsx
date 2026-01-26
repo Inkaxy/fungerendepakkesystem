@@ -1,17 +1,17 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CalendarIcon, AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2, Calendar, TrendingUp } from 'lucide-react';
 import { format, subDays } from 'date-fns';
-import { nb } from 'date-fns/locale';
 import { usePackingDeviations, usePackingDeviationsByDate } from '@/hooks/usePackingDeviations';
 import { useDeletePackingSessions, useDeletePackingDataWithOrders } from '@/hooks/useDeletePackingData';
 import DeviationOverview from '@/components/reports/DeviationOverview';
 import DeviationDetails from '@/components/reports/DeviationDetails';
 import DeletePackingDataDialog from '@/components/reports/DeletePackingDataDialog';
+import PageHeader from '@/components/shared/PageHeader';
+import LoadingState from '@/components/shared/LoadingState';
 
 const Reports = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -29,7 +29,7 @@ const Reports = () => {
     dateRange.endDate
   );
 
-  const { data: dailyDeviations, isLoading: isDailyLoading } = usePackingDeviationsByDate(
+  const { data: dailyDeviations } = usePackingDeviationsByDate(
     selectedDate || ''
   );
 
@@ -62,24 +62,20 @@ const Reports = () => {
     }
   };
 
+  // Calculate days in range
+  const daysInRange = Math.ceil(
+    (new Date(dateRange.endDate).getTime() - new Date(dateRange.startDate).getTime()) / (1000 * 60 * 60 * 24)
+  ) + 1;
+
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Avviksrapporter</h1>
-            <p className="text-muted-foreground">
-              Oversikt over pakkeavvik og rapporter
-            </p>
-          </div>
-        </div>
-        
-        <Card>
-          <CardContent className="text-center p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p>Laster avviksdata...</p>
-          </CardContent>
-        </Card>
+        <PageHeader
+          icon={AlertTriangle}
+          title="Avviksrapporter"
+          subtitle="Oversikt over pakkeavvik og rapporter"
+        />
+        <LoadingState message="Laster avviksdata..." icon={AlertTriangle} />
       </div>
     );
   }
@@ -87,38 +83,75 @@ const Reports = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center">
-            <AlertTriangle className="mr-3 h-8 w-8 text-destructive" />
-            Avviksrapporter
-          </h1>
-          <p className="text-muted-foreground">
-            Oversikt over pakkeavvik og detaljerte rapporter
-          </p>
+      <PageHeader
+        icon={AlertTriangle}
+        title="Avviksrapporter"
+        subtitle="Oversikt over pakkeavvik og detaljerte rapporter"
+        actions={
+          !selectedDate && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Slett pakkedata
+            </Button>
+          )
+        }
+      />
+
+      {/* Stats */}
+      {!selectedDate && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Totale avvik</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {deviationData?.totalDeviations || 0}
+                </p>
+              </div>
+              <div className="p-2.5 rounded-lg bg-destructive/15">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Dager med avvik</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {deviationData?.daysWithDeviationsCount || 0}
+                </p>
+              </div>
+              <div className="stat-card-icon">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Periode</p>
+                <p className="text-2xl font-bold text-foreground">{daysInRange} dager</p>
+              </div>
+              <div className="stat-card-icon">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {!selectedDate && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setShowDeleteDialog(true)}
-            className="flex items-center space-x-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Slett pakkedata</span>
-          </Button>
-        )}
-      </div>
+      )}
 
       {/* Date Range Filter */}
       {!selectedDate && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
+        <Card className="card-warm">
+          <CardContent className="py-4">
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
               <div className="grid grid-cols-2 gap-4 flex-1 max-w-md">
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Fra dato</Label>
+                  <Label htmlFor="startDate" className="text-sm font-medium">Fra dato</Label>
                   <Input
                     id="startDate"
                     type="date"
@@ -127,7 +160,7 @@ const Reports = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">Til dato</Label>
+                  <Label htmlFor="endDate" className="text-sm font-medium">Til dato</Label>
                   <Input
                     id="endDate"
                     type="date"
@@ -135,9 +168,6 @@ const Reports = () => {
                     onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
                   />
                 </div>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Viser data for {Math.ceil((new Date(dateRange.endDate).getTime() - new Date(dateRange.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} dager
               </div>
             </div>
           </CardContent>

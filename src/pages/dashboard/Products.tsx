@@ -1,12 +1,12 @@
-
-import React, { useState } from 'react';
+import React from 'react';
+import { Package, Plus, Search, Filter, Trash2, Loader2, Edit, CheckCircle, Tag } from 'lucide-react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useProducts, useCreateProduct, useDeleteProduct, useDeleteAllProducts, useUpdateProduct } from '@/hooks/useProducts';
 import { useAuthStore } from '@/stores/authStore';
-import { Package, Plus, Search, Filter, Trash2, Loader2, Edit } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -55,6 +55,9 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import EditProductDialog from '@/components/products/EditProductDialog';
 import { Product } from '@/types/database';
+import PageHeader from '@/components/shared/PageHeader';
+import LoadingState from '@/components/shared/LoadingState';
+import EmptyState from '@/components/shared/EmptyState';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Produktnavn er påkrevd'),
@@ -141,188 +144,188 @@ const Products = () => {
   const activeProducts = products?.filter(p => p.is_active) || [];
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Package className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Laster produkter...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Laster produkter..." icon={Package} />;
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Produkter</h1>
-          <p className="text-gray-600">Administrer produkter for ditt bakeri</p>
-        </div>
-        <div className="flex gap-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={!products || products.length === 0}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Slett alle
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Dette vil slette alle produkter permanent. Denne handlingen kan ikke angres.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={handleDeleteAllProducts}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
+      <PageHeader
+        icon={Package}
+        title="Produkter"
+        subtitle="Administrer produkter for ditt bakeri"
+        actions={
+          <div className="flex gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" disabled={!products || products.length === 0}>
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Slett alle
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nytt Produkt
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Opprett nytt produkt</DialogTitle>
-                <DialogDescription>
-                  Legg til et nytt produkt i produktkatalogen
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Produktnavn</FormLabel>
-                        <FormControl>
-                          <Input placeholder="F.eks. Rundstykker" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kategori</FormLabel>
-                        <FormControl>
-                          <Input placeholder="F.eks. Brød" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pris (kr)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            step="0.01" 
-                            placeholder="0.00" 
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Enhet</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Dette vil slette alle produkter permanent. Denne handlingen kan ikke angres.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteAllProducts}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Slett alle
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="hover-lift">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nytt Produkt
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Opprett nytt produkt</DialogTitle>
+                  <DialogDescription>
+                    Legg til et nytt produkt i produktkatalogen
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Produktnavn</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Velg enhet" />
-                            </SelectTrigger>
+                            <Input placeholder="F.eks. Rundstykker" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="stk">Stykk</SelectItem>
-                            <SelectItem value="kg">Kilogram</SelectItem>
-                            <SelectItem value="g">Gram</SelectItem>
-                            <SelectItem value="l">Liter</SelectItem>
-                            <SelectItem value="dl">Desiliter</SelectItem>
-                            <SelectItem value="pakke">Pakke</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end space-x-2">
-                    <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      Avbryt
-                    </Button>
-                    <Button type="submit" disabled={createProduct.isPending}>
-                      {createProduct.isPending ? 'Oppretter...' : 'Opprett'}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kategori</FormLabel>
+                          <FormControl>
+                            <Input placeholder="F.eks. Brød" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pris (kr)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              step="0.01" 
+                              placeholder="0.00" 
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="unit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Enhet</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Velg enhet" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="stk">Stykk</SelectItem>
+                              <SelectItem value="kg">Kilogram</SelectItem>
+                              <SelectItem value="g">Gram</SelectItem>
+                              <SelectItem value="l">Liter</SelectItem>
+                              <SelectItem value="dl">Desiliter</SelectItem>
+                              <SelectItem value="pakke">Pakke</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                        Avbryt
+                      </Button>
+                      <Button type="submit" disabled={createProduct.isPending}>
+                        {createProduct.isPending ? 'Oppretter...' : 'Opprett'}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Totale produkter</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{products?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktive produkter</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeProducts.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Kategorier</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
-          </CardContent>
-        </Card>
+        <div className="stat-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Totale produkter</p>
+              <p className="text-2xl font-bold text-foreground">{products?.length || 0}</p>
+            </div>
+            <div className="stat-card-icon">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Aktive produkter</p>
+              <p className="text-2xl font-bold text-foreground">{activeProducts.length}</p>
+            </div>
+            <div className="stat-card-icon">
+              <CheckCircle className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Kategorier</p>
+              <p className="text-2xl font-bold text-foreground">{categories.length}</p>
+            </div>
+            <div className="stat-card-icon">
+              <Tag className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="card-warm">
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Søk etter produkter eller varenummer..."
                 value={searchTerm}
@@ -338,8 +341,8 @@ const Products = () => {
               <SelectContent>
                 <SelectItem value="all">Alle kategorier</SelectItem>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category} value={category || 'uncategorized'}>
+                    {category || 'Ukategorisert'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -349,7 +352,7 @@ const Products = () => {
       </Card>
 
       {/* Products Table */}
-      <Card>
+      <Card className="card-warm">
         <CardHeader>
           <CardTitle>Produkt Oversikt</CardTitle>
           <CardDescription>
@@ -358,122 +361,129 @@ const Products = () => {
         </CardHeader>
         <CardContent>
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Ingen produkter funnet
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {searchTerm || categoryFilter !== 'all' 
+            <EmptyState
+              icon={Package}
+              title="Ingen produkter funnet"
+              description={
+                searchTerm || categoryFilter !== 'all' 
                   ? 'Prøv å endre søkekriteriene dine'
                   : 'Kom i gang ved å legge til ditt første produkt'
-                }
-              </p>
-              {!searchTerm && categoryFilter === 'all' && (
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Legg til produkt
-                </Button>
-              )}
-            </div>
+              }
+              action={
+                !searchTerm && categoryFilter === 'all' 
+                  ? { label: 'Legg til produkt', onClick: () => setIsCreateDialogOpen(true), icon: Plus }
+                  : undefined
+              }
+            />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Varenummer</TableHead>
-                  <TableHead>Navn</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Pris</TableHead>
-                  <TableHead>Enhet</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Opprettet</TableHead>
-                  <TableHead className="text-right">Handlinger</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">
-                      {product.product_number || '-'}
-                    </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell>
-                      {product.price ? `${product.price} kr` : 'Ikke satt'}
-                    </TableCell>
-                    <TableCell>{product.unit}</TableCell>
-                    <TableCell>
-                      <Badge variant={product.is_active ? "default" : "secondary"}>
-                        {product.is_active ? "Aktiv" : "Inaktiv"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(product.created_at).toLocaleDateString('nb-NO')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setEditingProduct(product)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Rediger
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          {product.is_active ? 'Deaktiver' : 'Aktiver'}
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              disabled={deletingProductId === product.id}
-                            >
-                              {deletingProductId === product.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Slett produkt</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Er du sikker på at du vil slette produktet "{product.name}"? 
-                                Denne handlingen kan ikke angres.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeleteProduct(product.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Slett
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
+            <div className="rounded-lg border border-border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead>Varenummer</TableHead>
+                    <TableHead>Navn</TableHead>
+                    <TableHead>Kategori</TableHead>
+                    <TableHead>Pris</TableHead>
+                    <TableHead>Enhet</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Opprettet</TableHead>
+                    <TableHead className="text-right">Handlinger</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product, index) => (
+                    <TableRow 
+                      key={product.id} 
+                      className={index % 2 === 0 ? 'bg-card' : 'bg-muted/30'}
+                    >
+                      <TableCell className="font-medium text-muted-foreground">
+                        {product.product_number || '-'}
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-bakery-wheat/50">
+                          {product.category || 'Ukategorisert'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {product.price ? `${product.price} kr` : 'Ikke satt'}
+                      </TableCell>
+                      <TableCell>{product.unit}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={product.is_active ? "default" : "secondary"}
+                          className={product.is_active ? "bg-success/10 text-success border-success/20" : ""}
+                        >
+                          {product.is_active ? "Aktiv" : "Inaktiv"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(product.created_at).toLocaleDateString('nb-NO')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setEditingProduct(product)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Rediger
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                disabled={deletingProductId === product.id}
+                              >
+                                {deletingProductId === product.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Slett produkt</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Er du sikker på at du vil slette produktet "{product.name}"? 
+                                  Denne handlingen kan ikke angres.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteProduct(product.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Slett
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Edit Product Dialog */}
-      <EditProductDialog
-        product={editingProduct}
-        open={!!editingProduct}
-        onOpenChange={(open) => !open && setEditingProduct(null)}
-        onSubmit={handleUpdateProduct}
-        isLoading={updateProduct.isPending}
-      />
+      {/* Edit Dialog */}
+      {editingProduct && (
+        <EditProductDialog 
+          product={editingProduct}
+          open={!!editingProduct}
+          onOpenChange={() => setEditingProduct(null)}
+          onSubmit={handleUpdateProduct}
+          isLoading={updateProduct.isPending}
+        />
+      )}
     </div>
   );
 };
