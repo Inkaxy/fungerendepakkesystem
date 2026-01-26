@@ -542,17 +542,14 @@ export const usePublicAllCustomersPackingData = (
           }
 
           // Skip if not in activeProducts (for display filtering)
-          // ✅ FIX: Hvis activeProducts finnes (selv tom array), vis KUN valgte produkter
-          let activeProduct: any = null;
-          if (activeProducts !== undefined) {
-            // Hvis activeProducts er tom array, ikke vis noen produkter
-            if (activeProducts.length === 0) return;
-            
-            activeProduct = activeProducts.find(ap => 
-              ap.product_id === op.product_id || ap.product_name === product.name
-            );
-            if (!activeProduct) return;
-          }
+          // ✅ FIX: Queryet kjører kun når activeProducts !== undefined (se enabled)
+          // Hvis tom array -> vis ingen produkter i listen
+          if (!activeProducts || activeProducts.length === 0) return;
+
+          const activeProduct = activeProducts.find(ap => 
+            ap.product_id === op.product_id || ap.product_name === product.name
+          );
+          if (!activeProduct) return;
 
           const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
           
@@ -607,7 +604,7 @@ export const usePublicAllCustomersPackingData = (
       console.log('📦 Batch fetch complete:', customerMap.size, 'customers with data');
       return Array.from(customerMap.values());
     },
-    enabled: !!bakeryId && !!customerIds?.length && customerIds.length > 0,
+    enabled: !!bakeryId && !!customerIds?.length && customerIds.length > 0 && activeProducts !== undefined,
     staleTime: 0, // Alltid fresh for packing data
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
