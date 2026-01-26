@@ -24,6 +24,8 @@ import { format } from 'date-fns';
 import { QUERY_KEYS } from '@/lib/queryKeys';
 import { cn } from '@/lib/utils';
 import { DEMO_CUSTOMERS, DEMO_PACKING_DATA, DEMO_PACKING_DATE } from '@/utils/demoDisplayData';
+import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
+import { DisplaySettings } from '@/hooks/useDisplaySettings';
 
 const SharedDisplay = () => {
   const { bakeryId } = useParams<{ bakeryId: string }>();
@@ -37,8 +39,24 @@ const SharedDisplay = () => {
   
   // Bruk public hooks - ingen autentisering nødvendig
   const { data: customers, isLoading: customersLoading } = usePublicSharedDisplayCustomers(bakeryId);
-  const { data: settings } = usePublicDisplaySettings(bakeryId);
+  const { data: dbSettings } = usePublicDisplaySettings(bakeryId);
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(bakeryId);
+
+  // ✅ Fallback-innstillinger for demo-modus når database-innstillinger ikke er tilgjengelige
+  const effectiveSettings = useMemo((): DisplaySettings | undefined => {
+    if (dbSettings) return dbSettings;
+    
+    // Fallback for demo-modus når settings ikke er tilgjengelig
+    if (isDemo) {
+      return {
+        ...getDefaultSettings('demo'),
+        auto_fit_screen: true, // Aktiver auto-fit i demo
+        id: 'demo-settings'
+      } as DisplaySettings;
+    }
+    
+    return undefined;
+  }, [dbSettings, isDemo]);
   
   // ✅ Ekte kunder (kun for non-demo)
   const realCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
@@ -123,9 +141,9 @@ const SharedDisplay = () => {
 
   // 🔄 Auto-scroll funksjonalitet
   useEffect(() => {
-    if (!settings?.shared_auto_scroll || !scrollContainerRef.current) return;
+    if (!effectiveSettings?.shared_auto_scroll || !scrollContainerRef.current) return;
 
-    const scrollSpeed = settings?.shared_scroll_speed || 30; // px per sekund
+    const scrollSpeed = effectiveSettings?.shared_scroll_speed || 30; // px per sekund
     const container = scrollContainerRef.current;
     let animationFrameId: number;
     let lastTimestamp: number;
@@ -161,14 +179,14 @@ const SharedDisplay = () => {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [settings?.shared_auto_scroll, settings?.shared_scroll_speed, scrollDirection]);
+  }, [effectiveSettings?.shared_auto_scroll, effectiveSettings?.shared_scroll_speed, scrollDirection]);
 
   // Apply customer sorting and filtering based on settings (kun for ekte kunder)
   const sortedCustomers = useMemo(() => {
     let customerList = [...realCustomers];
     
     // Skjul fullførte kunder hvis innstillingen er på
-    if (settings?.shared_hide_completed_customers) {
+    if (effectiveSettings?.shared_hide_completed_customers) {
       customerList = customerList.filter(c => {
         // Vi kan ikke filtrere på progress her siden vi ikke har den dataen
         // Dette vil bli håndtert i CustomerDataLoader
@@ -176,25 +194,25 @@ const SharedDisplay = () => {
       });
     }
     
-    if (settings?.customer_sort_order === 'alphabetical') {
+    if (effectiveSettings?.customer_sort_order === 'alphabetical') {
       return customerList.sort((a, b) => a.name.localeCompare(b.name));
     }
     
     return customerList;
-  }, [realCustomers, settings?.customer_sort_order, settings?.shared_hide_completed_customers]);
+  }, [realCustomers, effectiveSettings?.customer_sort_order, effectiveSettings?.shared_hide_completed_customers]);
   
   // Demo-kunder sortert
   const sortedDemoCustomers = useMemo(() => {
     if (!isDemo) return [];
     let demoList = DEMO_CUSTOMERS.filter(c => !c.has_dedicated_display);
-    if (settings?.customer_sort_order === 'alphabetical') {
+    if (effectiveSettings?.customer_sort_order === 'alphabetical') {
       return demoList.sort((a, b) => a.name.localeCompare(b.name));
     }
     return demoList;
-  }, [isDemo, settings?.customer_sort_order]);
+  }, [isDemo, effectiveSettings?.customer_sort_order]);
 
-  const displayStyles = settings ? generateDisplayStyles(settings) : {};
-  const statusColors = settings ? statusColorMap(settings) : {
+  const displayStyles = effectiveSettings ? generateDisplayStyles(effectiveSettings) : {};
+  const statusColors = effectiveSettings ? statusColorMap(effectiveSettings) : {
     pending: '#f59e0b',
     in_progress: '#3b82f6',
     completed: '#10b981',
@@ -206,7 +224,7 @@ const SharedDisplay = () => {
 
   // Determine grid columns class based on settings
   const getCustomerGridClass = () => {
-    const columns = settings?.customer_cards_columns || 3;
+    const columns = effectiveSettings?.customer_cards_columns || 3;
     switch (columns) {
       case 1: return 'grid-cols-1';
       case 2: return 'grid-cols-1 md:grid-cols-2';
@@ -237,13 +255,13 @@ const SharedDisplay = () => {
     );
   }
 
-  const contentPadding = settings?.shared_content_padding ?? 24;
+  const contentPadding = effectiveSettings?.shared_content_padding ?? 24;
 
   return (
     <div 
       className={cn(
         "min-h-screen",
-        settings?.auto_fit_screen && "h-screen flex flex-col overflow-hidden"
+        effectiveSettings?.auto_fit_screen && "h-screen flex flex-col overflow-hidden"
       )}
       style={{
         ...displayStyles,
@@ -254,12 +272,12 @@ const SharedDisplay = () => {
         ref={scrollContainerRef}
         className={cn(
           "mx-auto w-full",
-          settings?.shared_auto_scroll && !settings?.auto_fit_screen && 'overflow-hidden h-screen',
-          settings?.auto_fit_screen && 'flex-1 min-h-0 flex flex-col overflow-hidden'
+          effectiveSettings?.shared_auto_scroll && !effectiveSettings?.auto_fit_screen && 'overflow-hidden h-screen',
+          effectiveSettings?.auto_fit_screen && 'flex-1 min-h-0 flex flex-col overflow-hidden'
         )}
       >
         <SharedDisplayHeader 
-          settings={settings}
+          settings={effectiveSettings}
           connectionStatus={isDemo ? 'demo' : connectionStatus}
           activePackingDate={effectivePackingDate}
         />
@@ -268,14 +286,14 @@ const SharedDisplay = () => {
         {!isDemo && isLoading && (
           <Card
             style={{
-              backgroundColor: settings?.card_background_color || '#ffffff',
-              borderColor: settings?.card_border_color || '#e5e7eb',
-              borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+              backgroundColor: effectiveSettings?.card_background_color || '#ffffff',
+              borderColor: effectiveSettings?.card_border_color || '#e5e7eb',
+              borderRadius: effectiveSettings?.border_radius ? `${effectiveSettings.border_radius}px` : '0.5rem',
             }}
           >
             <CardContent className="text-center p-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p style={{ color: settings?.text_color || '#6b7280' }}>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p style={{ color: effectiveSettings?.text_color || '#6b7280' }}>
                 Laster pakkeinformasjon...
               </p>
             </CardContent>
@@ -285,48 +303,48 @@ const SharedDisplay = () => {
         {/* Tom tilstand når ingen aktiv pakkingsdato - kun for ikke-demo */}
         {!isDemo && !isLoading && !effectivePackingDate && (
           <EmptyPackingState
-            settings={settings}
+            settings={effectiveSettings}
             activePackingDate={null}
             isToday={false}
           />
         )}
 
         {/* Demo-modus: Vis demo-kort */}
-        {isDemo && settings?.auto_fit_screen && (
+        {isDemo && effectiveSettings?.auto_fit_screen && (
           <div className="flex-1 min-h-0">
             <AutoFitGrid 
               customerCount={DEMO_PACKING_DATA.length} 
-              settings={settings}
+              settings={effectiveSettings}
             >
               {DEMO_PACKING_DATA.map((demoData) => (
                 <DemoCustomerCard
                   key={demoData.id}
                   customerData={demoData}
-                  settings={settings}
+                  settings={effectiveSettings}
                   statusColors={statusColors}
-                  hideWhenCompleted={settings?.shared_hide_completed_customers}
-                  completedOpacity={settings?.shared_completed_customer_opacity}
+                  hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
+                  completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
                 />
               ))}
             </AutoFitGrid>
           </div>
         )}
 
-        {isDemo && !settings?.auto_fit_screen && (
+        {isDemo && !effectiveSettings?.auto_fit_screen && (
           <div 
             className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
             style={{ 
-              gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+              gap: effectiveSettings?.customer_cards_gap ? `${effectiveSettings.customer_cards_gap}px` : '24px' 
             }}
           >
             {DEMO_PACKING_DATA.map((demoData) => (
               <DemoCustomerCard
                 key={demoData.id}
                 customerData={demoData}
-                settings={settings}
+                settings={effectiveSettings}
                 statusColors={statusColors}
-                hideWhenCompleted={settings?.shared_hide_completed_customers}
-                completedOpacity={settings?.shared_completed_customer_opacity}
+                hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
+                completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
               />
             ))}
           </div>
@@ -334,11 +352,11 @@ const SharedDisplay = () => {
 
         {/* Ekte data: Vis ekte kunder */}
         {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length > 0 && (
-          settings?.auto_fit_screen ? (
+          effectiveSettings?.auto_fit_screen ? (
             <div className="flex-1 min-h-0">
               <AutoFitGrid 
                 customerCount={sortedCustomers.length} 
-                settings={settings}
+                settings={effectiveSettings}
               >
                 {sortedCustomers.map((customer) => (
                   <CustomerDataLoader
@@ -346,10 +364,10 @@ const SharedDisplay = () => {
                     customer={customer}
                     bakeryId={bakeryId}
                     activePackingDate={effectivePackingDate}
-                    settings={settings}
+                    settings={effectiveSettings}
                     statusColors={statusColors}
-                    hideWhenCompleted={settings?.shared_hide_completed_customers}
-                    completedOpacity={settings?.shared_completed_customer_opacity}
+                    hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
+                    completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
                   />
                 ))}
               </AutoFitGrid>
@@ -358,7 +376,7 @@ const SharedDisplay = () => {
             <div 
               className={`grid ${getCustomerGridClass()} gap-6 mb-8`}
               style={{ 
-                gap: settings?.customer_cards_gap ? `${settings.customer_cards_gap}px` : '24px' 
+                gap: effectiveSettings?.customer_cards_gap ? `${effectiveSettings.customer_cards_gap}px` : '24px' 
               }}
             >
               {sortedCustomers.map((customer) => (
@@ -367,10 +385,10 @@ const SharedDisplay = () => {
                   customer={customer}
                   bakeryId={bakeryId}
                   activePackingDate={effectivePackingDate}
-                  settings={settings}
+                  settings={effectiveSettings}
                   statusColors={statusColors}
-                  hideWhenCompleted={settings?.shared_hide_completed_customers}
-                  completedOpacity={settings?.shared_completed_customer_opacity}
+                  hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
+                  completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
                 />
               ))}
             </div>
@@ -380,23 +398,23 @@ const SharedDisplay = () => {
         {/* Tom tilstand: Vis kun for ekte data */}
         {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length === 0 && (
           <EmptyPackingState
-            settings={settings}
+            settings={effectiveSettings}
             activePackingDate={effectivePackingDate}
             isToday={isToday}
           />
         )}
 
         {/* Footer - kun vis inni scroll-container hvis IKKE auto_fit_screen */}
-        {!settings?.auto_fit_screen && (
+        {!effectiveSettings?.auto_fit_screen && (
           <div className="text-center mt-8">
             <div className="flex items-center justify-center gap-4 mb-2">
-              <FullscreenButton settings={settings} />
+              <FullscreenButton settings={effectiveSettings} />
               <ConnectionStatus 
                 status={isDemo ? 'demo' : connectionStatus} 
                 pollingActive={!isDemo && connectionStatus !== 'connected'} 
               />
             </div>
-            <p className="text-xs mt-2" style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+            <p className="text-xs mt-2" style={{ color: effectiveSettings?.text_color || '#6b7280', opacity: 0.6 }}>
               {isDemo 
                 ? 'Demo-modus - viser eksempeldata'
                 : connectionStatus === 'connected' 
@@ -405,8 +423,8 @@ const SharedDisplay = () => {
             </p>
             {wakeLockSupported && !isDemo && (
               <div className="text-xs mt-1 flex items-center justify-center gap-1">
-                <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                <span style={{ color: settings?.text_color || '#6b7280', opacity: 0.6 }}>
+                <span className={`inline-block w-2 h-2 rounded-full ${wakeLockActive ? 'bg-success' : 'bg-warning'}`} />
+                <span style={{ color: effectiveSettings?.text_color || '#6b7280', opacity: 0.6 }}>
                   {wakeLockActive ? 'Skjerm holdes våken' : 'Wake Lock inaktiv'}
                 </span>
               </div>
@@ -416,10 +434,10 @@ const SharedDisplay = () => {
       </div>
 
       {/* Footer - vis utenfor scroll-container hvis auto_fit_screen for korrekt høydeberegning */}
-      {settings?.auto_fit_screen && (
+      {effectiveSettings?.auto_fit_screen && (
         <div className="flex-shrink-0 text-center py-2">
           <div className="flex items-center justify-center gap-4">
-            <FullscreenButton settings={settings} />
+            <FullscreenButton settings={effectiveSettings} />
             <ConnectionStatus 
               status={isDemo ? 'demo' : connectionStatus} 
               pollingActive={!isDemo && connectionStatus !== 'connected'} 

@@ -14,7 +14,7 @@ interface OptimalLayout {
 }
 
 const DEFAULT_MIN_CARD_HEIGHT = 180;
-const MIN_CARD_WIDTH = 250;
+const MIN_CARD_WIDTH = 280; // Økt fra 250 for bedre lesbarhet
 
 const calculateOptimalLayout = (
   customerCount: number,
@@ -24,44 +24,40 @@ const calculateOptimalLayout = (
   minCardHeight: number
 ): OptimalLayout => {
   if (customerCount === 0 || availableHeight <= 0 || availableWidth <= 0) {
-    return { columns: 3, rows: 1, cardHeight: 300 };
+    return { columns: 1, rows: 1, cardHeight: 300 };
   }
 
-  let bestColumns = 1;
-  let bestCardHeight = minCardHeight;
-  let bestRows = customerCount;
+  let bestConfig = { columns: 1, rows: customerCount, cardHeight: minCardHeight };
+  let bestScore = 0;
 
-  // Try different column configurations (1-6)
-  for (let cols = 1; cols <= 6; cols++) {
+  // Prøv kolonner fra 1 til maks 6, men ikke mer enn antall kunder
+  for (let cols = 1; cols <= Math.min(6, customerCount); cols++) {
     const rows = Math.ceil(customerCount / cols);
     const totalGapHeight = Math.max(0, rows - 1) * gap;
     const totalGapWidth = Math.max(0, cols - 1) * gap;
     
-    const cardHeight = (availableHeight - totalGapHeight) / rows;
-    const cardWidth = (availableWidth - totalGapWidth) / cols;
+    const cardHeight = Math.floor((availableHeight - totalGapHeight) / rows);
+    const cardWidth = Math.floor((availableWidth - totalGapWidth) / cols);
 
-    // Check if this configuration provides usable card sizes
-    if (cardHeight >= minCardHeight && cardWidth >= MIN_CARD_WIDTH && cardHeight > bestCardHeight) {
-      bestColumns = cols;
-      bestCardHeight = cardHeight;
-      bestRows = rows;
+    // Sjekk om denne konfigurasjonen er gyldig
+    if (cardHeight >= minCardHeight && cardWidth >= MIN_CARD_WIDTH) {
+      // Score basert på hvor godt kortene utnytter plassen
+      const score = cardHeight * cardWidth;
+      if (score > bestScore) {
+        bestScore = score;
+        bestConfig = { columns: cols, rows, cardHeight };
+      }
     }
   }
 
-  // Fallback: If no configuration gives minCardHeight, use minimum rows possible
-  if (bestCardHeight < minCardHeight) {
-    const maxRows = Math.max(1, Math.floor(availableHeight / (minCardHeight + gap)));
-    const optimalRows = Math.max(1, Math.min(customerCount, maxRows));
-    bestColumns = Math.ceil(customerCount / optimalRows);
-    bestRows = optimalRows;
-    bestCardHeight = Math.max(minCardHeight, (availableHeight - (optimalRows - 1) * gap) / optimalRows);
+  // Fallback: Hvis ingen konfigurasjon fungerer, bruk 1 kolonne
+  if (bestScore === 0) {
+    const rows = customerCount;
+    const cardHeight = Math.max(minCardHeight, Math.floor((availableHeight - (rows - 1) * gap) / rows));
+    bestConfig = { columns: 1, rows, cardHeight };
   }
 
-  return { 
-    columns: bestColumns, 
-    rows: bestRows,
-    cardHeight: Math.floor(bestCardHeight)
-  };
+  return bestConfig;
 };
 
 const AutoFitGrid = ({ customerCount, settings, children }: AutoFitGridProps) => {
