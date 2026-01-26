@@ -53,11 +53,12 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
     : null;
 
   const renderProduct = (product: typeof visibleProducts[0], index: number) => {
-    // Use consistent color based on product ID if setting is enabled
-    const colorIndex = getProductColorIndex(
-      product.id,
+    // ✅ Bruk color_index fra databasen - stabil farge-slot
+    // Fallback til product_id hash hvis colorIndex ikke finnes
+    const colorIndex = (product as any).colorIndex ?? getProductColorIndex(
+      (product as any).product_id || product.id,
       index,
-      settings?.use_consistent_product_colors ?? false
+      true // ✅ Alltid bruk konsistente farger som fallback
     );
     const bgColor = getProductBackgroundColor(settings || {} as any, colorIndex);
     const textColor = getProductTextColor(settings || {} as any, colorIndex);

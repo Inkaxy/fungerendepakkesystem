@@ -167,7 +167,8 @@ export const usePublicActivePackingProducts = (bakeryId?: string, date?: string)
         .from('active_packing_products')
         .select('*')
         .eq('bakery_id', bakeryId)
-        .eq('session_date', date);
+        .eq('session_date', date)
+        .order('color_index'); // ✅ Sortér etter farge-slot
 
       if (error) {
         console.error('Error fetching public active packing products:', error);
@@ -259,13 +260,14 @@ export const usePublicPackingData = (customerId?: string, bakeryId?: string, dat
         });
       }
 
-      // Create product color map based on active products order
+      // ✅ Bruk color_index fra databasen - stabile farger
       const productColorMap = new Map<string, number>();
       if (activeProducts && activeProducts.length > 0) {
-        activeProducts.forEach((ap, index) => {
-          productColorMap.set(ap.product_id, index % 3); // 0, 1, or 2
+        activeProducts.forEach((ap) => {
+          productColorMap.set(ap.product_id, ap.color_index ?? 0); // Bruk lagret color_index
         });
       }
+      console.log('🎨 Product color map:', Object.fromEntries(productColorMap));
 
       // Process orders data (similar to original usePackingData logic)
       const customerMap = new Map<string, PackingCustomer>();
@@ -540,11 +542,12 @@ export const usePublicAllCustomersPackingData = (
           }
 
           // Skip if not in activeProducts (for display filtering)
+          let activeProduct: any = null;
           if (activeProducts?.length) {
-            const isActive = activeProducts.some(ap => 
+            activeProduct = activeProducts.find(ap => 
               ap.product_id === op.product_id || ap.product_name === product.name
             );
-            if (!isActive) return;
+            if (!activeProduct) return;
           }
 
           const existingProduct = customer!.products.find(p => p.product_id === op.product_id);
@@ -556,6 +559,9 @@ export const usePublicAllCustomersPackingData = (
               existingProduct.packed_line_items += 1;
             }
           } else {
+            // ✅ Bruk color_index fra activeProduct
+            const colorIndex = activeProduct?.color_index ?? 0;
+            
             customer!.products.push({
               id: op.id,
               product_id: op.product_id,
@@ -566,6 +572,7 @@ export const usePublicAllCustomersPackingData = (
               total_line_items: 1,
               packed_line_items: isPacked ? 1 : 0,
               packing_status: isPacked ? 'packed' : 'pending',
+              colorIndex, // ✅ Stabil farge-slot
             });
           }
 
