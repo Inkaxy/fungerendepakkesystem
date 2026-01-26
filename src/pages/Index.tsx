@@ -16,7 +16,7 @@ const Index = () => {
   } = useCollisionDetection();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <GameOverlay score={score} collectedItems={collectedItems} collisions={collisions} />
       
       <HeroSection />
