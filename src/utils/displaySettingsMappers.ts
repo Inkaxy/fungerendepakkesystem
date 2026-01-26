@@ -135,6 +135,7 @@ export const mapDatabaseToDisplaySettings = (data: Record<string, any>): Display
     shared_auto_scroll: data.shared_auto_scroll ?? false,
     shared_scroll_speed: data.shared_scroll_speed ?? 30,
     shared_content_padding: data.shared_content_padding ?? 24,
+    auto_fit_screen: data.auto_fit_screen ?? false,
     
     // === CUSTOMER DISPLAY SPECIFIC ===
     

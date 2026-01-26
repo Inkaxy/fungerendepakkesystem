@@ -14,6 +14,7 @@ interface DemoCustomerCardProps {
   statusColors: Record<string, string>;
   hideWhenCompleted?: boolean;
   completedOpacity?: number;
+  maxHeight?: number; // For auto-fit modus
 }
 
 const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
@@ -22,8 +23,24 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
   statusColors,
   hideWhenCompleted = false,
   completedOpacity = 50,
+  maxHeight,
 }) => {
   const isCompleted = customerData.progress_percentage === 100;
+  
+  // Beregn maks antall produkter basert på tilgjengelig høyde - hook FØRST
+  const maxProducts = React.useMemo(() => {
+    if (maxHeight) {
+      const headerHeight = 50;
+      const progressHeight = 40;
+      const productItemHeight = 35;
+      const footerPadding = 30;
+      const availableForProducts = maxHeight - headerHeight - progressHeight - footerPadding;
+      return Math.max(1, Math.floor(availableForProducts / productItemHeight));
+    }
+    return settings?.max_products_per_card ?? 3;
+  }, [maxHeight, settings?.max_products_per_card]);
+  
+  const displayProducts = customerData.products.slice(0, maxProducts);
   
   // Skjul fullførte kunder hvis innstillingen er på
   if (hideWhenCompleted && isCompleted) {
@@ -60,18 +77,16 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
     }
   };
 
-  const maxProducts = settings?.max_products_per_card ?? 3;
-  const displayProducts = customerData.products.slice(0, maxProducts);
-
   return (
-    <div style={cardStyle}>
+    <div style={cardStyle} className="h-full">
       <Card
-        className="h-full overflow-hidden transition-all duration-300"
+        className="h-full overflow-hidden transition-all duration-300 flex flex-col"
         style={{
           backgroundColor: settings?.card_background_color || '#ffffff',
           borderColor: settings?.card_border_color || '#e5e7eb',
           borderWidth: settings?.card_border_width ? `${settings.card_border_width}px` : '1px',
           borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
+          maxHeight: maxHeight ? `${maxHeight}px` : undefined,
         }}
       >
         <CardContent className="p-4 space-y-4">

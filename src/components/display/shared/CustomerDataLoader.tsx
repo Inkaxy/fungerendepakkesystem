@@ -12,6 +12,7 @@ interface CustomerDataLoaderProps {
   statusColors: Record<string, string>;
   hideWhenCompleted?: boolean;
   completedOpacity?: number;
+  maxHeight?: number; // For auto-fit modus
 }
 
 const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
@@ -22,6 +23,7 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
   statusColors,
   hideWhenCompleted = false,
   completedOpacity = 50,
+  maxHeight,
 }) => {
   // ✅ NYTT: Hent activeProducts FØRST
   const { data: activeProducts, isLoading: activeLoading } = usePublicActivePackingProducts(
@@ -90,12 +92,13 @@ const CustomerDataLoader: React.FC<CustomerDataLoaderProps> = ({
   } : {};
 
   return (
-    <div style={cardStyle}>
+    <div style={cardStyle} className="h-full">
       <CustomerPackingCard
         customerData={customerData}
         customer={customer}
         settings={settings}
         statusColors={statusColors}
+        maxHeight={maxHeight}
       />
     </div>
   );

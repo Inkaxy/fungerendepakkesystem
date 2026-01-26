@@ -108,6 +108,7 @@ export interface DisplaySettings {
   shared_auto_scroll: boolean;
   shared_scroll_speed: number;
   shared_content_padding: number;
+  auto_fit_screen: boolean;
   always_show_customer_name: boolean;
   customer_display_show_date: boolean;
   customer_show_bakery_name: boolean;

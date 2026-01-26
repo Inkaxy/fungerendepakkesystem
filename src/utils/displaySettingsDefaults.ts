@@ -135,6 +135,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   shared_auto_scroll: false,
   shared_scroll_speed: 30,
   shared_content_padding: 24,
+  auto_fit_screen: false,
   
   // === CUSTOMER DISPLAY SPECIFIC ===
   
