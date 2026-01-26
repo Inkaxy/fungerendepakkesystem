@@ -42,8 +42,13 @@ const calculateOptimalLayout = (
 
     // Sjekk om denne konfigurasjonen er gyldig
     if (cardHeight >= minCardHeight && cardWidth >= minCardWidth) {
-      // Score basert på hvor godt kortene utnytter plassen
-      const score = cardHeight * cardWidth;
+      // Beregn aspect ratio bonus (favoriserer mer firkantede kort)
+      const aspectRatio = cardWidth / cardHeight;
+      const squareBonus = 1 - Math.abs(1 - aspectRatio); // 0-1, 1 = perfekt firkant
+      
+      // Kombinert score: areal + bonus for firkant-form
+      const score = (cardHeight * cardWidth) * (1 + squareBonus * 0.3);
+      
       if (score > bestScore) {
         bestScore = score;
         bestConfig = { columns: cols, rows, cardHeight };
