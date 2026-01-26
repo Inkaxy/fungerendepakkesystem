@@ -35,7 +35,7 @@ const QrCodeModal = ({
   const [showQrCode, setShowQrCode] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   
-  // Hent bakeryId fra auth store
+  // Hent bakeryId fra auth store - ALLTID kall hooks først
   const { profile } = useAuthStore();
   const bakeryId = profile?.bakery_id;
   
@@ -43,22 +43,24 @@ const QrCodeModal = ({
   const { data: customers } = useCustomers();
   const customer = customers?.find(c => c.id === customerId);
 
-  if (!customer) return null;
-
-  const displayPath = getDisplayPath(customer, bakeryId || undefined);
-  const fullUrl = getDisplayUrl(customer, bakeryId || undefined);
+  // Beregn displayPath og fullUrl - bruk bakeryId for shared display
+  const displayPath = customer ? getDisplayPath(customer, bakeryId || undefined) : '';
+  const fullUrl = customer ? getDisplayUrl(customer, bakeryId || undefined) : '';
 
   const handleShowQrCode = () => {
     setShowQrCode(!showQrCode);
   };
 
   const handleCopyUrl = () => {
-    onCopyUrl(displayPath);
+    if (displayPath) onCopyUrl(displayPath);
   };
 
   const handleOpenUrl = () => {
-    onOpenUrl(displayPath);
+    if (displayPath) onOpenUrl(displayPath);
   };
+
+  // Early return ETTER alle hooks er kalt
+  if (!customer) return null;
 
   const handleToggleDisplay = async (checked: boolean) => {
     setIsToggling(true);
