@@ -19,14 +19,6 @@ const SharedLayoutSection = ({ settings, onUpdate }: SharedLayoutSectionProps) =
         onCheckedChange={(checked) => onUpdate({ auto_fit_screen: checked })}
       />
 
-      <ToggleSetting
-        id="shared_fullscreen_mode"
-        label="Fullskjerm-modus"
-        description="Optimalisert for fullskjerm-visning"
-        checked={settings.shared_fullscreen_mode}
-        onCheckedChange={(checked) => onUpdate({ shared_fullscreen_mode: checked })}
-      />
-
       {!settings.auto_fit_screen && (
         <ToggleSetting
           id="shared_auto_scroll"
