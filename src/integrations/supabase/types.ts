@@ -17,6 +17,7 @@ export type Database = {
       active_packing_products: {
         Row: {
           bakery_id: string
+          color_index: number | null
           created_at: string
           id: string
           product_id: string
@@ -27,6 +28,7 @@ export type Database = {
         }
         Insert: {
           bakery_id: string
+          color_index?: number | null
           created_at?: string
           id?: string
           product_id: string
@@ -37,6 +39,7 @@ export type Database = {
         }
         Update: {
           bakery_id?: string
+          color_index?: number | null
           created_at?: string
           id?: string
           product_id?: string
