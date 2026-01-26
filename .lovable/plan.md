@@ -1,206 +1,207 @@
 
-# Plan: Kompakt tabellbasert layout for SharedDisplay (Felles skjerm)
-
-## Scope-avklaring
-
-Denne planen gjelder **KUN** for:
-- `SharedDisplay.tsx` - Felles pakkeskjerm som viser flere kunder
-- `DemoCustomerCard.tsx` - Demo-kort brukt i SharedDisplay
-- `CustomerPackingCard.tsx` - Ekte kundekort brukt i SharedDisplay
-
-**IKKE** berørt:
-- `CustomerDisplay.tsx` - Individuell kundeskjerm (beholder nåværende layout)
-- `CustomerProductsList.tsx` - Produktliste for CustomerDisplay
-
----
+# Plan: Forbedret kompakt visning for SharedDisplay
 
 ## Problemanalyse
 
-Dagens kundekort i SharedDisplay er for høye fordi:
-1. Vertikal produktliste tar mye plass
-2. Progress-bar med "Fremgang"-tekst og prosentvisning tar ekstra høyde
-3. "X av Y linjer pakket" tar unødvendig plass på felles skjerm
-4. Kortene blir lange rektangler i stedet for kompakte firkanter
+Basert på kravene dine er det flere forbedringer som må gjøres:
+
+1. **Alle 3 valgte produkter skal ALLTID vises** - Må fjerne begrensningen som reduserer antall produkter basert på høyde
+2. **Kun kunder med varer for dagen vises** - Filtrere bort kunder uten produkter/ordrer for valgt dato
+3. **12 kunder på én skjerm** - Krever mer aggressiv plassutnyttelse
+4. **"Pågående" status tar for mye plass** - Header-badge på hvert kort må minimeres
 
 ---
 
-## Teknisk løsning
+## Tekniske endringer
 
-### 1. Ny innstilling: `shared_compact_table_mode`
+### 1. Sikre at alle valgte produkter ALLTID vises (DemoCustomerCard + CustomerPackingCard)
 
-Legge til en toggle i display-innstillingene som aktiverer kompakt tabell-modus for SharedDisplay.
+**Problem:** Dagens logikk i `maxProducts` beregner hvor mange produkter som "får plass" og kutter resten.
 
-**Database-migrasjon:**
-```sql
-ALTER TABLE public.display_settings
-ADD COLUMN IF NOT EXISTS shared_compact_table_mode boolean DEFAULT false;
-```
-
-**Fil:** `src/hooks/useDisplaySettings.ts`
-```typescript
-// Legg til i DisplaySettings type
-shared_compact_table_mode?: boolean;
-```
-
-**Fil:** `src/utils/displaySettingsDefaults.ts`
-```typescript
-// Legg til default
-shared_compact_table_mode: false,
-```
-
-### 2. Tabellbasert produktvisning i DemoCustomerCard
+**Løsning:** I kompakt modus skal ALLE produkter for valgt pakkedag vises - ingen begrensning.
 
 **Fil:** `src/components/display/shared/DemoCustomerCard.tsx`
-
-Ny tabell-struktur som erstatter vertikal liste:
-
-```text
-+------------------------------------------+
-|     KUNDENAVN          [Ferdig/Pågår]    |
-+------------------------------------------+
-| Produkt          | Antall |    Status    |
-+------------------------------------------+
-| Grovbrød         |   25   |  ✓ Ferdig    |
-| Kanelboller      |   48   |  ◐ Pågår     |
-| Rundstykker      |   60   |  ○ Venter    |
-+------------------------------------------+
+```typescript
+// I kompakt modus: Vis ALLE produkter uansett
+const displayProducts = settings?.shared_compact_table_mode 
+  ? customerData.products // Vis alle i kompakt modus
+  : customerData.products.slice(0, maxProducts);
 ```
-
-Implementasjon:
-```tsx
-{settings?.shared_compact_table_mode ? (
-  <table className="w-full" style={{ fontSize: `${12 * scaleFactor}px` }}>
-    <thead>
-      <tr className="border-b" style={{ borderColor: settings?.card_border_color || '#e5e7eb' }}>
-        <th className="text-left py-1 font-medium" style={{ color: settings?.text_color }}>Produkt</th>
-        <th className="text-center py-1 font-medium" style={{ color: settings?.text_color }}>Antall</th>
-        <th className="text-right py-1 font-medium" style={{ color: settings?.text_color }}>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {displayProducts.map((product) => (
-        <tr key={product.product_id}>
-          <td className="py-0.5" style={{ color: settings?.text_color }}>{product.product_name}</td>
-          <td className="text-center py-0.5 font-semibold" style={{ color: accentColor }}>
-            {product.total_quantity}
-          </td>
-          <td className="text-right py-0.5">
-            <span style={{ color: getStatusColor(product.packing_status) }}>
-              {product.packing_status === 'packed' ? '✓' : 
-               product.packing_status === 'in_progress' ? '◐' : '○'}
-            </span>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-) : (
-  /* Eksisterende vertikal produktliste */
-)}
-```
-
-### 3. Samme endringer i CustomerPackingCard
 
 **Fil:** `src/components/display/shared/CustomerPackingCard.tsx`
+```typescript
+// Samme logikk
+const displayProducts = settings?.shared_compact_table_mode 
+  ? customerData.products
+  : customerData.products.slice(0, maxProducts);
+```
 
-Identisk tabell-logikk som DemoCustomerCard, siden begge brukes i SharedDisplay.
+### 2. Filtrere bort kunder uten varer for dagen (CustomerDataLoader + SharedDisplay)
 
-### 4. Forenklet header i kompakt modus
+**Problem:** Kunder uten ordrer for valgt dato vises fortsatt som "Venter på produktvalg".
 
-I kompakt modus fjernes:
-- Progress-bar (erstattes av status per produkt)
-- "Fremgang: X%" tekst
-- "X av Y linjer pakket"
+**Løsning:** I `CustomerDataLoader` - returner `null` når kunden ikke har data for dagen.
 
+**Fil:** `src/components/display/shared/CustomerDataLoader.tsx`
+```typescript
+// Endring på linje 77-79:
+// Returner null hvis kunden ikke har noen produkter for denne dagen
+if (!customerData || customerData.products.length === 0) {
+  return null; // Kunden har ingen varer for denne dagen - vis ikke kortet
+}
+```
+
+Dette er allerede implementert! Men vi må også fjerne "Venter på produktvalg"-meldingen for at det skal fungere riktig.
+
+### 3. Ultra-kompakt header for 12+ kunder
+
+**Problem:** Header med status-badge og kundenavn tar for mye vertikal plass.
+
+**Løsning:** Ny ultra-kompakt header-stil når `shared_compact_table_mode` er aktiv:
+
+| Nåværende | Ny kompakt |
+|-----------|------------|
+| Badge: "Pågående" (separat linje) | Kun farge-indikator |
+| Stor kundenavn | Mindre font |
+| Mye padding | Minimal padding |
+
+**Fil:** `src/components/display/shared/DemoCustomerCard.tsx`
 ```tsx
-// I kompakt modus, vis kun kundenavn og status-badge i header
-// Fjern progress-section helt
-{!settings?.shared_compact_table_mode && (settings?.show_progress_bar ?? true) && (
-  /* Progress-bar vises kun i normal modus */
+{/* Ultra-kompakt header i tabell-modus */}
+{settings?.shared_compact_table_mode ? (
+  <div className="flex items-center justify-between" style={{ padding: `${Math.max(4, 8 * scaleFactor)}px` }}>
+    <h3 
+      className="font-semibold flex-1 truncate"
+      style={{ 
+        color: settings?.text_color || '#1f2937',
+        fontSize: `${Math.max(12, 14 * scaleFactor)}px`
+      }}
+    >
+      {customerData.name}
+    </h3>
+    {/* Mini status-indikator (farget prikk i stedet for badge) */}
+    <span 
+      className="flex-shrink-0 rounded-full"
+      style={{ 
+        width: `${Math.max(8, 12 * scaleFactor)}px`,
+        height: `${Math.max(8, 12 * scaleFactor)}px`,
+        backgroundColor: isCompleted 
+          ? (statusColors.completed || '#10b981') 
+          : (statusColors.in_progress || '#3b82f6')
+      }}
+      title={isCompleted ? 'Ferdig' : 'Pågår'}
+    />
+  </div>
+) : (
+  /* Nåværende header med badge */
 )}
 ```
 
-### 5. Forbedret AutoFitGrid for firkantede kort
+### 4. Forbedret AutoFitGrid for 12 kunder
+
+**Problem:** Dagens minimumsverdier (180px høyde, 280px bredde) er for store for 12 kort.
+
+**Løsning:** Lavere standardverdier + mer aggressiv layout-beregning i kompakt modus:
 
 **Fil:** `src/components/display/shared/AutoFitGrid.tsx`
-
-Oppdater scoring-algoritmen til å favorisere mer kvadratiske kort:
-
 ```typescript
-const calculateOptimalLayout = (...) => {
-  // ...eksisterende kode...
-  
-  for (let cols = 1; cols <= Math.min(6, customerCount); cols++) {
-    // ...eksisterende beregninger...
-    
-    if (cardHeight >= minCardHeight && cardWidth >= minCardWidth) {
-      // Beregn aspect ratio bonus (favoriserer firkantede kort)
-      const aspectRatio = cardWidth / cardHeight;
-      const squareBonus = 1 - Math.abs(1 - aspectRatio); // 0-1, 1 = perfekt firkant
-      
-      // Kombinert score: areal + bonus for firkant-form
-      const score = (cardHeight * cardWidth) * (1 + squareBonus * 0.3);
-      
-      if (score > bestScore) {
-        bestScore = score;
-        bestConfig = { columns: cols, rows, cardHeight };
-      }
-    }
-  }
-};
+// Bruk lavere minimumsverdier i kompakt modus
+const effectiveMinHeight = settings?.shared_compact_table_mode 
+  ? Math.min(minCardHeight, 120) // Maks 120px i kompakt modus
+  : minCardHeight;
+
+const effectiveMinWidth = settings?.shared_compact_table_mode
+  ? Math.min(minCardWidth, 200) // Maks 200px i kompakt modus
+  : minCardWidth;
 ```
 
-### 6. UI-toggle i SharedLayoutSection
+### 5. Produktrader med minimalt mellomrom
 
-**Fil:** `src/components/display-settings/sections/SharedLayoutSection.tsx`
+**Problem:** Produktradene i kompakt modus har fortsatt for mye padding.
 
+**Løsning:** Enda mer kompakte rader med mindre font og padding:
+
+**Fil:** `src/components/display/shared/DemoCustomerCard.tsx`
 ```tsx
-<ToggleSetting
-  id="shared_compact_table_mode"
-  label="Kompakt tabell-modus"
-  description="Viser produkter i en kompakt tabell for å få plass til flere kunder på skjermen"
-  checked={settings.shared_compact_table_mode ?? false}
-  onCheckedChange={(checked) => onUpdate({ shared_compact_table_mode: checked })}
-/>
+<div 
+  key={product.product_id}
+  className="flex items-center justify-between"
+  style={{
+    backgroundColor: bgColor,
+    padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 6 * scaleFactor)}px`,
+    fontSize: `${Math.max(9, 11 * scaleFactor)}px`, // Mindre font
+    borderRadius: `${Math.max(2, 4 * scaleFactor)}px`,
+  }}
+>
+  {/* ... */}
+</div>
+```
+
+### 6. Fjern "Venter på produktvalg" melding
+
+**Problem:** Vises selv når kunden ikke har ordrer for dagen.
+
+**Løsning:** Returner `null` direkte i stedet for placeholder.
+
+**Fil:** `src/components/display/shared/CustomerDataLoader.tsx`
+```typescript
+// FJERN DENNE BLOKKEN (linje 55-72):
+// if (!activeProducts || activeProducts.length === 0) {
+//   return (
+//     <div className="...">
+//       <p>Venter på produktvalg...</p>
+//     </div>
+//   );
+// }
+
+// Ny logikk: Bare returner null hvis ingen aktive produkter
+if (!activeProducts || activeProducts.length === 0) {
+  return null;
+}
 ```
 
 ---
 
-## Filer som må endres
+## Oppsummering av filendringer
 
 | Fil | Endring |
 |-----|---------|
-| `src/hooks/useDisplaySettings.ts` | Legg til `shared_compact_table_mode: boolean` |
-| `src/utils/displaySettingsDefaults.ts` | Sett default `shared_compact_table_mode: false` |
-| `src/components/display/shared/DemoCustomerCard.tsx` | Ny tabellbasert rendering med `<table>` |
-| `src/components/display/shared/CustomerPackingCard.tsx` | Samme tabelllogikk |
-| `src/components/display/shared/AutoFitGrid.tsx` | Oppdater scoring for bedre firkant-preferanse |
-| `src/components/display-settings/sections/SharedLayoutSection.tsx` | Ny toggle for "Kompakt tabell-modus" |
-| `supabase/migrations/...` | Legg til `shared_compact_table_mode` kolonne |
-| `src/integrations/supabase/types.ts` | Oppdateres automatisk |
-
----
-
-## Ikke berørte filer (CustomerDisplay)
-
-Følgende filer forblir **uendret**:
-- `src/pages/display/CustomerDisplay.tsx`
-- `src/components/display/customer/CustomerProductsList.tsx`
-- `src/components/display/customer/CustomerProgressBar.tsx`
-- `src/components/display/customer/CustomerStatusIndicator.tsx`
+| `DemoCustomerCard.tsx` | Ultra-kompakt header + alle produkter i kompakt modus + mindre padding |
+| `CustomerPackingCard.tsx` | Samme som DemoCustomerCard |
+| `CustomerDataLoader.tsx` | Fjern "Venter på produktvalg" - returner null i stedet |
+| `AutoFitGrid.tsx` | Lavere minimumsverdier i kompakt modus |
 
 ---
 
 ## Forventet resultat
 
-**SharedDisplay med kompakt modus aktivert:**
-- Kortere, mer firkantede kundekort
-- 4-6 kunder på én skjerm (i stedet for 2)
-- Tabellformat med kun nødvendig info: Produkt, Antall, Status
-- Automatisk skalering av font/padding
-- Fullskjerm-modus fungerer korrekt
+Med disse endringene:
 
-**CustomerDisplay forblir uendret:**
-- Beholder nåværende detaljerte visning
-- Stor produktliste med progress-bar
-- Optimert for én kunde per skjerm
+- **12 kunder på 1080p skjerm:** 4 kolonner x 3 rader med kompakte kort
+- **Alle 3 produkter synlige:** Ingen avkutting av produktliste
+- **Kun relevante kunder:** Kunder uten varer for dagen vises ikke
+- **Minimal status-indikator:** Farget prikk i stedet for tekstbadge
+- **Optimal plassutnyttelse:** ~100-150px per kort i høyde
+
+---
+
+## Visuelle forbedringer
+
+```text
+NÅVÆRENDE KORT:                    NYTT KOMPAKT KORT:
++---------------------------+      +---------------------------+
+| [Pågående]  Cafe Solberg  |      | Cafe Solberg          (●) |
++---------------------------+      +---------------------------+
+| Fremgang: 65%             |      | Grovbrød     25  ✓        |
+| [=========----]           |      | Kanelboller  48  ◐        |
+|                           |      | Rundstykker  60  ○        |
+| [Grovbrød]      25 stk    |      +---------------------------+
+| [Kanelboller]   48 stk    |
+| [Rundstykker]   60 stk    |
+|                           |
+| 2 av 3 linjer pakket      |
++---------------------------+
+
+Høyde: ~300px                      Høyde: ~100px
+```
+
