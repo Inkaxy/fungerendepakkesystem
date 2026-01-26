@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Customer } from '@/types/database';
 import { useOrderCounts } from '@/hooks/useOrderCounts';
+import { useAuthStore } from '@/stores/authStore';
 import { getDisplayPath } from '@/utils/displayUtils';
 import DisplayStatusBadge from './DisplayStatusBadge';
 
@@ -63,6 +64,10 @@ const CustomersTable = ({
   const allSelected = customers.length > 0 && selectedCustomers.length === customers.length;
   const customerIds = customers.map(c => c.id);
   const { data: orderCounts } = useOrderCounts(customerIds);
+  
+  // Hent bakeryId fra auth store
+  const { profile } = useAuthStore();
+  const bakeryId = profile?.bakery_id;
 
   return (
     <div className="rounded-md border">
@@ -151,13 +156,13 @@ const CustomersTable = ({
                         Rediger
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onCopyUrl(getDisplayPath(customer))}
+                        onClick={() => onCopyUrl(getDisplayPath(customer, bakeryId || undefined))}
                       >
                         <Copy className="w-4 h-4 mr-2" />
                         Kopier URL
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onOpenUrl(getDisplayPath(customer))}
+                        onClick={() => onOpenUrl(getDisplayPath(customer, bakeryId || undefined))}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Åpne display

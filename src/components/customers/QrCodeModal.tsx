@@ -13,6 +13,7 @@ import { QrCode, Copy, ExternalLink, X, Loader2 } from 'lucide-react';
 import { getDisplayPath, getDisplayUrl, generateQrCodeUrl } from '@/utils/displayUtils';
 import { cn } from '@/lib/utils';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useAuthStore } from '@/stores/authStore';
 
 interface QrCodeModalProps {
   customerId: string | null;
@@ -34,14 +35,18 @@ const QrCodeModal = ({
   const [showQrCode, setShowQrCode] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   
+  // Hent bakeryId fra auth store
+  const { profile } = useAuthStore();
+  const bakeryId = profile?.bakery_id;
+  
   // Hent customer-data fra React Query cache
   const { data: customers } = useCustomers();
   const customer = customers?.find(c => c.id === customerId);
 
   if (!customer) return null;
 
-  const displayPath = getDisplayPath(customer);
-  const fullUrl = getDisplayUrl(customer);
+  const displayPath = getDisplayPath(customer, bakeryId || undefined);
+  const fullUrl = getDisplayUrl(customer, bakeryId || undefined);
 
   const handleShowQrCode = () => {
     setShowQrCode(!showQrCode);

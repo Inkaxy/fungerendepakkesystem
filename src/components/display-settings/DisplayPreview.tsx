@@ -26,7 +26,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   // Generer iframe URL basert på valgt display type - alltid med demo=true for forhåndsvisning
   const getIframeUrl = () => {
     if (displayType === 'shared') {
-      return bakeryId ? `/display/shared/${bakeryId}?demo=true` : '/display/shared?demo=true';
+      return bakeryId ? `/display/shared/${bakeryId}?demo=true` : null;
     }
     
     if (selectedCustomerId) {
@@ -36,7 +36,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
       }
     }
     
-    return bakeryId ? `/display/shared/${bakeryId}?demo=true` : '/display/shared?demo=true';
+    return bakeryId ? `/display/shared/${bakeryId}?demo=true` : null;
   };
 
   const iframeUrl = getIframeUrl();
@@ -129,13 +129,19 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
 
         <CardContent className="p-0">
           <div className="relative bg-muted/30 rounded-b-lg overflow-hidden" style={{ height: '700px' }}>
-            <iframe
-              key={iframeKey}
-              src={iframeUrl}
-              className="w-full h-full border-0"
-              title="Display Preview"
-              sandbox="allow-same-origin allow-scripts"
-            />
+            {iframeUrl ? (
+              <iframe
+                key={iframeKey}
+                src={iframeUrl}
+                className="w-full h-full border-0"
+                title="Display Preview"
+                sandbox="allow-same-origin allow-scripts"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p>Laster forhåndsvisning...</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
