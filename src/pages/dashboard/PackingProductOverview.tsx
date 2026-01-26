@@ -1,10 +1,5 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText } from 'lucide-react';
-import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
 import { useOrders } from '@/hooks/useOrders';
 import { useCreateOrUpdatePackingSession, usePackingSessionByDate } from '@/hooks/usePackingSessions';
 import { useSetActivePackingProducts } from '@/hooks/useActivePackingProducts';
@@ -13,7 +8,8 @@ import { useDashboardRealTime } from '@/hooks/useDashboardRealTime';
 import { useQueryClient } from '@tanstack/react-query';
 import ProductsTable from '@/components/packing/ProductsTable';
 import PackingReportDialog from '@/components/packing/PackingReportDialog';
-import ConnectionStatus from '@/components/display/ConnectionStatus';
+import PackingOverviewHeader from '@/components/packing/PackingOverviewHeader';
+import SelectedProductsPanel from '@/components/packing/SelectedProductsPanel';
 
 const PackingProductOverview = () => {
   const { date } = useParams<{ date: string }>();
@@ -29,17 +25,12 @@ const PackingProductOverview = () => {
   const createOrUpdateSession = useCreateOrUpdatePackingSession();
   const setActivePackingProducts = useSetActivePackingProducts();
   
-  // Konsolidert real-time for dashboard
   const { connectionStatus } = useDashboardRealTime();
 
-  // Effect to force query updates when products are selected
   useEffect(() => {
     isMountedRef.current = true;
     
     if (selectedProducts.length > 0) {
-      console.log('🔄 Products selected, forcing immediate query updates:', selectedProducts);
-      
-      // Only update if component is still mounted
       if (isMountedRef.current) {
         queryClient.invalidateQueries({ queryKey: ['packing-data'] });
         queryClient.invalidateQueries({ queryKey: ['active-packing-products'] });
@@ -53,48 +44,77 @@ const PackingProductOverview = () => {
     };
   }, [selectedProducts, queryClient]);
 
-  // Calculate product statistics with category from products table
-  const productStats = orders?.reduce((acc, order) => {
-    order.order_products?.forEach(item => {
-      const productId = item.product_id;
-      const productName = item.product?.name || `Produkt ID: ${productId}`;
-      const productNumber = item.product?.product_number || '';
-      const productCategory = item.product?.category || 'Ingen kategori';
-      
-      if (!acc[productId]) {
-        acc[productId] = {
-          id: productId,
-          name: productName,
-          productNumber: productNumber,
-          category: productCategory,
-          totalQuantity: 0,
-          packedQuantity: 0,
-          customers: new Set<string>(),
-          orders: []
-        };
-      }
-      
-      acc[productId].totalQuantity += item.quantity;
-      if (item.packing_status === 'packed' || item.packing_status === 'completed') {
-        acc[productId].packedQuantity += item.quantity;
-      }
-      acc[productId].customers.add(order.customer_id);
-      acc[productId].orders.push({
-        orderId: order.id,
-        orderNumber: order.order_number,
-        customerName: order.customer?.name || 'Ukjent kunde',
-        quantity: item.quantity,
-        packingStatus: item.packing_status
+  // Calculate product statistics
+  const productStats = useMemo(() => {
+    if (!orders) return {};
+    
+    return orders.reduce((acc, order) => {
+      order.order_products?.forEach(item => {
+        const productId = item.product_id;
+        const productName = item.product?.name || `Produkt ID: ${productId}`;
+        const productNumber = item.product?.product_number || '';
+        const productCategory = item.product?.category || 'Ingen kategori';
+        
+        if (!acc[productId]) {
+          acc[productId] = {
+            id: productId,
+            name: productName,
+            productNumber: productNumber,
+            category: productCategory,
+            totalQuantity: 0,
+            packedQuantity: 0,
+            customers: new Set<string>(),
+            orders: []
+          };
+        }
+        
+        acc[productId].totalQuantity += item.quantity;
+        if (item.packing_status === 'packed' || item.packing_status === 'completed') {
+          acc[productId].packedQuantity += item.quantity;
+        }
+        acc[productId].customers.add(order.customer_id);
+        acc[productId].orders.push({
+          orderId: order.id,
+          orderNumber: order.order_number,
+          customerName: order.customer?.name || 'Ukjent kunde',
+          quantity: item.quantity,
+          packingStatus: item.packing_status
+        });
       });
+      return acc;
+    }, {} as Record<string, any>);
+  }, [orders]);
+
+  const productList = useMemo(() => {
+    return Object.values(productStats).sort((a: any, b: any) => 
+      a.name.localeCompare(b.name)
+    );
+  }, [productStats]);
+
+  // Calculate totals for header
+  const totals = useMemo(() => {
+    const totalProducts = productList.length;
+    const totalUnits = productList.reduce((sum: number, p: any) => sum + p.totalQuantity, 0);
+    const completedProducts = productList.filter((p: any) => 
+      p.packedQuantity >= p.totalQuantity
+    ).length;
+    return { totalProducts, totalUnits, completedProducts };
+  }, [productList]);
+
+  // Selected products with details for panel
+  const selectedProductDetails = useMemo(() => {
+    return selectedProducts.map(id => {
+      const product = productStats[id];
+      return {
+        id,
+        name: product?.name || '',
+        totalQuantity: product?.totalQuantity || 0,
+        customerCount: product?.customers?.size || 0,
+        packedQuantity: product?.packedQuantity || 0
+      };
     });
-    return acc;
-  }, {} as Record<string, any>) || {};
+  }, [selectedProducts, productStats]);
 
-  const productList = Object.values(productStats).sort((a: any, b: any) => 
-    a.name.localeCompare(b.name)
-  );
-
-  // Generate report data for all orders on this date
   const generateReportData = () => {
     const reportItems: any[] = [];
     
@@ -109,7 +129,7 @@ const PackingProductOverview = () => {
           productNumber: item.product?.product_number || '',
           orderedQuantity: item.quantity,
           packedQuantity: isPacked ? item.quantity : 0,
-          deviation: 0 // Default to 0 - actual deviations would be tracked separately
+          deviation: 0
         });
       });
     });
@@ -123,6 +143,10 @@ const PackingProductOverview = () => {
     } else if (!checked) {
       setSelectedProducts(selectedProducts.filter(id => id !== productId));
     }
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+    setSelectedProducts(selectedProducts.filter(id => id !== productId));
   };
 
   const handleProductActivate = (productId: string) => {
@@ -143,9 +167,6 @@ const PackingProductOverview = () => {
     if (selectedProducts.length === 0) return;
     
     try {
-      console.log('🚀 Starting packing session with products:', selectedProducts);
-      
-      // Only create/update session if not already in progress
       if (existingSession?.status !== 'in_progress') {
         await createOrUpdateSession.mutateAsync({
           bakery_id: orders?.[0]?.bakery_id || '',
@@ -156,11 +177,8 @@ const PackingProductOverview = () => {
           files_uploaded: 0,
           status: 'in_progress'
         });
-      } else {
-        console.log('⏭️ Session already in progress - skipping upsert');
       }
 
-      // Save selected products as active packing products
       const activeProducts = selectedProducts.map(productId => {
         const product = productStats[productId];
         return {
@@ -170,15 +188,11 @@ const PackingProductOverview = () => {
         };
       });
 
-      console.log('💾 Saving active products:', activeProducts);
       await setActivePackingProducts.mutateAsync({
         sessionDate: date || '',
         products: activeProducts
       });
 
-      console.log('✅ Packing session started successfully');
-      
-      // Navigate immediately without delay
       navigate(`/dashboard/orders/packing/${date}/${selectedProducts[0]}`, {
         state: { selectedProducts }
       });
@@ -191,7 +205,7 @@ const PackingProductOverview = () => {
           variant: "destructive",
         });
       } else {
-        console.error('❌ Failed to start packing session:', error);
+        console.error('Failed to start packing session:', error);
       }
     }
   };
@@ -201,53 +215,39 @@ const PackingProductOverview = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header - fixed at top */}
-      <div className="flex-shrink-0 p-6 border-b bg-background">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/dashboard/orders')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Tilbake til ordrer</span>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Pakking for {format(new Date(date), 'dd. MMMM yyyy', { locale: nb })}
-              </h1>
-              <p className="text-muted-foreground">
-                Velg opptil 3 produkter for pakking
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <ConnectionStatus status={connectionStatus} />
-            <Button 
-              onClick={() => setShowReport(true)}
-              className="flex items-center space-x-2"
-              variant="outline"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Generer rapport</span>
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="h-screen flex flex-col bg-background">
+      {/* Header */}
+      <PackingOverviewHeader
+        date={date}
+        totalProducts={totals.totalProducts}
+        totalUnits={totals.totalUnits}
+        completedProducts={totals.completedProducts}
+        connectionStatus={connectionStatus}
+        onBack={() => navigate('/dashboard/orders')}
+        onGenerateReport={() => setShowReport(true)}
+      />
 
-      {/* Products table with sticky header */}
-      <div className="flex-1 min-h-0">
-        <ProductsTable
-          products={productList}
-          selectedProducts={selectedProducts}
-          onProductSelection={handleProductSelection}
-          onProductActivate={handleProductActivate}
-          onStartPacking={handleStartPacking}
-          isStartPackingLoading={createOrUpdateSession.isPending}
-        />
+      {/* Main Content */}
+      <div className="flex-1 min-h-0 flex">
+        {/* Products Table */}
+        <div className="flex-1 min-w-0">
+          <ProductsTable
+            products={productList}
+            selectedProducts={selectedProducts}
+            onProductSelection={handleProductSelection}
+            onProductActivate={handleProductActivate}
+          />
+        </div>
+
+        {/* Selected Products Panel */}
+        <div className="w-80 flex-shrink-0 p-4 border-l bg-muted/10">
+          <SelectedProductsPanel
+            selectedProducts={selectedProductDetails}
+            onRemoveProduct={handleRemoveProduct}
+            onStartPacking={handleStartPacking}
+            isLoading={createOrUpdateSession.isPending}
+          />
+        </div>
       </div>
 
       <PackingReportDialog
