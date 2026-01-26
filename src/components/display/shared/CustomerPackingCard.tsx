@@ -287,6 +287,18 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 >
                   Produkter:
                 </h4>
+                {/* ✅ Vis melding når ingen produkter er valgt for pakking */}
+                {displayProducts.length === 0 ? (
+                  <div 
+                    className="text-center py-2 opacity-60"
+                    style={{ 
+                      color: settings?.text_color || '#6b7280',
+                      fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                    }}
+                  >
+                    Ingen produkter valgt for pakking
+                  </div>
+                ) : (
                 <div style={{ gap: `${Math.max(2, 4 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
                   {displayProducts.map((product, idx) => {
                     const colorIndex = getProductColorIndex(
@@ -380,6 +392,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                     </div>
                   )}
                 </div>
+                )}
               </div>
             </>
           )}
