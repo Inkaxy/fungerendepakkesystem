@@ -30,12 +30,19 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
   // Beregn skaleringsfaktor basert på maxHeight for dynamisk skalering
   const scaleFactor = React.useMemo(() => {
     if (!maxHeight) return 1;
-    // Skaler ned fra 300px som "normal" høyde
-    return Math.min(1, Math.max(0.6, (maxHeight - 100) / 200));
-  }, [maxHeight]);
+    // Skaler ned fra 300px som "normal" høyde - mer aggressiv i kompakt modus
+    const baseScale = settings?.shared_compact_table_mode 
+      ? Math.min(1, Math.max(0.5, (maxHeight - 60) / 150))
+      : Math.min(1, Math.max(0.6, (maxHeight - 100) / 200));
+    return baseScale;
+  }, [maxHeight, settings?.shared_compact_table_mode]);
   
   // Beregn maks antall produkter basert på tilgjengelig høyde
   const maxProducts = React.useMemo(() => {
+    // I kompakt modus: Vis ALLTID alle produkter
+    if (settings?.shared_compact_table_mode) {
+      return customerData.products.length;
+    }
     if (maxHeight) {
       const headerHeight = 50 * scaleFactor;
       const progressHeight = 40 * scaleFactor;
@@ -45,7 +52,7 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
       return Math.max(1, Math.floor(availableForProducts / productItemHeight));
     }
     return settings?.max_products_per_card ?? 3;
-  }, [maxHeight, settings?.max_products_per_card, scaleFactor]);
+  }, [maxHeight, settings?.max_products_per_card, scaleFactor, settings?.shared_compact_table_mode, customerData.products.length]);
   
   const displayProducts = customerData.products.slice(0, maxProducts);
   
@@ -103,49 +110,78 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
             gap: `${Math.max(8, 16 * scaleFactor)}px`
           }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {settings?.show_customer_numbers && (
-                <Badge 
-                  variant="outline" 
-                  style={{ 
-                    borderColor: settings?.card_border_color || '#e5e7eb',
-                    color: settings?.text_color || '#6b7280',
-                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
-                    padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
-                  }}
-                >
-                  {customerData.customer_number}
-                </Badge>
-              )}
+          {/* Header - Ultra-kompakt i tabell-modus */}
+          {settings?.shared_compact_table_mode ? (
+            <div 
+              className="flex items-center justify-between"
+              style={{ padding: `${Math.max(2, 4 * scaleFactor)}px 0` }}
+            >
               <h3 
-                className="font-semibold"
+                className="font-semibold flex-1 truncate"
                 style={{ 
                   color: settings?.text_color || '#1f2937',
-                  fontSize: `${(settings?.customer_name_font_size || 18) * scaleFactor}px`
+                  fontSize: `${Math.max(11, 13 * scaleFactor)}px`
                 }}
               >
                 {customerData.name}
               </h3>
-            </div>
-            {(settings?.show_status_badges ?? true) && (
-              <Badge
+              {/* Mini status-indikator (farget prikk i stedet for badge) */}
+              <span 
+                className="flex-shrink-0 rounded-full ml-2"
                 style={{ 
-                  backgroundColor: getStatusColor(customerData.overall_status),
-                  color: '#ffffff',
-                  fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
-                  padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
+                  width: `${Math.max(8, 10 * scaleFactor)}px`,
+                  height: `${Math.max(8, 10 * scaleFactor)}px`,
+                  backgroundColor: isCompleted 
+                    ? (statusColors.completed || '#10b981') 
+                    : (statusColors.in_progress || '#3b82f6')
                 }}
-              >
-                {isCompleted ? 'Ferdig' : 'Pågår'}
-              </Badge>
-            )}
-          </div>
+                title={isCompleted ? 'Ferdig' : 'Pågår'}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {settings?.show_customer_numbers && (
+                  <Badge 
+                    variant="outline" 
+                    style={{ 
+                      borderColor: settings?.card_border_color || '#e5e7eb',
+                      color: settings?.text_color || '#6b7280',
+                      fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
+                      padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
+                    }}
+                  >
+                    {customerData.customer_number}
+                  </Badge>
+                )}
+                <h3 
+                  className="font-semibold"
+                  style={{ 
+                    color: settings?.text_color || '#1f2937',
+                    fontSize: `${(settings?.customer_name_font_size || 18) * scaleFactor}px`
+                  }}
+                >
+                  {customerData.name}
+                </h3>
+              </div>
+              {(settings?.show_status_badges ?? true) && (
+                <Badge
+                  style={{ 
+                    backgroundColor: getStatusColor(customerData.overall_status),
+                    color: '#ffffff',
+                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
+                    padding: `${Math.max(2, 4 * scaleFactor)}px ${Math.max(4, 8 * scaleFactor)}px`
+                  }}
+                >
+                  {isCompleted ? 'Ferdig' : 'Pågår'}
+                </Badge>
+              )}
+            </div>
+          )}
 
           {/* Products - Compact table mode or standard list */}
           {settings?.shared_compact_table_mode ? (
-            <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(2, 4 * scaleFactor)}px` }}>
+            <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(1, 2 * scaleFactor)}px` }}>
               {displayProducts.map((product, idx) => {
                 const colorIndex = getProductColorIndex(
                   product.product_id,
@@ -159,15 +195,16 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                 return (
                   <div 
                     key={product.product_id}
-                    className="flex items-center justify-between rounded"
+                    className="flex items-center justify-between"
                     style={{
                       backgroundColor: bgColor,
-                      padding: `${Math.max(4, 6 * scaleFactor)}px ${Math.max(6, 10 * scaleFactor)}px`,
-                      fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
+                      padding: `${Math.max(2, 3 * scaleFactor)}px ${Math.max(4, 6 * scaleFactor)}px`,
+                      fontSize: `${Math.max(9, 11 * scaleFactor)}px`,
+                      borderRadius: `${Math.max(2, 3 * scaleFactor)}px`,
                     }}
                   >
                     <span 
-                      className="flex-1"
+                      className="flex-1 truncate"
                       style={{ 
                         color: textColor,
                         textDecoration: product.packing_status === 'packed' ? 'line-through' : 'none',
@@ -177,12 +214,12 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
                       {product.product_name}
                     </span>
                     <span 
-                      className="font-semibold mx-3"
+                      className="font-semibold mx-2"
                       style={{ color: accentColor }}
                     >
                       {product.total_quantity}
                     </span>
-                    <span style={{ color: getStatusColor(product.packing_status) }}>
+                    <span style={{ color: getStatusColor(product.packing_status), fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
                       {product.packing_status === 'packed' || product.packing_status === 'completed' ? '✓' : 
                        product.packing_status === 'in_progress' ? '◐' : '○'}
                     </span>

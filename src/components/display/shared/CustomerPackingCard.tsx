@@ -17,15 +17,21 @@ interface CustomerPackingCardProps {
 }
 
 const CustomerPackingCard = React.memo(({ customerData, customer, settings, statusColors, maxHeight }: CustomerPackingCardProps) => {
+  const isCompleted = customerData.overall_status === 'completed';
+  
   // Beregn skaleringsfaktor basert på maxHeight for dynamisk skalering
   const scaleFactor = React.useMemo(() => {
     if (!maxHeight) return 1;
-    // Skaler ned fra 300px som "normal" høyde
-    return Math.min(1, Math.max(0.6, (maxHeight - 100) / 200));
-  }, [maxHeight]);
+    // Skaler ned fra 300px som "normal" høyde - mer aggressiv i kompakt modus
+    const baseScale = settings?.shared_compact_table_mode 
+      ? Math.min(1, Math.max(0.5, (maxHeight - 60) / 150))
+      : Math.min(1, Math.max(0.6, (maxHeight - 100) / 200));
+    return baseScale;
+  }, [maxHeight, settings?.shared_compact_table_mode]);
   
   // Get card height class based on settings
   const getCardHeightClass = () => {
+    if (settings?.shared_compact_table_mode) return 'py-0'; // Minimal i kompakt modus
     if (maxHeight) return 'py-1'; // Kompakt når auto-fit er aktiv
     switch (settings?.customer_card_height) {
       case 'compact': return 'py-2';
@@ -36,6 +42,10 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
 
   // Limit products based on max_products_per_card setting OR available height
   const maxProducts = React.useMemo(() => {
+    // I kompakt modus: Vis ALLTID alle produkter
+    if (settings?.shared_compact_table_mode) {
+      return customerData.products.length;
+    }
     if (maxHeight) {
       // Estimer hvor mange produkter som får plass
       const headerHeight = 60 * scaleFactor;
@@ -46,7 +56,7 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
       return Math.max(1, Math.floor(availableForProducts / productItemHeight));
     }
     return settings?.max_products_per_card || 10;
-  }, [maxHeight, settings?.max_products_per_card, scaleFactor]);
+  }, [maxHeight, settings?.max_products_per_card, scaleFactor, settings?.shared_compact_table_mode, customerData.products.length]);
   
   const displayProducts = customerData.products.slice(0, maxProducts);
   const hasMoreProducts = customerData.products.length > maxProducts;
@@ -88,46 +98,78 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
         overflow: 'hidden'
       }}
     >
-      <CardHeader className={getCardHeightClass()}>
-        <div className="flex items-center justify-between mb-2">
-          {(settings?.show_status_badges ?? true) && (
-            <Badge 
-              variant="secondary"
-              style={{
-                backgroundColor: customerData.overall_status === 'completed' ? statusColors.completed : statusColors.in_progress,
-                color: 'white'
+      {/* Header - Ultra-kompakt i tabell-modus */}
+      {settings?.shared_compact_table_mode ? (
+        <CardHeader className="py-1 px-2">
+          <div 
+            className="flex items-center justify-between"
+            style={{ padding: `${Math.max(2, 4 * scaleFactor)}px 0` }}
+          >
+            <CardTitle 
+              className="font-semibold flex-1 truncate"
+              style={{ 
+                color: settings?.header_text_color || '#111827',
+                fontSize: `${Math.max(11, 13 * scaleFactor)}px`
               }}
             >
-              {customerData.overall_status === 'completed' ? 'Ferdig' : 'Pågående'}
-            </Badge>
-          )}
-          {settings?.show_customer_numbers && customer.customer_number && (
-            <Badge 
-              variant="outline"
-              style={{
-                backgroundColor: settings?.product_accent_color || '#f3f4f6',
-                color: settings?.card_background_color || '#ffffff'
+              {customer.name}
+            </CardTitle>
+            {/* Mini status-indikator (farget prikk i stedet for badge) */}
+            <span 
+              className="flex-shrink-0 rounded-full ml-2"
+              style={{ 
+                width: `${Math.max(8, 10 * scaleFactor)}px`,
+                height: `${Math.max(8, 10 * scaleFactor)}px`,
+                backgroundColor: isCompleted 
+                  ? (statusColors.completed || '#10b981') 
+                  : (statusColors.in_progress || '#3b82f6')
               }}
-            >
-              {customer.customer_number}
-            </Badge>
-          )}
-        </div>
-        <CardTitle 
-          className="text-center mb-3"
-          style={{ 
-            color: settings?.header_text_color || '#111827',
-            fontSize: `${(settings?.customer_name_font_size || 20) * scaleFactor}px`
-          }}
-        >
-          {customer.name}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className={cn(getCardHeightClass(), 'flex-1 overflow-hidden')}>
-        <div style={{ gap: `${Math.max(8, 12 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
+              title={isCompleted ? 'Ferdig' : 'Pågår'}
+            />
+          </div>
+        </CardHeader>
+      ) : (
+        <CardHeader className={getCardHeightClass()}>
+          <div className="flex items-center justify-between mb-2">
+            {(settings?.show_status_badges ?? true) && (
+              <Badge 
+                variant="secondary"
+                style={{
+                  backgroundColor: customerData.overall_status === 'completed' ? statusColors.completed : statusColors.in_progress,
+                  color: 'white'
+                }}
+              >
+                {customerData.overall_status === 'completed' ? 'Ferdig' : 'Pågående'}
+              </Badge>
+            )}
+            {settings?.show_customer_numbers && customer.customer_number && (
+              <Badge 
+                variant="outline"
+                style={{
+                  backgroundColor: settings?.product_accent_color || '#f3f4f6',
+                  color: settings?.card_background_color || '#ffffff'
+                }}
+              >
+                {customer.customer_number}
+              </Badge>
+            )}
+          </div>
+          <CardTitle 
+            className="text-center mb-3"
+            style={{ 
+              color: settings?.header_text_color || '#111827',
+              fontSize: `${(settings?.customer_name_font_size || 20) * scaleFactor}px`
+            }}
+          >
+            {customer.name}
+          </CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={cn(settings?.shared_compact_table_mode ? 'py-1 px-2' : getCardHeightClass(), 'flex-1 overflow-hidden')}>
+        <div style={{ gap: settings?.shared_compact_table_mode ? `${Math.max(2, 4 * scaleFactor)}px` : `${Math.max(8, 12 * scaleFactor)}px`, display: 'flex', flexDirection: 'column' }}>
           {/* Compact table mode */}
           {settings?.shared_compact_table_mode ? (
-            <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(2, 4 * scaleFactor)}px` }}>
+            <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(1, 2 * scaleFactor)}px` }}>
               {displayProducts.map((product, idx) => {
                 const colorIndex = getProductColorIndex(
                   product.id,
@@ -141,16 +183,16 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                 return (
                   <div 
                     key={product.id}
-                    className="flex items-center justify-between rounded"
+                    className="flex items-center justify-between"
                     style={{
                       backgroundColor: bgColor,
-                      padding: `${Math.max(4, 6 * scaleFactor)}px ${Math.max(6, 10 * scaleFactor)}px`,
-                      fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
-                      borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.25rem',
+                      padding: `${Math.max(2, 3 * scaleFactor)}px ${Math.max(4, 6 * scaleFactor)}px`,
+                      fontSize: `${Math.max(9, 11 * scaleFactor)}px`,
+                      borderRadius: `${Math.max(2, 3 * scaleFactor)}px`,
                     }}
                   >
                     <span 
-                      className="flex-1"
+                      className="flex-1 truncate"
                       style={{ 
                         color: textColor,
                         textDecoration: product.packing_status === 'completed' ? 'line-through' : 'none',
@@ -160,30 +202,21 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
                       {product.product_name}
                     </span>
                     <span 
-                      className="font-semibold mx-3"
+                      className="font-semibold mx-2"
                       style={{ color: accentColor }}
                     >
                       {product.total_quantity}
                     </span>
-                    <span style={{ color: product.packing_status === 'completed' ? (statusColors.completed || '#10b981') : product.packing_status === 'in_progress' ? (statusColors.in_progress || '#3b82f6') : (statusColors.pending || '#f59e0b') }}>
+                    <span style={{ 
+                      color: product.packing_status === 'completed' ? (statusColors.completed || '#10b981') : product.packing_status === 'in_progress' ? (statusColors.in_progress || '#3b82f6') : (statusColors.pending || '#f59e0b'),
+                      fontSize: `${Math.max(10, 12 * scaleFactor)}px`
+                    }}>
                       {product.packing_status === 'completed' ? '✓' : 
                        product.packing_status === 'in_progress' ? '◐' : '○'}
                     </span>
                   </div>
                 );
               })}
-              {hasMoreProducts && (
-                <div 
-                  className="text-center py-1"
-                  style={{ 
-                    color: settings?.text_color || '#6b7280', 
-                    opacity: 0.7,
-                    fontSize: `${Math.max(10, 12 * scaleFactor)}px`
-                  }}
-                >
-                  +{customerData.products.length - maxProducts} flere
-                </div>
-              )}
             </div>
           ) : (
             <>
