@@ -30,7 +30,6 @@ const OptimizedCustomerCard: React.FC<OptimizedCustomerCardProps> = ({
   isLoading = false,
 }) => {
   // ✅ Hooks må alltid kjøres før conditional returns
-  const hasOrdersForDate = packingData && packingData.total_line_items_all > 0;
   const isCompleted = packingData?.progress_percentage === 100;
   
   // Memoize style calculation
@@ -57,12 +56,10 @@ const OptimizedCustomerCard: React.FC<OptimizedCustomerCardProps> = ({
     );
   }
 
-  // Kunden har ingen ordrer - ikke vis
-  if (!hasOrdersForDate) {
-    return null;
-  }
+  // ✅ Filtrering for kunder uten ordrer skjer nå i SharedDisplay (visibleCustomers)
+  // Vis alltid kortet her - packingData kan være undefined/tom men vil vise "Ingen produkter"-melding
 
-  // Skal skjules fordi fullført
+  // Skal skjules fordi fullført (håndteres også i SharedDisplay, men behold som sikkerhet)
   if (hideWhenCompleted && isCompleted) {
     return null;
   }

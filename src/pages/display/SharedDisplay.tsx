@@ -214,21 +214,29 @@ const SharedDisplay = () => {
   const sortedCustomers = useMemo(() => {
     let customerList = [...realCustomers];
     
-    // Skjul fullførte kunder hvis innstillingen er på
-    if (effectiveSettings?.shared_hide_completed_customers) {
-      customerList = customerList.filter(c => {
-        // Vi kan ikke filtrere på progress her siden vi ikke har den dataen
-        // Dette vil bli håndtert i CustomerDataLoader
-        return true;
-      });
-    }
-    
     if (effectiveSettings?.customer_sort_order === 'alphabetical') {
       return customerList.sort((a, b) => a.name.localeCompare(b.name));
     }
     
     return customerList;
-  }, [realCustomers, effectiveSettings?.customer_sort_order, effectiveSettings?.shared_hide_completed_customers]);
+  }, [realCustomers, effectiveSettings?.customer_sort_order]);
+
+  // ✅ Pre-filter kunder til kun de som har ordrer (total_line_items_all > 0)
+  // Dette sikrer at AutoFitGrid beregner riktig antall celler uten tomme hull
+  const visibleCustomers = useMemo(() => {
+    return sortedCustomers.filter(c => {
+      const data = packingDataMap.get(c.id);
+      // Vis kunder som har ordrer for datoen
+      if (!data || data.total_line_items_all <= 0) return false;
+      
+      // Skjul fullførte kunder hvis innstillingen er på
+      if (effectiveSettings?.shared_hide_completed_customers && data.progress_percentage === 100) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [sortedCustomers, packingDataMap, effectiveSettings?.shared_hide_completed_customers]);
   
   // Demo-kunder sortert
   const sortedDemoCustomers = useMemo(() => {
@@ -382,21 +390,22 @@ const SharedDisplay = () => {
         )}
 
         {/* Ekte data: Vis ekte kunder */}
-        {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length > 0 && (
+        {/* Ekte data: Vis synlige kunder (pre-filtrert for å unngå tomme hull i grid) */}
+        {!isDemo && !isLoading && effectivePackingDate && visibleCustomers.length > 0 && (
           effectiveSettings?.auto_fit_screen ? (
             <div className="flex-1 min-h-0">
               <AutoFitGrid 
-                customerCount={sortedCustomers.length} 
+                customerCount={visibleCustomers.length} 
                 settings={effectiveSettings}
               >
-                {sortedCustomers.map((customer) => (
+                {visibleCustomers.map((customer) => (
                   <OptimizedCustomerCard
                     key={customer.id}
                     customer={customer}
                     packingData={packingDataMap.get(customer.id)}
                     settings={effectiveSettings}
                     statusColors={statusColors}
-                    hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
+                    hideWhenCompleted={false}
                     completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
                     isLoading={packingDataLoading}
                   />
@@ -410,14 +419,14 @@ const SharedDisplay = () => {
                 gap: effectiveSettings?.customer_cards_gap ? `${effectiveSettings.customer_cards_gap}px` : '24px' 
               }}
             >
-              {sortedCustomers.map((customer) => (
+              {visibleCustomers.map((customer) => (
                 <OptimizedCustomerCard
                   key={customer.id}
                   customer={customer}
                   packingData={packingDataMap.get(customer.id)}
                   settings={effectiveSettings}
                   statusColors={statusColors}
-                  hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
+                  hideWhenCompleted={false}
                   completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
                   isLoading={packingDataLoading}
                 />
@@ -426,8 +435,8 @@ const SharedDisplay = () => {
           )
         )}
 
-        {/* Tom tilstand: Vis kun for ekte data */}
-        {!isDemo && !isLoading && effectivePackingDate && sortedCustomers.length === 0 && (
+        {/* Tom tilstand: Vis kun for ekte data når ingen synlige kunder */}
+        {!isDemo && !isLoading && effectivePackingDate && visibleCustomers.length === 0 && (
           <EmptyPackingState
             settings={effectiveSettings}
             activePackingDate={effectivePackingDate}

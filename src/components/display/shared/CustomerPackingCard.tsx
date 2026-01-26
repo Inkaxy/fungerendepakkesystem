@@ -194,7 +194,18 @@ const CustomerPackingCard = React.memo(({ customerData, customer, settings, stat
           {/* Compact table mode */}
           {settings?.shared_compact_table_mode ? (
             <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(1, 2 * scaleFactor)}px` }}>
-              {displayProducts.map((product, idx) => {
+              {/* ✅ Vis melding når ingen produkter er valgt for pakking (kompakt modus) */}
+              {displayProducts.length === 0 ? (
+                <div 
+                  className="flex items-center justify-center h-full opacity-60"
+                  style={{ 
+                    color: settings?.text_color || '#6b7280',
+                    fontSize: `${Math.max(9, 11 * scaleFactor)}px`
+                  }}
+                >
+                  Ingen produkter valgt
+                </div>
+              ) : displayProducts.map((product, idx) => {
                 // ✅ Bruk color_index fra databasen - stabil farge-slot
                 const colorIndex = product.colorIndex ?? idx % 3;
                 const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
