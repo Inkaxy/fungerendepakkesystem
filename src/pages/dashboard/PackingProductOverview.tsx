@@ -216,7 +216,7 @@ const PackingProductOverview = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
+      {/* Compact Header */}
       <PackingOverviewHeader
         date={date}
         totalProducts={totals.totalProducts}
@@ -227,10 +227,10 @@ const PackingProductOverview = () => {
         onGenerateReport={() => setShowReport(true)}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 min-h-0 flex">
-        {/* Products Table */}
-        <div className="flex-1 min-w-0">
+      {/* Main Content - Table is the hero */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        {/* Products Table - Primary Focus */}
+        <div className="flex-1 min-w-0 flex flex-col">
           <ProductsTable
             products={productList}
             selectedProducts={selectedProducts}
@@ -239,8 +239,8 @@ const PackingProductOverview = () => {
           />
         </div>
 
-        {/* Selected Products Panel */}
-        <div className="w-80 flex-shrink-0 p-4 border-l bg-muted/10">
+        {/* Selected Products Panel - Narrower */}
+        <div className="w-72 flex-shrink-0 p-3 border-l bg-muted/5">
           <SelectedProductsPanel
             selectedProducts={selectedProductDetails}
             onRemoveProduct={handleRemoveProduct}
