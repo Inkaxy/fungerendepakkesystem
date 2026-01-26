@@ -145,44 +145,50 @@ const DemoCustomerCard: React.FC<DemoCustomerCardProps> = ({
 
           {/* Products - Compact table mode or standard list */}
           {settings?.shared_compact_table_mode ? (
-            <div className="flex-1 overflow-hidden">
-              <table className="w-full" style={{ fontSize: `${Math.max(10, 12 * scaleFactor)}px` }}>
-                <thead>
-                  <tr style={{ borderBottom: `1px solid ${settings?.card_border_color || '#e5e7eb'}` }}>
-                    <th className="text-left py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Produkt</th>
-                    <th className="text-center py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Antall</th>
-                    <th className="text-right py-1 font-medium" style={{ color: settings?.text_color || '#6b7280' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayProducts.map((product) => (
-                    <tr key={product.product_id}>
-                      <td 
-                        className="py-0.5"
-                        style={{ 
-                          color: settings?.text_color || '#1f2937',
-                          textDecoration: product.packing_status === 'packed' ? 'line-through' : 'none',
-                          opacity: product.packing_status === 'packed' ? 0.6 : 1
-                        }}
-                      >
-                        {product.product_name}
-                      </td>
-                      <td 
-                        className="text-center py-0.5 font-semibold"
-                        style={{ color: settings?.product_accent_color || '#3b82f6' }}
-                      >
-                        {product.total_quantity}
-                      </td>
-                      <td className="text-right py-0.5">
-                        <span style={{ color: getStatusColor(product.packing_status) }}>
-                          {product.packing_status === 'packed' || product.packing_status === 'completed' ? '✓' : 
-                           product.packing_status === 'in_progress' ? '◐' : '○'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex-1 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(2, 4 * scaleFactor)}px` }}>
+              {displayProducts.map((product, idx) => {
+                const colorIndex = getProductColorIndex(
+                  product.product_id,
+                  idx,
+                  settings?.use_consistent_product_colors ?? false
+                );
+                const bgColor = getProductBackgroundColor(settings || {} as DisplaySettings, colorIndex);
+                const textColor = getProductTextColor(settings || {} as DisplaySettings, colorIndex);
+                const accentColor = getProductAccentColor(settings || {} as DisplaySettings, colorIndex);
+                
+                return (
+                  <div 
+                    key={product.product_id}
+                    className="flex items-center justify-between rounded"
+                    style={{
+                      backgroundColor: bgColor,
+                      padding: `${Math.max(4, 6 * scaleFactor)}px ${Math.max(6, 10 * scaleFactor)}px`,
+                      fontSize: `${Math.max(10, 12 * scaleFactor)}px`,
+                    }}
+                  >
+                    <span 
+                      className="flex-1"
+                      style={{ 
+                        color: textColor,
+                        textDecoration: product.packing_status === 'packed' ? 'line-through' : 'none',
+                        opacity: product.packing_status === 'packed' ? 0.6 : 1
+                      }}
+                    >
+                      {product.product_name}
+                    </span>
+                    <span 
+                      className="font-semibold mx-3"
+                      style={{ color: accentColor }}
+                    >
+                      {product.total_quantity}
+                    </span>
+                    <span style={{ color: getStatusColor(product.packing_status) }}>
+                      {product.packing_status === 'packed' || product.packing_status === 'completed' ? '✓' : 
+                       product.packing_status === 'in_progress' ? '◐' : '○'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <>
