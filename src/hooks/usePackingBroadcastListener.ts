@@ -132,17 +132,39 @@ export const usePackingBroadcastListener = (bakeryId?: string) => {
 
       case 'PRODUCTS_SELECTED':
       case 'PRODUCTS_CLEARED': {
-        // Invalidate active products cache to refetch
+        // ✅ OPTIMALISERT: Invalidate uten å tvinge loading-spinner
+        // La React Query håndtere background refetch
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
           exact: false,
-          refetchType: 'active',
+          refetchType: 'none', // Ikke tving refetch - la cache oppdateres i bakgrunnen
         });
+        
+        // Background refetch av packing data
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
           exact: false,
-          refetchType: 'active',
+          refetchType: 'none',
         });
+        
+        // ✅ NY: Invalidate batch cache også
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0]],
+          exact: false,
+          refetchType: 'none',
+        });
+        
+        // Trigger soft refetch etter kort delay for å unngå loading-spinner
+        setTimeout(() => {
+          queryClient.refetchQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
+            exact: false,
+          });
+          queryClient.refetchQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0]],
+            exact: false,
+          });
+        }, 50);
         break;
       }
     }

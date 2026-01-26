@@ -188,14 +188,22 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
             console.log('🧹 Invaliderte ALLE cacher - React Query håndterer refetch');
           }
           
-          // Always invalidate packing data for consistency
+          // ✅ OPTIMALISERT: Invalidate batch cache også - uten å tvinge umiddelbar refetch
           queryClient.invalidateQueries({
-            queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+            queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0]],
             exact: false,
-            refetchType: 'active'
+            refetchType: 'none'
           });
           
-          console.log('✅ Active products cache updated, forcing display refetch...');
+          // Background refetch etter kort delay
+          setTimeout(() => {
+            queryClient.refetchQueries({
+              queryKey: [QUERY_KEYS.PUBLIC_ALL_CUSTOMERS_PACKING[0]],
+              exact: false,
+            });
+          }, 50);
+          
+          console.log('✅ Active products cache updated, triggering background refetch...');
         }
       )
       .on(

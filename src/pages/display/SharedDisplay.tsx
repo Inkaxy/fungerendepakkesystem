@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import SharedDisplayHeader from '@/components/display/shared/SharedDisplayHeader';
-import CustomerDataLoader from '@/components/display/shared/CustomerDataLoader';
+import OptimizedCustomerCard from '@/components/display/shared/OptimizedCustomerCard';
 import DemoCustomerCard from '@/components/display/shared/DemoCustomerCard';
 import EmptyPackingState from '@/components/display/shared/EmptyPackingState';
 import AutoFitGrid from '@/components/display/shared/AutoFitGrid';
@@ -17,7 +17,9 @@ import { useWakeLock } from '@/hooks/useWakeLock';
 import { 
   usePublicDisplaySettings,
   usePublicActivePackingDate,
-  usePublicSharedDisplayCustomers 
+  usePublicSharedDisplayCustomers,
+  usePublicActivePackingProducts,
+  usePublicAllCustomersPackingData
 } from '@/hooks/usePublicDisplayData';
 import { generateDisplayStyles, statusColorMap } from '@/utils/displayStyleUtils';
 import { format } from 'date-fns';
@@ -26,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { DEMO_CUSTOMERS, DEMO_PACKING_DATA, DEMO_PACKING_DATE } from '@/utils/demoDisplayData';
 import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
 import { DisplaySettings } from '@/hooks/useDisplaySettings';
+import { PackingCustomer } from '@/hooks/usePackingData';
 
 const SharedDisplay = () => {
   const { bakeryId } = useParams<{ bakeryId: string }>();
@@ -62,6 +65,32 @@ const SharedDisplay = () => {
   const realCustomers = customers?.filter(c => !c.has_dedicated_display && c.status === 'active') || [];
   
   const effectivePackingDate = isDemo ? DEMO_PACKING_DATE : activePackingDate;
+
+  // ✅ OPTIMALISERING: Heis activeProducts til topp-nivå (eliminerer N-1 dupliserte queries)
+  const { data: activeProducts, isLoading: productsLoading } = usePublicActivePackingProducts(
+    isDemo ? undefined : bakeryId,
+    effectivePackingDate
+  );
+  
+  // ✅ OPTIMALISERING: Bruk batch-query for ALLE kunder (eliminerer N separate queries)
+  const customersList = useMemo(() => 
+    realCustomers.map(c => ({ id: c.id, name: c.name })), 
+    [realCustomers]
+  );
+  
+  const { data: allPackingData, isLoading: packingDataLoading } = usePublicAllCustomersPackingData(
+    isDemo ? undefined : bakeryId,
+    customersList,
+    effectivePackingDate,
+    activeProducts
+  );
+  
+  // ✅ Lag en O(1) lookup-map for packing data
+  const packingDataMap = useMemo(() => {
+    const map = new Map<string, PackingCustomer>();
+    allPackingData?.forEach(d => map.set(d.id, d));
+    return map;
+  }, [allPackingData]);
   
   // Real-time listener for cache updates (WebSocket fra postgres_changes) - skip i demo
   const { connectionStatus } = useRealTimePublicDisplay(isDemo ? undefined : bakeryId);
@@ -220,6 +249,8 @@ const SharedDisplay = () => {
   };
 
   const isToday = effectivePackingDate ? effectivePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
+  // ✅ OPTIMALISERING: Bruk kun dato/kunde-loading for initial state, 
+  // packing data loading håndteres per-kort med skeleton
   const isLoading = isDemo ? false : (dateLoading || customersLoading);
 
   // Determine grid columns class based on settings
@@ -359,15 +390,15 @@ const SharedDisplay = () => {
                 settings={effectiveSettings}
               >
                 {sortedCustomers.map((customer) => (
-                  <CustomerDataLoader
+                  <OptimizedCustomerCard
                     key={customer.id}
                     customer={customer}
-                    bakeryId={bakeryId}
-                    activePackingDate={effectivePackingDate}
+                    packingData={packingDataMap.get(customer.id)}
                     settings={effectiveSettings}
                     statusColors={statusColors}
                     hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
                     completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
+                    isLoading={packingDataLoading}
                   />
                 ))}
               </AutoFitGrid>
@@ -380,15 +411,15 @@ const SharedDisplay = () => {
               }}
             >
               {sortedCustomers.map((customer) => (
-                <CustomerDataLoader
+                <OptimizedCustomerCard
                   key={customer.id}
                   customer={customer}
-                  bakeryId={bakeryId}
-                  activePackingDate={effectivePackingDate}
+                  packingData={packingDataMap.get(customer.id)}
                   settings={effectiveSettings}
                   statusColors={statusColors}
                   hideWhenCompleted={effectiveSettings?.shared_hide_completed_customers}
                   completedOpacity={effectiveSettings?.shared_completed_customer_opacity}
+                  isLoading={packingDataLoading}
                 />
               ))}
             </div>
