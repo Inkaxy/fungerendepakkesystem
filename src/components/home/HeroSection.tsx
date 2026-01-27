@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { ArrowRight, Sparkles, Check } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -24,16 +24,6 @@ const HeroSection = () => {
     }
   };
 
-  // Bakery items for the conveyor animation
-  const bakeryItems = [
-    { emoji: '🥖', delay: 'item-flow-1' },
-    { emoji: '🥐', delay: 'item-flow-2' },
-    { emoji: '🍞', delay: 'item-flow-3' },
-    { emoji: '🧁', delay: 'item-flow-4' },
-    { emoji: '🥯', delay: 'item-flow-5' },
-    { emoji: '🍰', delay: 'item-flow-6' },
-  ];
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 py-24 px-4 min-h-[90vh] flex items-center">
       {/* Decorative background elements */}
@@ -42,54 +32,28 @@ const HeroSection = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/5 rounded-full blur-3xl" />
       </div>
-
-      {/* Floating decorative bakery items */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute decor-top-left animate-float text-4xl opacity-20">🥨</div>
-        <div className="absolute decor-top-right animate-float delay-1 text-3xl opacity-15">🍪</div>
-        <div className="absolute decor-mid-left animate-gentle-rotate text-2xl opacity-10">🥧</div>
-        <div className="absolute decor-mid-right animate-float delay-2 text-3xl opacity-15">🍩</div>
+      
+      {/* Fallende brød og bakevarer animasjon */}
+      <div className="absolute inset-0 pointer-events-none z-10">
+        <div className="animate-bread-fall bread-1">🍞</div>
+        <div className="animate-bread-fall bread-2">🥖</div>
+        <div className="animate-bread-fall bread-3">🥐</div>
+        <div className="animate-bread-fall bread-4">🧁</div>
+        <div className="animate-bread-fall bread-5">🥯</div>
+        <div className="animate-bread-fall bread-6">🥧</div>
+        <div className="animate-bread-fall bread-7">🍰</div>
+        <div className="animate-bread-fall bread-8">🥨</div>
+        <div className="animate-bread-fall bread-9">🍪</div>
+        <div className="animate-bread-fall bread-10">🍩</div>
       </div>
 
-      {/* Conveyor belt system */}
-      <div className="absolute bottom-32 left-0 right-0 pointer-events-none z-10">
-        {/* The conveyor belt track */}
-        <div className="conveyor-belt mx-4 md:mx-16" />
-        
-        {/* Items flowing on conveyor */}
-        <div className="relative h-16">
-          {bakeryItems.map((item, index) => (
-            <div
-              key={index}
-              className={`animate-item-flow ${item.delay}`}
-            >
-              {item.emoji}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Packing stations with success indicators */}
-      <div className="absolute bottom-24 left-0 right-0 pointer-events-none z-15 hidden md:block">
-        <div className="relative flex justify-center gap-32">
-          <div className="packing-station flex flex-col items-center">
-            <span className="text-4xl">📦</span>
-            <Check className="w-5 h-5 text-white mt-1 animate-checkmark" />
-          </div>
-          <div className="packing-station flex flex-col items-center delay-1">
-            <span className="text-4xl">📦</span>
-            <Check className="w-5 h-5 text-white mt-1 animate-checkmark" />
-          </div>
-        </div>
-      </div>
-
-      {/* Delivery truck */}
+      {/* Kjørende lastebil */}
       <div className="absolute bottom-0 w-full pointer-events-none z-20">
-        <div className="animate-truck-exit">
+        <div className="animate-truck-drive">
           <img 
             src="/lovable-uploads/c571ae09-9560-45aa-ac6e-6cf14306c1ec.png" 
             alt="Bread delivery truck" 
-            className="h-20 md:h-24 w-auto drop-shadow-2xl"
+            className="h-24 w-auto drop-shadow-2xl"
           />
         </div>
       </div>
@@ -138,15 +102,15 @@ const HeroSection = () => {
         {/* Trust indicators */}
         <div className="mt-16 flex flex-wrap justify-center gap-8 text-white/60 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Sanntidsoppdateringer</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Sikker datalagring</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Norsk støtte</span>
           </div>
         </div>

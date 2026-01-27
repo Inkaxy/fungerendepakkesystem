@@ -1,104 +1,117 @@
 
 /* Animation utility classes */
-
-/* Bread rise animation for logo */
 .animate-bread-rise {
   animation: bread-rise 2s ease-in-out infinite;
 }
 
-/* Conveyor belt styling */
-.conveyor-belt {
-  height: 12px;
-  background: repeating-linear-gradient(
-    90deg,
-    hsl(var(--bakery-brown)) 0px,
-    hsl(var(--bakery-brown)) 20px,
-    hsl(var(--bakery-brown-light)) 20px,
-    hsl(var(--bakery-brown-light)) 40px
-  );
-  animation: conveyor-belt 0.5s linear infinite;
-  border-radius: 2px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.animate-bread-fall {
+  animation: bread-fall linear infinite;
+  position: absolute;
+  font-size: 2rem;
+  z-index: 10;
+  pointer-events: none;
 }
 
-/* Items flowing on conveyor */
-.animate-item-flow {
+.animate-bread-fall.collected {
+  animation: collectEffect 0.5s ease-out forwards;
+  z-index: 30;
+}
+
+.animate-truck-drive {
+  animation: truck-drive 20s linear infinite;
   position: absolute;
-  font-size: 2.5rem;
-  animation: item-slide 12s linear infinite;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+  bottom: 10px;
+  font-size: 5rem;
+  z-index: 20;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.animate-truck-drive.boost {
+  animation: truck-drive 20s linear infinite, truckBoost 0.3s ease-out;
+}
+
+/* Cat-specific animation classes with speed variations */
+.animate-cat-run {
+  animation: cat-run 15s linear infinite;
+  position: absolute;
+  bottom: 10px;
+  font-size: 4rem;
+  z-index: 20;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.animate-cat-run.duration-slow {
+  animation-duration: 20s;
+}
+
+.animate-cat-run.duration-fast {
+  animation-duration: 8s;
+}
+
+.animate-cat-run.duration-normal {
+  animation-duration: 15s;
+}
+
+.animate-cat-bounce {
+  animation: cat-bounce 1.5s ease-in-out infinite;
+  position: absolute;
+  font-size: 3rem;
   z-index: 15;
   pointer-events: none;
 }
 
-/* Responsive item sizing */
-@media (max-width: 768px) {
-  .animate-item-flow {
-    font-size: 1.8rem;
-  }
+.animate-cat-bounce.duration-slow {
+  animation-duration: 3s;
 }
 
-/* Packing station */
-.packing-station {
-  animation: gentle-pulse 2s ease-in-out infinite;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+.animate-cat-bounce.duration-fast {
+  animation-duration: 1s;
 }
 
-/* Box that receives items */
-.packing-box {
-  animation: box-bounce 3s ease-in-out infinite;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+.animate-cat-bounce.duration-normal {
+  animation-duration: 1.5s;
 }
 
-/* Checkmark success indicator */
-.animate-checkmark {
-  animation: checkmark-pop 0.5s ease-out forwards;
-  color: hsl(var(--success));
-}
-
-/* Truck animation */
-.animate-truck-exit {
-  animation: truck-load-exit 15s linear infinite;
+.animate-cat-fall {
+  animation: cat-fall linear infinite;
   position: absolute;
-  bottom: 0;
-  z-index: 20;
+  font-size: 2.5rem;
+  z-index: 10;
   pointer-events: none;
 }
 
-/* Success glow effect */
-.success-glow {
-  animation: success-glow 2s ease-in-out infinite;
+.animate-cat-fall.duration-slow {
+  animation-duration: 8s;
 }
 
-/* Floating decorative elements */
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+.animate-cat-fall.duration-fast {
+  animation-duration: 3s;
 }
 
-/* Gentle rotation */
-.animate-gentle-rotate {
-  animation: gentle-rotate 4s ease-in-out infinite;
+.animate-cat-fall.duration-normal {
+  animation-duration: 5s;
 }
 
-/* Baked item hover effect */
-.baked-item {
-  transition: transform 0.3s ease, filter 0.3s ease;
+.animate-cat-fall.collected {
+  animation: catCollectEffect 0.7s ease-out forwards;
+  z-index: 30;
 }
 
-.baked-item:hover {
-  transform: scale(1.1) rotate(5deg);
-  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.2));
+.animate-cat-run.boost {
+  animation: cat-run 15s linear infinite, truckBoost 0.3s ease-out;
 }
 
-/* Staggered animation delays */
-.delay-0 { animation-delay: 0s; }
-.delay-1 { animation-delay: 2s; }
-.delay-2 { animation-delay: 4s; }
-.delay-3 { animation-delay: 6s; }
-.delay-4 { animation-delay: 8s; }
-.delay-5 { animation-delay: 10s; }
+/* Speed-specific duration classes */
+.duration-slow {
+  /* Slow animations */
+}
 
-/* Speed variations */
-.duration-slow { animation-duration: 16s; }
-.duration-normal { animation-duration: 12s; }
-.duration-fast { animation-duration: 8s; }
+.duration-normal {
+  /* Normal speed animations */
+}
+
+.duration-fast {
+  /* Fast animations */
+}

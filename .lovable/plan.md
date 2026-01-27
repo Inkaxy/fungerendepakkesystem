@@ -1,260 +1,378 @@
 
-# Plan: Tematisk Animasjonsoppdatering for Landingsiden
+# Plan: Helhetlig UI-forbedring for Bakeri Pakkesystem
 
-## Analyse av Nåværende Situasjon
+## Oversikt
 
-Den nåværende animasjonen har:
-- **Fallende bakevarer** (🍞🥖🥐 etc.) som faller ned fra toppen
-- **Kjørende lastebil** som samler opp brød (game-mekanikk)
-- **Score-system** med collision detection
-
-**Problem**: Animasjonen fremstår som et spill/lek-element som ikke kommuniserer systemets hovedformål - **profesjonell pakking av bakevarer uten feil og mangler**.
+En omfattende designoppgradering som gjor systemet mer profesjonelt, varmt og innbydende - i trad med bakeri-estetikken. Forbedringene fokuserer pa konsistens, brukeropplevelse og visuell harmoni pa tvers av alle sider.
 
 ---
 
-## Ny Animasjonskonsept: "Perfekt Pakkeflyt"
+## Del 1: Design System Forbedringer
 
-Erstatte spill-animasjonen med en visuell fortelling som viser:
+### 1.1 Utvidet Fargepalett (src/styles/base.css)
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        HERO SECTION                             │
-│                                                                 │
-│   [Bakevarer glir inn fra venstre]                             │
-│         🥖 ──→    ┌─────┐    ──→  ✓                            │
-│         🥐 ──→    │📦   │    ──→  ✓   [Pakkede varer ut]       │
-│         🍞 ──→    └─────┘    ──→  ✓                            │
-│                                                                 │
-│   [Samlebånd-effekt med sjekkmerker]                           │
-│                                                                 │
-│   ═══════════════════════════════════════════════              │
-│                    Samlebånd                                    │
-│                                                                 │
-│   [Lastebil kjører ut til høyre med pakkede varer]             │
-│                                      🚚 ──→                     │
-└─────────────────────────────────────────────────────────────────┘
-```
+Legge til flere bakeri-inspirerte nyanser og utility-farger:
 
----
+| Ny Variabel | Bruk |
+|-------------|------|
+| `--bakery-wheat` | Subtil bakgrunnsvarme |
+| `--bakery-crust` | Markerte elementer |
+| `--success` | Positive statuser |
+| `--warning` | Advarsler |
+| `--info` | Informative meldinger |
 
-## Del 1: Nye Keyframe-animasjoner
+### 1.2 Forbedret Typografi
 
-### 1.1 Samlebånd-animasjon
+- Legge til font-weight variabler for konsistent tekststil
+- Definere heading-storrelser med bedre hierarki
+- Forbedre lesbarhet med optimalisert line-height
+
+### 1.3 Nye Utility-klasser (src/styles/theme-colors.css)
 
 ```css
-@keyframes conveyor-belt {
-  0% { background-position: 0 0; }
-  100% { background-position: 40px 0; }
-}
-```
+/* Status-farger */
+.status-success { ... }
+.status-warning { ... }
+.status-info { ... }
 
-### 1.2 Glide-inn animasjon for bakevarer
+/* Bakeri-gradienter */
+.gradient-warm { ... }
+.gradient-fresh { ... }
 
-```css
-@keyframes item-slide-in {
-  0% { 
-    transform: translateX(-100px);
-    opacity: 0;
-  }
-  20% { 
-    opacity: 1;
-  }
-  50% { 
-    transform: translateX(50%);
-  }
-  80% {
-    transform: translateX(100%);
-  }
-  100% { 
-    transform: translateX(calc(100vw + 50px));
-    opacity: 0;
-  }
-}
-```
-
-### 1.3 Pakke-animasjon
-
-```css
-@keyframes pack-item {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.8) translateY(10px); }
-  100% { transform: scale(0) translateY(20px); opacity: 0; }
-}
-```
-
-### 1.4 Sjekkmerke-animasjon
-
-```css
-@keyframes checkmark-pop {
-  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-  50% { transform: scale(1.2) rotate(0deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-```
-
-### 1.5 Lastebil-utgang
-
-```css
-@keyframes truck-exit {
-  0% { transform: translateX(-50%); }
-  80% { transform: translateX(0); }
-  100% { transform: translateX(100vw); }
-}
+/* Moderne skygger */
+.shadow-bakery-sm { ... }
+.shadow-bakery-md { ... }
+.shadow-bakery-lg { ... }
 ```
 
 ---
 
-## Del 2: Ny HeroSection Animasjonsstruktur
+## Del 2: Layoutforbedringer
 
-### 2.1 Visuell Oppbygging
+### 2.1 AuthLayout (src/components/layouts/AuthLayout.tsx)
+
+**Forbedringer:**
+- Varmere bakgrunnsfarge (fra grå til kremfarget)
+- Forbedret navigasjon med subtile ikoner
+- Bedre visuell separasjon mellom navigasjonselementer
+- Sticky header med elegantere skygge
+- Forbedret mobilmeny med bedre animasjoner
+
+**Endringer:**
+```tsx
+// Fra:
+<div className="min-h-screen bg-gray-50">
+
+// Til:
+<div className="min-h-screen bg-gradient-to-b from-bakery-cream to-background">
+```
+
+### 2.2 Konsistent Page Header-komponent
+
+Opprette en gjenbrukbar `PageHeader`-komponent som brukes pa alle sider:
 
 ```tsx
-// Lag 1: Bakgrunn med subtile dekorative elementer
-<div className="absolute inset-0">
-  {/* Dekorative sirkler */}
-</div>
+// src/components/shared/PageHeader.tsx
+interface PageHeaderProps {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+  breadcrumbs?: { label: string; href?: string }[];
+}
+```
 
-// Lag 2: Samlebånd nederst
-<div className="absolute bottom-20 left-0 right-0">
-  <div className="conveyor-belt" />
-</div>
+**Gir:**
+- Konsistent gradient-bakgrunn
+- Ikon + tittel-kombinasjon
+- Breadcrumbs for navigasjon
+- Plass til handlingsknapper
 
-// Lag 3: Flygende bakevarer på samlebåndet
-<div className="absolute bottom-24 left-0 right-0">
-  <div className="animate-item-flow item-1">🥖</div>
-  <div className="animate-item-flow item-2">🥐</div>
-  <div className="animate-item-flow item-3">🍞</div>
-  ...
-</div>
+---
 
-// Lag 4: Pakkestasjoner med sjekkmerker
-<div className="absolute bottom-16 left-1/3">
-  <div className="packing-station">📦 ✓</div>
-</div>
+## Del 3: Sideforbedringer
 
-// Lag 5: Lastebil som lastes
-<div className="absolute bottom-0 right-0">
-  <div className="animate-truck-load">
-    <img src="truck.png" />
+### 3.1 Dashboard (src/pages/Dashboard.tsx)
+
+**Status:** Allerede godt designet med gradient-header
+
+**Forbedringer:**
+- Legge til velkomsttekst som endres basert pa tid og sesong
+- Forbedre stat-kort med mikroanimasjoner pa hover
+- Legge til "tips"-seksjon for nye brukere
+
+### 3.2 Ordrer & Pakking (src/pages/dashboard/Orders.tsx)
+
+**Status:** Godt designet, men noen inkonsistenser
+
+**Forbedringer:**
+- Ensrette knappestiler med resten av systemet
+- Forbedre kalender-legenden med bedre fargekontrast
+- Legge til "tomme tilstander" med illustrasjoner
+
+### 3.3 Produkter (src/pages/dashboard/Products.tsx)
+
+**Nodvendige forbedringer:**
+- Erstatte enkel header med PageHeader-komponent
+- Oppgradere stat-kort til samme stil som Dashboard
+- Forbedre tabelldesign med hover-states
+- Legge til bedre tomme tilstander
+- Forbedre loading-state med skeleton-komponenter
+
+**Endringer:**
+```tsx
+// Fra enkel header:
+<div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-2xl font-bold text-gray-900">Produkter</h1>
+    ...
+
+// Til PageHeader med gradient:
+<PageHeader
+  icon={Package}
+  title="Produkter"
+  subtitle="Administrer produkter for ditt bakeri"
+  actions={...}
+/>
+```
+
+### 3.4 Kunder (src/pages/dashboard/Customers.tsx)
+
+**Nodvendige forbedringer:**
+- Legge til PageHeader-komponent med gradient
+- Forbedre CustomersHeader med bedre visuelt hierarki
+- Legge til stat-kort (totale kunder, med display, uten display)
+- Forbedre tabelldesign med zebra-striping
+- Bedre ikoner og handlingsknapper
+
+**Ny struktur:**
+```text
+┌─────────────────────────────────────────────────┐
+│ [Gradient Header med ikon og tittel]            │
+├─────────────────────────────────────────────────┤
+│ [Stat-kort: Totalt | Med display | Uten]        │
+├─────────────────────────────────────────────────┤
+│ [Sok og filtre]                                 │
+├─────────────────────────────────────────────────┤
+│ [Forbedret tabell]                              │
+└─────────────────────────────────────────────────┘
+```
+
+### 3.5 Rapporter (src/pages/dashboard/Reports.tsx)
+
+**Forbedringer:**
+- Erstatte ikon-header med PageHeader-komponent
+- Forbedre datovelger-UI
+- Legge til bedre visualisering av avviksdata
+- Forbedre tomme tilstander
+
+### 3.6 Admin (src/pages/dashboard/Admin.tsx)
+
+**Forbedringer:**
+- Oppgradere AdminHeader med gradient-stil
+- Forbedre AdminStats med samme design som Dashboard
+- Legge til bedre seksjonsseparasjon
+- Forbedre tilgangsnektet-melding
+
+### 3.7 Innstillinger (src/pages/dashboard/Settings.tsx)
+
+**Forbedringer:**
+- Legge til PageHeader-komponent
+- Forbedre OneDrive-kortet med bedre visuell feedback
+- Legge til flere innstillingskategorier med tydelige seksjoner
+
+### 3.8 Pakkeoversikt (src/pages/dashboard/PackingProductOverview.tsx)
+
+**Status:** Kompakt og funksjonelt design
+
+**Forbedringer:**
+- Forbedre header med varmere farger
+- Legge til bedre visuelle indikatorer for fremgang
+- Forbedre valgt-produkter-panelet med fargekodet status
+
+### 3.9 Login-side (src/pages/Login.tsx)
+
+**Forbedringer:**
+- Forbedre demo-boks med varmere farger
+- Bedre visuell separasjon mellom faner
+- Legge til subtile bakgrunnsdekorasjoner
+
+### 3.10 404-side (src/pages/NotFound.tsx)
+
+**Forbedringer:**
+- Legge til bakeri-tema med illustrasjon
+- Norsk tekst
+- Bedre navigasjonsmuligheter
+
+---
+
+## Del 4: Komponentforbedringer
+
+### 4.1 Felles Komponenter
+
+**PageHeader (NY)**
+```
+src/components/shared/PageHeader.tsx
+```
+
+**EmptyState (NY)**
+```tsx
+// src/components/shared/EmptyState.tsx
+interface EmptyStateProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: { label: string; onClick: () => void };
+}
+```
+
+**StatusBadge (NY)**
+Konsistent badge for statuser pa tvers av systemet.
+
+### 4.2 Dashboard-komponenter
+
+- DashboardStats: Legge til mikroanimasjoner
+- QuickActions: Forbedre hover-effekter
+- RecentActivity: Legge til tidslinje-visualisering
+
+### 4.3 Tabell-forbedringer
+
+Forbedre alle tabeller med:
+- Hover-states pa rader
+- Bedre header-styling
+- Konsistente handlingsknapper
+- Responsive design for mobil
+
+---
+
+## Del 5: Loading og Feilhåndtering
+
+### 5.1 Loading States
+
+Erstatte enkle spinners med:
+- Skeleton-komponenter for tabeller
+- Animerte plassholdere for kort
+- Varmere loading-meldinger
+
+**Eksempel:**
+```tsx
+// Fra:
+<Loader2 className="h-8 w-8 animate-spin" />
+<p className="text-gray-600">Laster...</p>
+
+// Til:
+<div className="space-y-4">
+  <div className="flex justify-center">
+    <div className="relative">
+      <div className="h-16 w-16 rounded-full border-4 border-muted animate-pulse" />
+      <Loader2 className="h-8 w-8 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
+    </div>
   </div>
+  <p className="text-muted-foreground text-center animate-pulse">
+    Laster produkter...
+  </p>
 </div>
 ```
 
-### 2.2 Fjerne Spill-elementene
+### 5.2 Feilmeldinger
 
-- Fjerne `GameOverlay` komponenten fra landingssiden
-- Fjerne `useCollisionDetection` hook fra Index
-- Beholde filene for eventuell fremtidig bruk, men ikke bruke dem
-
----
-
-## Del 3: Nye CSS-klasser
-
-### 3.1 Animasjonsklasser (classes.css)
-
-```css
-/* Samlebånd */
-.conveyor-belt {
-  height: 8px;
-  background: repeating-linear-gradient(
-    90deg,
-    hsl(var(--bakery-brown)) 0px,
-    hsl(var(--bakery-brown)) 20px,
-    hsl(var(--bakery-brown-light)) 20px,
-    hsl(var(--bakery-brown-light)) 40px
-  );
-  animation: conveyor-belt 1s linear infinite;
-}
-
-/* Flyende varer */
-.animate-item-flow {
-  position: absolute;
-  font-size: 2.5rem;
-  animation: item-slide-in 8s linear infinite;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-}
-
-/* Pakkestasjon */
-.packing-station {
-  animation: gentle-pulse 2s ease-in-out infinite;
-}
-
-/* Sjekkmerke */
-.animate-checkmark {
-  animation: checkmark-pop 0.5s ease-out forwards;
-}
-```
-
-### 3.2 Posisjonering (positioning.css)
-
-```css
-/* Item flow positioning - staggered timing */
-.item-1 { animation-delay: 0s; top: 0; }
-.item-2 { animation-delay: 1.5s; top: 10px; }
-.item-3 { animation-delay: 3s; top: 5px; }
-.item-4 { animation-delay: 4.5s; top: 15px; }
-.item-5 { animation-delay: 6s; top: 8px; }
-```
+Forbedre ErrorBoundary og inline-feil med:
+- Vennligere sprak
+- Handlingsalternativer
+- Kontaktinformasjon for hjelp
 
 ---
 
-## Del 4: Interaktive Hover-effekter
+## Del 6: Responsive Design
 
-### 4.1 Bakevare-hover
+### 6.1 Mobiloptimalisering
 
-```css
-.baked-item:hover {
-  transform: scale(1.1) rotate(5deg);
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
-}
-```
+- Forbedre mobilmeny i AuthLayout
+- Gjore stat-kort stablede pa mobil
+- Forbedre tabeller med horisontal scroll
+- Legge til touch-vennlige knapper
 
-### 4.2 Pulserende pakke-ikon
+### 6.2 Nettbrett-stotte
 
-```css
-@keyframes gentle-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
-```
-
----
-
-## Del 5: Responsive Tilpasning
-
-### 5.1 Mobil
-
-- Redusere antall synlige bakevarer fra 5 til 3
-- Forenkle samlebånd-visualisering
-- Mindre fontstørrelse på emojis
-
-### 5.2 Tablet
-
-- 4 bakevarer synlig
-- Full samlebånd med enklere animasjon
+- Optimalisere grid-layout for mellomstore skjermer
+- Forbedre sidebar-oppforsel pa iPad
 
 ---
 
 ## Filer som Endres
 
-| Fil | Endring |
-|-----|---------|
-| `src/styles/animations/keyframes.css` | Nye keyframes for pakkeflyt |
-| `src/styles/animations/classes.css` | Nye animasjonsklasser |
-| `src/styles/animations/positioning.css` | Oppdatert posisjonering |
-| `src/components/home/HeroSection.tsx` | Ny animasjonsstruktur |
-| `src/pages/Index.tsx` | Fjerne GameOverlay-referanse |
+### Nye Filer
+
+| Fil | Beskrivelse |
+|-----|-------------|
+| `src/components/shared/PageHeader.tsx` | Gjenbrukbar side-header |
+| `src/components/shared/EmptyState.tsx` | Tom-tilstand komponent |
+| `src/components/shared/StatusBadge.tsx` | Konsistent status-badge |
+| `src/components/shared/LoadingState.tsx` | Forbedret loading-komponent |
+
+### Modifiserte Filer
+
+| Fil | Endringer |
+|-----|-----------|
+| `src/styles/base.css` | Nye fargevariabler |
+| `src/styles/theme-colors.css` | Nye utility-klasser |
+| `src/components/layouts/AuthLayout.tsx` | Varmere design, forbedret navigasjon |
+| `src/pages/Dashboard.tsx` | Mikroanimasjoner, tips-seksjon |
+| `src/pages/dashboard/Products.tsx` | PageHeader, forbedrede kort og tabell |
+| `src/pages/dashboard/Customers.tsx` | PageHeader, stat-kort, forbedret tabell |
+| `src/pages/dashboard/Reports.tsx` | PageHeader, forbedret datovelger |
+| `src/pages/dashboard/Settings.tsx` | PageHeader, seksjoner |
+| `src/pages/dashboard/Admin.tsx` | Gradient-header, forbedrede stats |
+| `src/pages/Login.tsx` | Varmere demo-boks, subtile dekorasjoner |
+| `src/pages/NotFound.tsx` | Bakeri-tema, norsk tekst |
+| `src/components/admin/AdminHeader.tsx` | Gradient-stil |
+| `src/components/admin/AdminStats.tsx` | Ny kortdesign |
+| `src/components/customers/CustomersHeader.tsx` | Forbedret visuelt hierarki |
+| `src/components/customers/CustomersTable.tsx` | Hover-states, bedre design |
+
+---
+
+## Implementeringsrekkefølge
+
+1. **Fase 1 - Design System** (grunnlag)
+   - Oppdatere CSS-variabler
+   - Legge til utility-klasser
+   - Opprette PageHeader-komponent
+
+2. **Fase 2 - Layout**
+   - Forbedre AuthLayout
+   - Opprette gjenbrukbare komponenter
+
+3. **Fase 3 - Hovedsider**
+   - Dashboard
+   - Orders
+   - Products
+   - Customers
+
+4. **Fase 4 - Sekundære Sider**
+   - Reports
+   - Admin
+   - Settings
+   - Login
+   - NotFound
+
+5. **Fase 5 - Polish**
+   - Mikroanimasjoner
+   - Loading states
+   - Responsive finjustering
 
 ---
 
 ## Forventet Resultat
 
-| Aspekt | Før | Etter |
+| Omrade | For | Etter |
 |--------|-----|-------|
-| Tema | Spill/lek | Profesjonell pakking |
-| Budskap | "Samle brød" | "Effektiv, feilfri pakking" |
-| Visuell stil | Kaotisk fallende elementer | Ordnet samlebånd-flyt |
-| Brukeropplevelse | Interaktivt spill | Elegant visualisering |
-| Harmoni med resten | Avvikende | Konsistent bakeri-estetikk |
+| Fargepalett | Kalde grafarger | Varme bakeri-toner |
+| Header-design | Inkonsistent | Ensartet gradient-stil |
+| Stat-kort | Varierende design | Konsistent, elegant design |
+| Tabeller | Enkle | Hover-states, bedre UX |
+| Loading | Enkel spinner | Animert, kontekstuell |
+| Tomme tilstander | Minimal | Illustrert, handlingsorientert |
+| Feilmeldinger | Tekniske | Vennlige, losningsorienterte |
 
-Animasjonen vil kommunisere systemets kjerneverdi: **strukturert, pålitelig pakking av bakevarer uten feil og mangler**.
+Systemet vil fremsta som et profesjonelt, moderne og varmt verktoy som reflekterer kvaliteten og omsorgen som gar inn i et tradisjonelt bakeri.

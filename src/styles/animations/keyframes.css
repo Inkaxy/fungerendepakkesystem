@@ -6,116 +6,78 @@
   100% { transform: translateY(0px) scale(1); }
 }
 
-/* Conveyor belt animation */
-@keyframes conveyor-belt {
-  0% { background-position: 0 0; }
-  100% { background-position: 40px 0; }
-}
-
-/* Item sliding across conveyor */
-@keyframes item-slide {
+@keyframes bread-fall {
   0% { 
-    transform: translateX(-100px);
-    opacity: 0;
-  }
-  10% { 
-    opacity: 1;
-  }
-  90% {
+    transform: translateY(-20px) rotate(0deg);
     opacity: 1;
   }
   100% { 
-    transform: translateX(calc(100vw + 100px));
-    opacity: 0;
-  }
-}
-
-/* Pack item animation - shrinks into box */
-@keyframes pack-item {
-  0% { 
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-  50% { 
-    transform: scale(0.8) translateY(10px);
+    transform: translateY(calc(100vh - 100px)) rotate(360deg);
     opacity: 0.8;
   }
+}
+
+@keyframes truck-drive {
+  0% { 
+    transform: translateX(-100px);
+  }
+  50% { 
+    transform: translateX(calc(100vw - 100px));
+  }
+  51% { 
+    transform: translateX(calc(100vw - 100px)) scaleX(-1);
+  }
   100% { 
-    transform: scale(0) translateY(20px);
-    opacity: 0;
+    transform: translateX(-100px) scaleX(-1);
   }
 }
 
-/* Checkmark pop animation */
-@keyframes checkmark-pop {
+/* Cat animation keyframes with variable duration support */
+@keyframes cat-run {
   0% { 
-    transform: scale(0) rotate(-45deg);
-    opacity: 0;
+    transform: translateX(-100px);
   }
   50% { 
-    transform: scale(1.2) rotate(0deg);
+    transform: translateX(calc(100vw - 100px));
+  }
+  51% { 
+    transform: translateX(calc(100vw - 100px)) scaleX(-1);
   }
   100% { 
-    transform: scale(1) rotate(0deg);
+    transform: translateX(-100px) scaleX(-1);
+  }
+}
+
+@keyframes cat-bounce {
+  0% { 
+    transform: translateY(0px) scale(1);
+  }
+  25% { 
+    transform: translateY(-15px) scale(1.1);
+  }
+  50% { 
+    transform: translateY(0px) scale(1);
+  }
+  75% { 
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% { 
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes cat-fall {
+  0% { 
+    transform: translateY(-20px) rotate(0deg);
     opacity: 1;
   }
-}
-
-/* Truck loading and exiting */
-@keyframes truck-load-exit {
-  0% { 
-    transform: translateX(-20%);
-  }
-  70% { 
-    transform: translateX(0);
-  }
   100% { 
-    transform: translateX(110vw);
+    transform: translateY(calc(100vh - 100px)) rotate(180deg);
+    opacity: 0.8;
   }
 }
 
-/* Gentle pulse for packing station */
-@keyframes gentle-pulse {
-  0%, 100% { 
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% { 
-    transform: scale(1.05);
-    opacity: 1;
-  }
-}
-
-/* Box bounce when item enters */
-@keyframes box-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-/* Success glow effect */
-@keyframes success-glow {
-  0%, 100% { 
-    box-shadow: 0 0 5px hsl(var(--success) / 0.3);
-  }
-  50% { 
-    box-shadow: 0 0 20px hsl(var(--success) / 0.6);
-  }
-}
-
-/* Floating animation for decorative elements */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-/* Subtle rotation for variety */
-@keyframes gentle-rotate {
-  0% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
-  100% { transform: rotate(-2deg); }
-}
-
-/* Game effect keyframes (legacy - kept for compatibility) */
+/* Game effect keyframes */
 @keyframes collectEffect {
   0% {
     transform: translateY(0) scale(1);
@@ -129,4 +91,40 @@
     transform: translateY(-40px) scale(0.8);
     opacity: 0;
   }
+}
+
+@keyframes truckBoost {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes catCollectEffect {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-30px) scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-60px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Additional cat animation variations for different speeds */
+@keyframes cat-run-slow {
+  0% { transform: translateX(-100px); }
+  50% { transform: translateX(calc(100vw - 100px)); }
+  51% { transform: translateX(calc(100vw - 100px)) scaleX(-1); }
+  100% { transform: translateX(-100px) scaleX(-1); }
+}
+
+@keyframes cat-run-fast {
+  0% { transform: translateX(-100px); }
+  50% { transform: translateX(calc(100vw - 100px)); }
+  51% { transform: translateX(calc(100vw - 100px)) scaleX(-1); }
+  100% { transform: translateX(-100px) scaleX(-1); }
 }
