@@ -34,11 +34,12 @@ const LinkTabletDialog: React.FC<LinkTabletDialogProps> = ({
 }) => {
   const { linkToCustomer } = useTabletActions();
   const { data: customers = [] } = useCustomers();
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  // Radix Select: SelectItem.value kan ikke være tom streng. Bruk "none" som sentinel.
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('none');
 
   useEffect(() => {
     if (tablet) {
-      setSelectedCustomerId(tablet.customer_id || '');
+      setSelectedCustomerId(tablet.customer_id || 'none');
     }
   }, [tablet]);
 
@@ -47,7 +48,7 @@ const LinkTabletDialog: React.FC<LinkTabletDialogProps> = ({
 
     await linkToCustomer.mutateAsync({
       tabletId: tablet.id,
-      customerId: selectedCustomerId || null,
+      customerId: selectedCustomerId === 'none' ? null : selectedCustomerId,
     });
     onOpenChange(false);
   };
@@ -73,7 +74,7 @@ const LinkTabletDialog: React.FC<LinkTabletDialogProps> = ({
                 <SelectValue placeholder="Ingen tilknytning" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="none">
                   <span className="text-muted-foreground">Ingen tilknytning</span>
                 </SelectItem>
                 {customers.map((customer) => (
@@ -93,7 +94,7 @@ const LinkTabletDialog: React.FC<LinkTabletDialogProps> = ({
             </Select>
           </div>
 
-          {selectedCustomerId && (
+          {selectedCustomerId !== 'none' && (
             <div className="p-3 bg-muted rounded-lg text-sm">
               <p className="text-muted-foreground">
                 Nettbrettet vil automatisk vise pakkestatus for denne butikken
