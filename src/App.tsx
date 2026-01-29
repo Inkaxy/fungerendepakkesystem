@@ -27,6 +27,9 @@ import NotFound from "./pages/NotFound";
 const SharedDisplay = lazy(() => import("./pages/display/SharedDisplay"));
 const CustomerDisplay = lazy(() => import("./pages/display/CustomerDisplay"));
 
+// Legacy redirects for backward compatibility
+import { LegacyDisplayRedirect, LegacySharedRedirect } from "@/components/routing/LegacyRedirects";
+
 // Components
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthLayout from "@/components/layouts/AuthLayout";
@@ -89,6 +92,10 @@ function AppContent() {
             </Suspense>
           </ErrorBoundary>
         } />
+        
+        {/* Legacy display routes - redirect to new format */}
+        <Route path="/display/shared/:bakeryId" element={<LegacySharedRedirect />} />
+        <Route path="/display/:displayUrl" element={<LegacyDisplayRedirect />} />
         
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
