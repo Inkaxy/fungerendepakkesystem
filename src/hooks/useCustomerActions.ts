@@ -56,9 +56,9 @@ export const useCustomerActions = () => {
       
       if (hasDedicatedDisplay) {
         // Switching to dedicated display
-        // Generate display_url if it doesn't exist
+        // Generate display_url if it doesn't exist - kort 6-tegns ID
         if (!customer.display_url) {
-          updates.display_url = `display-${crypto.randomUUID().substring(0, 8)}`;
+          updates.display_url = crypto.randomUUID().substring(0, 6);
         }
       } else {
         // Switching to shared display
