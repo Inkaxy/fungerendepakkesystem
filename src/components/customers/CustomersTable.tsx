@@ -71,6 +71,8 @@ const CustomersTable = ({
   // Hent bakeryId fra auth store
   const { profile } = useAuthStore();
   const bakeryId = profile?.bakery_id;
+  const bakeryShortId = profile?.bakery_short_id;
+  const sharedDisplayId = bakeryShortId || bakeryId;
 
   return (
     <div className="rounded-md border">
@@ -159,13 +161,13 @@ const CustomersTable = ({
                         Rediger
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onCopyUrl(getDisplayPath(customer, bakeryId || undefined))}
+                        onClick={() => onCopyUrl(getDisplayPath(customer, sharedDisplayId || undefined))}
                       >
                         <Copy className="w-4 h-4 mr-2" />
                         Kopier URL
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onOpenUrl(getDisplayPath(customer, bakeryId || undefined))}
+                        onClick={() => onOpenUrl(getDisplayPath(customer, sharedDisplayId || undefined))}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Åpne display

@@ -38,14 +38,16 @@ const QrCodeModal = ({
   // Hent bakeryId fra auth store - ALLTID kall hooks først
   const { profile } = useAuthStore();
   const bakeryId = profile?.bakery_id;
+  const bakeryShortId = profile?.bakery_short_id;
+  const sharedDisplayId = bakeryShortId || bakeryId;
   
   // Hent customer-data fra React Query cache
   const { data: customers } = useCustomers();
   const customer = customers?.find(c => c.id === customerId);
 
-  // Beregn displayPath og fullUrl - bruk bakeryId for shared display
-  const displayPath = customer ? getDisplayPath(customer, bakeryId || undefined) : '';
-  const fullUrl = customer ? getDisplayUrl(customer, bakeryId || undefined) : '';
+  // Beregn displayPath og fullUrl - bruk short_id for shared display (fallback til UUID hvis short_id mangler)
+  const displayPath = customer ? getDisplayPath(customer, sharedDisplayId || undefined) : '';
+  const fullUrl = customer ? getDisplayUrl(customer, sharedDisplayId || undefined) : '';
 
   const handleShowQrCode = () => {
     setShowQrCode(!showQrCode);
