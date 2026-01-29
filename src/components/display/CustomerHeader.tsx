@@ -39,6 +39,29 @@ const CustomerHeader = ({
   const alignment = settings?.customer_header_alignment || 'center';
   const alignmentClass = alignment === 'left' ? 'text-left' : 
                          alignment === 'right' ? 'text-right' : 'text-center';
+                         
+  // Check if customer name should be shown (always_show_customer_name)
+  const showCustomerName = settings?.always_show_customer_name ?? true;
+  
+  // Large touch targets
+  const touchTargetPadding = settings?.large_touch_targets ? 'p-4' : 'p-2';
+
+  // If customer name should be hidden, don't render the header content
+  if (!showCustomerName) {
+    return showRefresh && onRefresh ? (
+      <div className={cn("flex justify-end items-start", className)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className={cn("relative z-10", touchTargetPadding)}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Oppdater
+        </Button>
+      </div>
+    ) : null;
+  }
 
   return (
     <div className={cn("flex justify-between items-start", className)}>
@@ -68,7 +91,7 @@ const CustomerHeader = ({
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="relative z-10"
+            className={cn("relative z-10", touchTargetPadding)}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Oppdater

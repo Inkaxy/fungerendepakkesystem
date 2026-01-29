@@ -19,6 +19,10 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
     ? customerPackingData.products.filter(p => p.packing_status !== 'completed')
     : customerPackingData.products;
 
+  // Accessibility settings
+  const reducedMotion = settings?.reduce_motion ?? false;
+  const largeTouchTargets = settings?.large_touch_targets ?? false;
+
   // Get layout class based on product_card_layout setting
   const getLayoutClass = () => {
     switch (settings?.product_card_layout) {
@@ -69,10 +73,11 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
 
     // Calculate scaled values based on product_card_size percentage
     const scale = (settings?.product_card_size || 100) / 100;
-    const scaledNameSize = Math.round((settings?.product_name_font_size || 24) * scale);
-    const scaledQuantitySize = Math.round((settings?.product_quantity_font_size || 48) * scale);
-    const scaledUnitSize = Math.round((settings?.product_unit_font_size || 24) * scale);
-    const scaledPadding = Math.round(16 * scale);
+    const touchScale = largeTouchTargets ? 1.2 : 1;
+    const scaledNameSize = Math.round((settings?.product_name_font_size || 24) * scale * touchScale);
+    const scaledQuantitySize = Math.round((settings?.product_quantity_font_size || 48) * scale * touchScale);
+    const scaledUnitSize = Math.round((settings?.product_unit_font_size || 24) * scale * touchScale);
+    const scaledPadding = Math.round((largeTouchTargets ? 24 : 16) * scale);
 
     return (
       <div 
@@ -80,7 +85,7 @@ const CustomerProductsList = ({ customerPackingData, settings, statusColors }: C
         className={cn(
           "rounded-lg",
           isVertical || isGrid ? "text-center" : "flex justify-between items-center",
-          settings?.card_hover_effect && "hover:scale-[1.02] transition-transform duration-200"
+          settings?.card_hover_effect && !reducedMotion && "hover:scale-[1.02] transition-transform duration-200"
         )}
         style={{
           backgroundColor: bgColor,

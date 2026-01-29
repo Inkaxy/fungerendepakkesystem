@@ -31,6 +31,15 @@ const CustomerStatusProgress = React.memo(({
   const showStatusIndicator = settings?.show_status_indicator ?? true;
   const showProgressBar = settings?.show_progress_bar ?? true;
   
+  // Accessibility settings
+  const reducedMotion = settings?.reduce_motion ?? false;
+  const largeTouchTargets = settings?.large_touch_targets ?? false;
+  
+  // If both are hidden, don't render anything
+  if (!showStatusIndicator && !showProgressBar) {
+    return null;
+  }
+  
   // If both are hidden, don't render anything
   if (!showStatusIndicator && !showProgressBar) {
     return null;
@@ -140,7 +149,7 @@ const CustomerStatusProgress = React.memo(({
                   style={{ 
                     backgroundColor: settings?.progress_bar_color || '#3b82f6',
                     width: `${progress}%`,
-                    transition: (settings?.enable_animations ?? true) ? 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                    transition: (!reducedMotion && (settings?.enable_animations ?? true)) ? 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
                     willChange: 'width',
                   }}
                 />
@@ -154,7 +163,7 @@ const CustomerStatusProgress = React.memo(({
                       width: `${settings?.truck_icon_size || 20}px`,
                       height: `${settings?.truck_icon_size || 20}px`,
                       objectFit: 'contain',
-                      transition: (settings?.enable_animations ?? true) ? 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                      transition: (!reducedMotion && (settings?.enable_animations ?? true)) ? 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
                       zIndex: 10,
                     }}
                   />
@@ -193,7 +202,9 @@ const CustomerStatusProgress = React.memo(({
     prevProps.settings?.show_progress_percentage === nextProps.settings?.show_progress_percentage &&
     prevProps.settings?.progress_show_fraction === nextProps.settings?.progress_show_fraction &&
     prevProps.settings?.compact_status_progress === nextProps.settings?.compact_status_progress &&
-    prevProps.settings?.enable_animations === nextProps.settings?.enable_animations
+    prevProps.settings?.enable_animations === nextProps.settings?.enable_animations &&
+    prevProps.settings?.reduce_motion === nextProps.settings?.reduce_motion &&
+    prevProps.settings?.large_touch_targets === nextProps.settings?.large_touch_targets
   );
 });
 

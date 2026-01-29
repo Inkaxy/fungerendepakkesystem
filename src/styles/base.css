@@ -108,3 +108,26 @@
     @apply text-lg font-medium;
   }
 }
+
+/* Accessibility: Reduced motion */
+.motion-reduce,
+.motion-reduce * {
+  animation-duration: 0.001s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001s !important;
+}
+
+/* Accessibility: High contrast mode */
+.high-contrast {
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --foreground: 0 0% 0%;
+  --muted-foreground: 0 0% 20%;
+}
+
+.high-contrast .dark {
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 80%;
+}
