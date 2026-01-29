@@ -18,6 +18,7 @@ export interface UserProfile {
   role: UserRole;
   bakery_id: string | null;
   bakery_name?: string | null;
+  bakery_short_id: string | null;
   provider: AuthProvider;
   email_confirmed: boolean;
   is_active: boolean;
@@ -134,7 +135,7 @@ export const useAuthStore = create<AuthState>()(
             .from('profiles')
             .select(`
               id, email, name, avatar_url, bakery_id, provider, email_confirmed, is_active,
-              bakeries(name)
+              bakeries(name, short_id)
             `)
             .eq('id', userId)
             .maybeSingle();
@@ -167,6 +168,7 @@ export const useAuthStore = create<AuthState>()(
               role: (roleData?.role || 'bakery_user') as UserRole, // Use role from user_roles, fallback to bakery_user
               bakery_id: profileData.bakery_id,
               bakery_name: profileData.bakeries?.name || null,
+              bakery_short_id: profileData.bakeries?.short_id || null,
               provider: profileData.provider as AuthProvider,
               email_confirmed: profileData.email_confirmed,
               is_active: profileData.is_active,

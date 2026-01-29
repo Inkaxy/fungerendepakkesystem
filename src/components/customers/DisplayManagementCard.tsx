@@ -10,14 +10,14 @@ import { useAuthStore } from '@/stores/authStore';
 const DisplayManagementCard = () => {
   const { toast } = useToast();
   const { profile } = useAuthStore();
-  const bakeryId = profile?.bakery_id;
+  const shortId = profile?.bakery_short_id;
 
   const getSharedDisplayUrl = () => {
-    if (!bakeryId) {
+    if (!shortId) {
       return null;
     }
-    // Bruker bakeryId midlertidig - i prod vil dette være short_id
-    return `${window.location.origin}/s/${bakeryId}`;
+    // Bruker short_id for kortere, mer delbare URLer
+    return `${window.location.origin}/s/${shortId}`;
   };
 
   const copySharedDisplayUrl = () => {
@@ -25,7 +25,7 @@ const DisplayManagementCard = () => {
     if (!fullUrl) {
       toast({
         title: "Feil",
-        description: "Kunne ikke generere URL - bakeri-ID mangler",
+        description: "Kunne ikke generere URL - bakeri short_id mangler",
         variant: "destructive"
       });
       return;

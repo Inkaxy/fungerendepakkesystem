@@ -18,18 +18,18 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
   
   const { data: customers, isLoading: customersLoading } = useCustomers();
   const { profile, isLoading: profileLoading } = useAuthStore();
-  const bakeryId = profile?.bakery_id;
+  const shortId = profile?.bakery_short_id;
   
   // Filtrer kun kunder med dedikert display
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
 
   // Generer iframe URL basert på valgt display type - alltid med demo=true for forhåndsvisning
-  // Bruker bakeryId midlertidig - i prod vil dette være short_id
+  // Bruker short_id for kortere, mer delbare URLer
   const getIframeUrl = (): string | null => {
-    if (!bakeryId) return null;
+    if (!shortId) return null;
     
     if (displayType === 'shared') {
-      return `/s/${bakeryId}?demo=true`;
+      return `/s/${shortId}?demo=true`;
     }
     
     if (selectedCustomerId) {
@@ -40,7 +40,7 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
     }
     
     // Fallback til shared med demo
-    return `/s/${bakeryId}?demo=true`;
+    return `/s/${shortId}?demo=true`;
   };
 
   const iframeUrl = getIframeUrl();
@@ -84,8 +84,8 @@ const DisplayPreviewPanel = ({ settings, displayType }: DisplayPreviewPanelProps
     );
   }
 
-  // No bakeryId state
-  if (!bakeryId) {
+  // No shortId state
+  if (!shortId) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-muted-foreground">
