@@ -15,7 +15,8 @@ import {
   FileBarChart,
   MonitorPlay,
   ClipboardList,
-  Shield
+  Shield,
+  Tablet
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useLocation } from 'react-router-dom';
@@ -63,8 +64,13 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     { name: 'Display', href: '/dashboard/display-settings', icon: MonitorPlay },
   ];
 
-  // Add Settings for bakery_admin and super_admin
+  // Add Tablets and Settings for bakery_admin and super_admin
   if (profile?.role === 'bakery_admin' || profile?.role === 'super_admin') {
+    navigationItems.push({
+      name: 'Nettbrett',
+      href: '/dashboard/tablets',
+      icon: Tablet
+    });
     navigationItems.push({
       name: 'Innstillinger',
       href: '/dashboard/settings',

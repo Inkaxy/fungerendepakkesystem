@@ -25,6 +25,7 @@ import {
   ExternalLink,
   MoreHorizontal,
   MapPin,
+  Tablet,
 } from 'lucide-react';
 import { Customer } from '@/types/database';
 import { useOrderCounts } from '@/hooks/useOrderCounts';
@@ -45,6 +46,7 @@ interface CustomersTableProps {
   onCopyUrl: (displayPath: string) => void;
   onOpenUrl: (displayPath: string) => void;
   onShowQrCode: (customer: Customer) => void;
+  onManageTablet?: (customer: Customer) => void;
 }
 
 const CustomersTable = ({
@@ -60,6 +62,7 @@ const CustomersTable = ({
   onCopyUrl,
   onOpenUrl,
   onShowQrCode,
+  onManageTablet,
 }: CustomersTableProps) => {
   const allSelected = customers.length > 0 && selectedCustomers.length === customers.length;
   const customerIds = customers.map(c => c.id);
@@ -167,6 +170,12 @@ const CustomersTable = ({
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Åpne display
                       </DropdownMenuItem>
+                      {onManageTablet && (
+                        <DropdownMenuItem onClick={() => onManageTablet(customer)}>
+                          <Tablet className="w-4 h-4 mr-2" />
+                          Administrer nettbrett
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => onDeleteCustomer(customer.id)}
                         className="text-red-600"
