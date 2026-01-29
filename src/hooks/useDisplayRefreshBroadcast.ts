@@ -1,10 +1,13 @@
 
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { QUERY_KEYS } from '@/lib/queryKeys';
 
 export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isMountedRef = useRef(true);
 
   // Lytt på refresh broadcasts (kun for displays)
@@ -23,12 +26,30 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
           return;
         }
         
-        console.log('🔄 Refresh signal mottatt, reloader display...');
-        
-        // Vent kort så logger går gjennom, deretter reload
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
+        console.log('🔄 Refresh signal mottatt, invaliderer display-cacher...', payload);
+
+        // Myk refresh: invalider relevante queries (ingen full reload → mindre flimring)
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+          refetchType: 'active',
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0], bakeryId],
+          refetchType: 'active',
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0], bakeryId],
+          exact: false,
+          refetchType: 'active',
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+          exact: false,
+          refetchType: 'active',
+        });
       })
       .subscribe();
 
@@ -36,7 +57,7 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
       isMountedRef.current = false; // FØRST - blokkerer alle callbacks
       supabase.removeChannel(channel);
     };
-  }, [bakeryId, isDisplay]);
+  }, [bakeryId, isDisplay, queryClient]);
 
   // Broadcast refresh funksjon (for admin)
   const broadcastRefresh = async () => {
@@ -48,16 +69,37 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
     console.log('📡 Sender refresh broadcast til bakery:', bakeryId);
 
     const channel = supabase.channel(`display-refresh-${bakeryId}`);
-    
-    await channel.subscribe();
-    
-    await channel.send({
-      type: 'broadcast',
-      event: 'force-refresh',
-      payload: { timestamp: new Date().toISOString() }
+
+    // ✅ Viktig: supabase-js v2 sin subscribe() er ikke awaitable (returnerer channel).
+    // Vi venter eksplisitt på SUBSCRIBED før vi sender, ellers kan meldingen droppes.
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        // Fallback: ikke blokker for alltid
+        console.warn('⚠️ Broadcast subscribe timeout - forsøker å sende likevel');
+        resolve();
+      }, 2000);
+
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(timeout);
+          resolve();
+        }
+        if (status === 'CHANNEL_ERROR') {
+          clearTimeout(timeout);
+          reject(new Error('CHANNEL_ERROR ved subscribe()'));
+        }
+      });
     });
 
-    await supabase.removeChannel(channel);
+    const sendResult = await channel.send({
+      type: 'broadcast',
+      event: 'force-refresh',
+      payload: { timestamp: new Date().toISOString() },
+    });
+
+    console.log('📡 Broadcast send result:', sendResult);
+
+    supabase.removeChannel(channel);
 
     toast({
       title: "Refresh sendt!",
