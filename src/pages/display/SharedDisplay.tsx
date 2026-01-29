@@ -14,6 +14,7 @@ import { usePackingBroadcastListener } from '@/hooks/usePackingBroadcastListener
 import { useDisplayRefreshBroadcast } from '@/hooks/useDisplayRefreshBroadcast';
 import { useDisplayHeartbeat } from '@/hooks/useDisplayHeartbeat';
 import { useWakeLock } from '@/hooks/useWakeLock';
+import { useResolveBakeryId } from '@/hooks/useResolveBakeryId';
 import { 
   usePublicDisplaySettings,
   usePublicActivePackingDate,
@@ -31,9 +32,12 @@ import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
 
 const SharedDisplay = () => {
-  // shortId kan være enten short_id eller bakeryId (for bakoverkompatibilitet)
+  // shortId kan være enten short_id (6 tegn) eller full UUID (36 tegn) for bakoverkompatibilitet
   const { shortId } = useParams<{ shortId: string }>();
-  const bakeryId = shortId; // Alias for kompatibilitet med eksisterende hooks
+  
+  // ✅ Oppløs short_id til full bakery_id (UUID)
+  const { data: resolvedBakeryId, isLoading: isResolvingId } = useResolveBakeryId(shortId);
+  const bakeryId = resolvedBakeryId; // Bruk oppløst UUID
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -261,7 +265,8 @@ const SharedDisplay = () => {
   const isToday = effectivePackingDate ? effectivePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
   // ✅ OPTIMALISERING: Bruk kun dato/kunde-loading for initial state, 
   // packing data loading håndteres per-kort med skeleton
-  const isLoading = isDemo ? false : (dateLoading || customersLoading);
+  // Inkluderer også ID-oppløsning for short_id
+  const isLoading = isDemo ? false : (isResolvingId || dateLoading || customersLoading);
 
   // Determine grid columns class based on settings
   const getCustomerGridClass = () => {

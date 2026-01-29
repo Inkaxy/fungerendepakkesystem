@@ -18,16 +18,16 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   
   const { data: customers } = useCustomers();
   const { profile } = useAuthStore();
-  const bakeryId = profile?.bakery_id;
+  const shortId = profile?.bakery_short_id;
   
   // Filtrer kun kunder med dedikert display
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
 
   // Generer iframe URL basert på valgt display type - alltid med demo=true for forhåndsvisning
-  // Bruker fortsatt bakeryId for preview siden short_id ikke er tilgjengelig her ennå
+  // Bruker short_id for kortere URLer
   const getIframeUrl = () => {
     if (displayType === 'shared') {
-      return bakeryId ? `/s/${bakeryId}?demo=true` : null;
+      return shortId ? `/s/${shortId}?demo=true` : null;
     }
     
     if (selectedCustomerId) {
@@ -37,7 +37,7 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
       }
     }
     
-    return bakeryId ? `/s/${bakeryId}?demo=true` : null;
+    return shortId ? `/s/${shortId}?demo=true` : null;
   };
 
   const iframeUrl = getIframeUrl();
