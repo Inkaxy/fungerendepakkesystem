@@ -1,378 +1,379 @@
 
-# Plan: Helhetlig UI-forbedring for Bakeri Pakkesystem
+
+# Plan: Nettbrett-administrasjon for Bakeri Pakkesystem
 
 ## Oversikt
 
-En omfattende designoppgradering som gjor systemet mer profesjonelt, varmt og innbydende - i trad med bakeri-estetikken. Forbedringene fokuserer pa konsistens, brukeropplevelse og visuell harmoni pa tvers av alle sider.
+Basert på PDF-dokumentet om fleet management (Headwind MDM + ws-scrcpy + ADB) og eksisterende systemstruktur, skal vi implementere en nettbrett-administrasjonsmodul som integreres naturlig med bakeri-systemet.
+
+## Funksjonalitet
+
+### Hovedfunksjoner
+
+| Funksjon | Beskrivelse |
+|----------|-------------|
+| Nettbrett-oversikt | Dedikert side med alle registrerte nettbrett og status |
+| Butikk-tilknytning | Koble nettbrett til spesifikke kunder/butikker |
+| Snarveier fra kundeoversikt | Hurtighandlinger for nettbrett-kontroll per kunde |
+| Status-overvåking | Se online/offline-status og siste aktivitet |
+| Fjernkontroll-lenker | Integrasjon med eksterne verktøy (Headwind MDM, ws-scrcpy) |
 
 ---
 
-## Del 1: Design System Forbedringer
+## Del 1: Database-struktur
 
-### 1.1 Utvidet Fargepalett (src/styles/base.css)
+### Ny tabell: `tablets`
 
-Legge til flere bakeri-inspirerte nyanser og utility-farger:
+```sql
+CREATE TABLE tablets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bakery_id UUID NOT NULL REFERENCES bakeries(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+  
+  -- Identifikasjon
+  name VARCHAR NOT NULL,
+  device_id VARCHAR,           -- Android device ID
+  ip_address VARCHAR,          -- For ADB-tilkobling
+  
+  -- Status
+  status VARCHAR DEFAULT 'offline',  -- online, offline, error
+  last_seen_at TIMESTAMPTZ,
+  last_heartbeat_at TIMESTAMPTZ,
+  
+  -- Konfigurering
+  kiosk_mode BOOLEAN DEFAULT true,
+  display_url VARCHAR,         -- URL som vises på nettbrettet
+  
+  -- Metadata
+  model VARCHAR,               -- Enhetsmodell
+  android_version VARCHAR,
+  notes TEXT,
+  
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
 
-| Ny Variabel | Bruk |
-|-------------|------|
-| `--bakery-wheat` | Subtil bakgrunnsvarme |
-| `--bakery-crust` | Markerte elementer |
-| `--success` | Positive statuser |
-| `--warning` | Advarsler |
-| `--info` | Informative meldinger |
+### RLS-policies
 
-### 1.2 Forbedret Typografi
+```sql
+-- Brukere kan se nettbrett fra eget bakeri
+CREATE POLICY "Users can view tablets from their bakery"
+  ON tablets FOR SELECT
+  USING (bakery_id = get_current_user_bakery_id());
 
-- Legge til font-weight variabler for konsistent tekststil
-- Definere heading-storrelser med bedre hierarki
-- Forbedre lesbarhet med optimalisert line-height
-
-### 1.3 Nye Utility-klasser (src/styles/theme-colors.css)
-
-```css
-/* Status-farger */
-.status-success { ... }
-.status-warning { ... }
-.status-info { ... }
-
-/* Bakeri-gradienter */
-.gradient-warm { ... }
-.gradient-fresh { ... }
-
-/* Moderne skygger */
-.shadow-bakery-sm { ... }
-.shadow-bakery-md { ... }
-.shadow-bakery-lg { ... }
+-- Admins kan administrere nettbrett
+CREATE POLICY "Admins can manage tablets"
+  ON tablets FOR ALL
+  USING (bakery_id = get_current_user_bakery_id() 
+         AND get_current_user_role() IN ('super_admin', 'bakery_admin'));
 ```
 
 ---
 
-## Del 2: Layoutforbedringer
+## Del 2: Navigasjon og Routing
 
-### 2.1 AuthLayout (src/components/layouts/AuthLayout.tsx)
+### Ny meny i AuthLayout
 
-**Forbedringer:**
-- Varmere bakgrunnsfarge (fra grå til kremfarget)
-- Forbedret navigasjon med subtile ikoner
-- Bedre visuell separasjon mellom navigasjonselementer
-- Sticky header med elegantere skygge
-- Forbedret mobilmeny med bedre animasjoner
-
-**Endringer:**
-```tsx
-// Fra:
-<div className="min-h-screen bg-gray-50">
-
-// Til:
-<div className="min-h-screen bg-gradient-to-b from-bakery-cream to-background">
-```
-
-### 2.2 Konsistent Page Header-komponent
-
-Opprette en gjenbrukbar `PageHeader`-komponent som brukes pa alle sider:
+Legge til "Nettbrett" i navigasjonsmenyen (synlig for bakery_admin og super_admin):
 
 ```tsx
-// src/components/shared/PageHeader.tsx
-interface PageHeaderProps {
-  icon: LucideIcon;
-  title: string;
-  subtitle?: string;
-  actions?: React.ReactNode;
-  breadcrumbs?: { label: string; href?: string }[];
-}
+// AuthLayout.tsx - navigationItems
+{ name: 'Nettbrett', href: '/dashboard/tablets', icon: Tablet }
 ```
 
-**Gir:**
-- Konsistent gradient-bakgrunn
-- Ikon + tittel-kombinasjon
-- Breadcrumbs for navigasjon
-- Plass til handlingsknapper
+### Ny route i App.tsx
+
+```tsx
+<Route path="/dashboard/tablets" element={
+  <AuthLayout>
+    <Tablets />
+  </AuthLayout>
+} />
+```
 
 ---
 
-## Del 3: Sideforbedringer
+## Del 3: Nettbrett-side
 
-### 3.1 Dashboard (src/pages/Dashboard.tsx)
+### Ny side: `src/pages/dashboard/Tablets.tsx`
 
-**Status:** Allerede godt designet med gradient-header
-
-**Forbedringer:**
-- Legge til velkomsttekst som endres basert pa tid og sesong
-- Forbedre stat-kort med mikroanimasjoner pa hover
-- Legge til "tips"-seksjon for nye brukere
-
-### 3.2 Ordrer & Pakking (src/pages/dashboard/Orders.tsx)
-
-**Status:** Godt designet, men noen inkonsistenser
-
-**Forbedringer:**
-- Ensrette knappestiler med resten av systemet
-- Forbedre kalender-legenden med bedre fargekontrast
-- Legge til "tomme tilstander" med illustrasjoner
-
-### 3.3 Produkter (src/pages/dashboard/Products.tsx)
-
-**Nodvendige forbedringer:**
-- Erstatte enkel header med PageHeader-komponent
-- Oppgradere stat-kort til samme stil som Dashboard
-- Forbedre tabelldesign med hover-states
-- Legge til bedre tomme tilstander
-- Forbedre loading-state med skeleton-komponenter
-
-**Endringer:**
-```tsx
-// Fra enkel header:
-<div className="flex justify-between items-center">
-  <div>
-    <h1 className="text-2xl font-bold text-gray-900">Produkter</h1>
-    ...
-
-// Til PageHeader med gradient:
-<PageHeader
-  icon={Package}
-  title="Produkter"
-  subtitle="Administrer produkter for ditt bakeri"
-  actions={...}
-/>
+Struktur:
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [PageHeader: Nettbrett-administrasjon]                      │
+├─────────────────────────────────────────────────────────────┤
+│ [Stats: Totalt | Online | Offline | Uten butikk]           │
+├─────────────────────────────────────────────────────────────┤
+│ [Søk og filtre]                     [+ Legg til nettbrett] │
+├─────────────────────────────────────────────────────────────┤
+│ [Tabell med nettbrett]                                      │
+│  - Navn | Status | Butikk | IP | Sist sett | Handlinger    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 3.4 Kunder (src/pages/dashboard/Customers.tsx)
+### Tabellkolonner
 
-**Nodvendige forbedringer:**
-- Legge til PageHeader-komponent med gradient
-- Forbedre CustomersHeader med bedre visuelt hierarki
-- Legge til stat-kort (totale kunder, med display, uten display)
-- Forbedre tabelldesign med zebra-striping
-- Bedre ikoner og handlingsknapper
-
-**Ny struktur:**
-```text
-┌─────────────────────────────────────────────────┐
-│ [Gradient Header med ikon og tittel]            │
-├─────────────────────────────────────────────────┤
-│ [Stat-kort: Totalt | Med display | Uten]        │
-├─────────────────────────────────────────────────┤
-│ [Sok og filtre]                                 │
-├─────────────────────────────────────────────────┤
-│ [Forbedret tabell]                              │
-└─────────────────────────────────────────────────┘
-```
-
-### 3.5 Rapporter (src/pages/dashboard/Reports.tsx)
-
-**Forbedringer:**
-- Erstatte ikon-header med PageHeader-komponent
-- Forbedre datovelger-UI
-- Legge til bedre visualisering av avviksdata
-- Forbedre tomme tilstander
-
-### 3.6 Admin (src/pages/dashboard/Admin.tsx)
-
-**Forbedringer:**
-- Oppgradere AdminHeader med gradient-stil
-- Forbedre AdminStats med samme design som Dashboard
-- Legge til bedre seksjonsseparasjon
-- Forbedre tilgangsnektet-melding
-
-### 3.7 Innstillinger (src/pages/dashboard/Settings.tsx)
-
-**Forbedringer:**
-- Legge til PageHeader-komponent
-- Forbedre OneDrive-kortet med bedre visuell feedback
-- Legge til flere innstillingskategorier med tydelige seksjoner
-
-### 3.8 Pakkeoversikt (src/pages/dashboard/PackingProductOverview.tsx)
-
-**Status:** Kompakt og funksjonelt design
-
-**Forbedringer:**
-- Forbedre header med varmere farger
-- Legge til bedre visuelle indikatorer for fremgang
-- Forbedre valgt-produkter-panelet med fargekodet status
-
-### 3.9 Login-side (src/pages/Login.tsx)
-
-**Forbedringer:**
-- Forbedre demo-boks med varmere farger
-- Bedre visuell separasjon mellom faner
-- Legge til subtile bakgrunnsdekorasjoner
-
-### 3.10 404-side (src/pages/NotFound.tsx)
-
-**Forbedringer:**
-- Legge til bakeri-tema med illustrasjon
-- Norsk tekst
-- Bedre navigasjonsmuligheter
+| Kolonne | Innhold |
+|---------|---------|
+| Navn | Enhetsnavn med status-ikon |
+| Status | Online/Offline badge med farge |
+| Tilknyttet butikk | Kundenavn eller "Ikke tilknyttet" |
+| IP-adresse | For ADB-tilkobling |
+| Sist aktiv | Relativ tid (f.eks. "2 min siden") |
+| Handlinger | Se skjerm, Omstart, Innstillinger, Koble til butikk |
 
 ---
 
-## Del 4: Komponentforbedringer
+## Del 4: Snarvei fra kundeoversikt
 
-### 4.1 Felles Komponenter
+### Forbedre CustomersTable.tsx
 
-**PageHeader (NY)**
-```
-src/components/shared/PageHeader.tsx
-```
+Legge til Tablet-ikon i handlingsmenyen:
 
-**EmptyState (NY)**
 ```tsx
-// src/components/shared/EmptyState.tsx
-interface EmptyStateProps {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  action?: { label: string; onClick: () => void };
-}
+<DropdownMenuItem onClick={() => onManageTablet(customer)}>
+  <Tablet className="w-4 h-4 mr-2" />
+  Administrer nettbrett
+</DropdownMenuItem>
 ```
 
-**StatusBadge (NY)**
-Konsistent badge for statuser pa tvers av systemet.
+### Forbedre QrCodeModal.tsx
 
-### 4.2 Dashboard-komponenter
+Legge til seksjon for nettbrett-status:
 
-- DashboardStats: Legge til mikroanimasjoner
-- QuickActions: Forbedre hover-effekter
-- RecentActivity: Legge til tidslinje-visualisering
-
-### 4.3 Tabell-forbedringer
-
-Forbedre alle tabeller med:
-- Hover-states pa rader
-- Bedre header-styling
-- Konsistente handlingsknapper
-- Responsive design for mobil
-
----
-
-## Del 5: Loading og Feilhåndtering
-
-### 5.1 Loading States
-
-Erstatte enkle spinners med:
-- Skeleton-komponenter for tabeller
-- Animerte plassholdere for kort
-- Varmere loading-meldinger
-
-**Eksempel:**
 ```tsx
-// Fra:
-<Loader2 className="h-8 w-8 animate-spin" />
-<p className="text-gray-600">Laster...</p>
-
-// Til:
-<div className="space-y-4">
-  <div className="flex justify-center">
-    <div className="relative">
-      <div className="h-16 w-16 rounded-full border-4 border-muted animate-pulse" />
-      <Loader2 className="h-8 w-8 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
+{/* Nettbrett-seksjon */}
+<div className="p-4 bg-slate-50 rounded-lg border">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-2">
+      <Tablet className="w-4 h-4" />
+      <span className="font-medium">Nettbrett</span>
     </div>
+    {linkedTablet ? (
+      <Badge variant="success">
+        {linkedTablet.name} - {linkedTablet.status}
+      </Badge>
+    ) : (
+      <Button variant="outline" size="sm" onClick={onLinkTablet}>
+        Koble til nettbrett
+      </Button>
+    )}
   </div>
-  <p className="text-muted-foreground text-center animate-pulse">
-    Laster produkter...
-  </p>
 </div>
 ```
 
-### 5.2 Feilmeldinger
-
-Forbedre ErrorBoundary og inline-feil med:
-- Vennligere sprak
-- Handlingsalternativer
-- Kontaktinformasjon for hjelp
-
 ---
 
-## Del 6: Responsive Design
+## Del 5: Dialoger og komponenter
 
-### 6.1 Mobiloptimalisering
-
-- Forbedre mobilmeny i AuthLayout
-- Gjore stat-kort stablede pa mobil
-- Forbedre tabeller med horisontal scroll
-- Legge til touch-vennlige knapper
-
-### 6.2 Nettbrett-stotte
-
-- Optimalisere grid-layout for mellomstore skjermer
-- Forbedre sidebar-oppforsel pa iPad
-
----
-
-## Filer som Endres
-
-### Nye Filer
+### Nye komponenter
 
 | Fil | Beskrivelse |
 |-----|-------------|
-| `src/components/shared/PageHeader.tsx` | Gjenbrukbar side-header |
-| `src/components/shared/EmptyState.tsx` | Tom-tilstand komponent |
-| `src/components/shared/StatusBadge.tsx` | Konsistent status-badge |
-| `src/components/shared/LoadingState.tsx` | Forbedret loading-komponent |
+| `CreateTabletDialog.tsx` | Registrer nytt nettbrett |
+| `EditTabletDialog.tsx` | Rediger nettbrett-innstillinger |
+| `LinkTabletDialog.tsx` | Koble nettbrett til kunde |
+| `TabletStatusBadge.tsx` | Konsistent status-visning |
+| `TabletActionsDropdown.tsx` | Handlingsmeny for nettbrett |
 
-### Modifiserte Filer
+### CreateTabletDialog innhold
+
+```tsx
+// Felter:
+- Navn (påkrevd)
+- IP-adresse (for ADB)
+- Velg butikk (dropdown med kunder)
+- Kiosk-modus (toggle)
+- Notater (tekstfelt)
+```
+
+---
+
+## Del 6: Hooks for datatilgang
+
+### Ny hook: `useTablets.ts`
+
+```typescript
+export const useTablets = () => {
+  const { profile } = useAuthStore();
+  
+  return useQuery({
+    queryKey: ['tablets', profile?.bakery_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tablets')
+        .select(`
+          *,
+          customer:customers(id, name, customer_number)
+        `)
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.bakery_id
+  });
+};
+```
+
+### Ny hook: `useTabletActions.ts`
+
+```typescript
+export const useTabletActions = () => {
+  const queryClient = useQueryClient();
+  
+  const createTablet = useMutation({...});
+  const updateTablet = useMutation({...});
+  const deleteTablet = useMutation({...});
+  const linkToCustomer = useMutation({...});
+  
+  return { createTablet, updateTablet, deleteTablet, linkToCustomer };
+};
+```
+
+---
+
+## Del 7: Integrasjon med ekstern MDM
+
+### Innstillinger for MDM-kobling
+
+I Settings.tsx, legge til ny seksjon:
+
+```tsx
+<Card className="card-warm">
+  <CardHeader>
+    <div className="flex items-center gap-3">
+      <Tablet className="h-5 w-5" />
+      <div>
+        <CardTitle>Nettbrett-administrasjon</CardTitle>
+        <CardDescription>
+          Koble til eksternt MDM-system
+        </CardDescription>
+      </div>
+    </div>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-4">
+      <div>
+        <Label>Headwind MDM URL</Label>
+        <Input placeholder="https://mdm.dittbakeri.no" />
+      </div>
+      <div>
+        <Label>ws-scrcpy URL</Label>
+        <Input placeholder="https://scrcpy.dittbakeri.no" />
+      </div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+### Lenker til eksterne verktøy
+
+I TabletActionsDropdown:
+
+```tsx
+<DropdownMenuItem onClick={() => openExternalMdm(tablet)}>
+  <ExternalLink className="w-4 h-4 mr-2" />
+  Åpne i Headwind MDM
+</DropdownMenuItem>
+<DropdownMenuItem onClick={() => openRemoteScreen(tablet)}>
+  <Monitor className="w-4 h-4 mr-2" />
+  Fjernkontroll (ws-scrcpy)
+</DropdownMenuItem>
+```
+
+---
+
+## Del 8: Heartbeat-system (valgfritt)
+
+For å spore nettbrett-status i sanntid, kan vi implementere et enkelt heartbeat-system:
+
+### Edge Function: `tablet-heartbeat`
+
+```typescript
+// supabase/functions/tablet-heartbeat/index.ts
+Deno.serve(async (req) => {
+  const { device_id, ip_address } = await req.json();
+  
+  // Oppdater sist sett og status
+  await supabase
+    .from('tablets')
+    .update({ 
+      last_heartbeat_at: new Date().toISOString(),
+      status: 'online',
+      ip_address
+    })
+    .eq('device_id', device_id);
+    
+  return new Response(JSON.stringify({ success: true }));
+});
+```
+
+### Scheduled job for offline-deteksjon
+
+```sql
+-- Marker nettbrett som offline etter 5 min uten heartbeat
+UPDATE tablets 
+SET status = 'offline' 
+WHERE last_heartbeat_at < NOW() - INTERVAL '5 minutes'
+  AND status = 'online';
+```
+
+---
+
+## Filer som opprettes
+
+| Fil | Type | Beskrivelse |
+|-----|------|-------------|
+| `src/pages/dashboard/Tablets.tsx` | Side | Hovedside for nettbrett-oversikt |
+| `src/components/tablets/CreateTabletDialog.tsx` | Komponent | Registrer nytt nettbrett |
+| `src/components/tablets/EditTabletDialog.tsx` | Komponent | Rediger nettbrett |
+| `src/components/tablets/LinkTabletDialog.tsx` | Komponent | Koble til kunde |
+| `src/components/tablets/TabletStatusBadge.tsx` | Komponent | Status-badge |
+| `src/components/tablets/TabletActionsDropdown.tsx` | Komponent | Handlingsmeny |
+| `src/components/tablets/TabletsTable.tsx` | Komponent | Tabell med nettbrett |
+| `src/components/tablets/TabletsStats.tsx` | Komponent | Statistikk-kort |
+| `src/hooks/useTablets.ts` | Hook | Hent nettbrett-data |
+| `src/hooks/useTabletActions.ts` | Hook | CRUD-operasjoner |
+| `src/types/tablet.ts` | Type | TypeScript-definisjon |
+| `supabase/functions/tablet-heartbeat/index.ts` | Edge Function | Heartbeat-mottak |
+
+## Filer som endres
 
 | Fil | Endringer |
 |-----|-----------|
-| `src/styles/base.css` | Nye fargevariabler |
-| `src/styles/theme-colors.css` | Nye utility-klasser |
-| `src/components/layouts/AuthLayout.tsx` | Varmere design, forbedret navigasjon |
-| `src/pages/Dashboard.tsx` | Mikroanimasjoner, tips-seksjon |
-| `src/pages/dashboard/Products.tsx` | PageHeader, forbedrede kort og tabell |
-| `src/pages/dashboard/Customers.tsx` | PageHeader, stat-kort, forbedret tabell |
-| `src/pages/dashboard/Reports.tsx` | PageHeader, forbedret datovelger |
-| `src/pages/dashboard/Settings.tsx` | PageHeader, seksjoner |
-| `src/pages/dashboard/Admin.tsx` | Gradient-header, forbedrede stats |
-| `src/pages/Login.tsx` | Varmere demo-boks, subtile dekorasjoner |
-| `src/pages/NotFound.tsx` | Bakeri-tema, norsk tekst |
-| `src/components/admin/AdminHeader.tsx` | Gradient-stil |
-| `src/components/admin/AdminStats.tsx` | Ny kortdesign |
-| `src/components/customers/CustomersHeader.tsx` | Forbedret visuelt hierarki |
-| `src/components/customers/CustomersTable.tsx` | Hover-states, bedre design |
+| `src/App.tsx` | Legge til /dashboard/tablets route |
+| `src/components/layouts/AuthLayout.tsx` | Legge til Nettbrett i navigasjon |
+| `src/components/customers/CustomersTable.tsx` | Legge til nettbrett-handling |
+| `src/components/customers/QrCodeModal.tsx` | Vise tilknyttet nettbrett |
+| `src/pages/dashboard/Settings.tsx` | Legge til MDM-konfigurasjon |
+| `src/types/database.ts` | Legge til Tablet-type |
 
 ---
 
 ## Implementeringsrekkefølge
 
-1. **Fase 1 - Design System** (grunnlag)
-   - Oppdatere CSS-variabler
-   - Legge til utility-klasser
-   - Opprette PageHeader-komponent
-
-2. **Fase 2 - Layout**
-   - Forbedre AuthLayout
-   - Opprette gjenbrukbare komponenter
-
-3. **Fase 3 - Hovedsider**
-   - Dashboard
-   - Orders
-   - Products
-   - Customers
-
-4. **Fase 4 - Sekundære Sider**
-   - Reports
-   - Admin
-   - Settings
-   - Login
-   - NotFound
-
-5. **Fase 5 - Polish**
-   - Mikroanimasjoner
-   - Loading states
-   - Responsive finjustering
+1. **Database** - Opprette tablets-tabell med RLS
+2. **Types & Hooks** - Definere typer og datahenting
+3. **Hovedside** - Tablets.tsx med tabell og statistikk
+4. **Dialoger** - Create, Edit, Link-dialoger
+5. **Navigasjon** - Legge til i AuthLayout og App.tsx
+6. **Kunde-integrasjon** - Snarveier fra kundeoversikt
+7. **Innstillinger** - MDM-konfigurasjon i Settings
+8. **Heartbeat** - Edge function for status-sporing
 
 ---
 
-## Forventet Resultat
+## Forventet resultat
 
-| Omrade | For | Etter |
-|--------|-----|-------|
-| Fargepalett | Kalde grafarger | Varme bakeri-toner |
-| Header-design | Inkonsistent | Ensartet gradient-stil |
-| Stat-kort | Varierende design | Konsistent, elegant design |
-| Tabeller | Enkle | Hover-states, bedre UX |
-| Loading | Enkel spinner | Animert, kontekstuell |
-| Tomme tilstander | Minimal | Illustrert, handlingsorientert |
-| Feilmeldinger | Tekniske | Vennlige, losningsorienterte |
+| Område | Funksjonalitet |
+|--------|----------------|
+| Nettbrett-meny | Dedikert side i hovednavigasjon |
+| Oversikt | Se alle nettbrett med status og butikk-tilknytning |
+| Fra kunde | Hurtigkontroll av nettbrett direkte fra kundekort |
+| Status | Real-time online/offline-indikator |
+| Fjernkontroll | Lenker til Headwind MDM og ws-scrcpy |
 
-Systemet vil fremsta som et profesjonelt, moderne og varmt verktoy som reflekterer kvaliteten og omsorgen som gar inn i et tradisjonelt bakeri.
+Denne løsningen gir en komplett administrasjonsflate for nettbrett, integrert sømløst med eksisterende kunde- og bakeri-struktur, med mulighet for utvidelse til ekstern MDM-integrasjon.
+
