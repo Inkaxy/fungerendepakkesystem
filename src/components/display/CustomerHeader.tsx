@@ -32,8 +32,11 @@ const CustomerHeader = ({
     }
   };
 
-  // Use customer_display_header_size if available, fallback to header_font_size
-  const headerSize = settings?.customer_display_header_size || settings?.header_font_size || 32;
+  // Use customer_name_font_size for the main customer name
+  const customerNameSize = settings?.customer_name_font_size || 32;
+  
+  // Use customer_display_header_size for secondary header elements (bakery name, etc.)
+  const headerSize = settings?.customer_display_header_size || 18;
   
   // Use customer_header_alignment for text alignment
   const alignment = settings?.customer_header_alignment || 'center';
@@ -78,7 +81,7 @@ const CustomerHeader = ({
         <h1 
           className="font-bold"
           style={{ 
-            fontSize: `${headerSize}px`,
+            fontSize: `${customerNameSize}px`,
             color: settings?.header_text_color || '#111827'
           }}
         >

@@ -47,11 +47,21 @@ const CustomerHeaderSection = ({ settings, onUpdate }: CustomerHeaderSectionProp
       />
 
       <SliderControl
+        label="Kundenavn størrelse"
+        value={settings.customer_name_font_size || 32}
+        onChange={(value) => onUpdate({ customer_name_font_size: value })}
+        min={20}
+        max={72}
+        step={2}
+        unit="px"
+      />
+
+      <SliderControl
         label="Header tekststørrelse"
         value={settings.customer_display_header_size}
         onChange={(value) => onUpdate({ customer_display_header_size: value })}
-        min={20}
-        max={48}
+        min={14}
+        max={32}
         step={2}
         unit="px"
       />
