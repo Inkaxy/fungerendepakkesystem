@@ -16,7 +16,8 @@ const DisplayManagementCard = () => {
     if (!bakeryId) {
       return null;
     }
-    return `${window.location.origin}/display/shared/${bakeryId}`;
+    // Bruker bakeryId midlertidig - i prod vil dette være short_id
+    return `${window.location.origin}/s/${bakeryId}`;
   };
 
   const copySharedDisplayUrl = () => {

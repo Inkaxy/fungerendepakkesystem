@@ -24,19 +24,20 @@ const DisplayPreview = ({ settings }: DisplayPreviewProps) => {
   const customersWithDisplay = customers?.filter(c => c.has_dedicated_display && c.display_url) || [];
 
   // Generer iframe URL basert på valgt display type - alltid med demo=true for forhåndsvisning
+  // Bruker fortsatt bakeryId for preview siden short_id ikke er tilgjengelig her ennå
   const getIframeUrl = () => {
     if (displayType === 'shared') {
-      return bakeryId ? `/display/shared/${bakeryId}?demo=true` : null;
+      return bakeryId ? `/s/${bakeryId}?demo=true` : null;
     }
     
     if (selectedCustomerId) {
       const customer = customers?.find(c => c.id === selectedCustomerId);
       if (customer?.display_url) {
-        return `/display/${customer.display_url}?demo=true`;
+        return `/d/${customer.display_url}?demo=true`;
       }
     }
     
-    return bakeryId ? `/display/shared/${bakeryId}?demo=true` : null;
+    return bakeryId ? `/s/${bakeryId}?demo=true` : null;
   };
 
   const iframeUrl = getIframeUrl();

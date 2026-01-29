@@ -1,31 +1,33 @@
 
 import { Customer } from '@/types/database';
 
-export const getDisplayPath = (customer: Customer, bakeryId?: string): string => {
+// Kort URL-format: /d/{displayUrl} for kunde, /s/{shortId} for delt
+
+export const getDisplayPath = (customer: Customer, shortId?: string): string => {
   if (customer.has_dedicated_display && customer.display_url) {
-    return `/display/${customer.display_url}`;
+    return `/d/${customer.display_url}`;
   }
-  return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
+  return shortId ? `/s/${shortId}` : '/s';
 };
 
-export const getSharedDisplayPath = (bakeryId: string): string => {
-  return `/display/shared/${bakeryId}`;
+export const getSharedDisplayPath = (shortId: string): string => {
+  return `/s/${shortId}`;
 };
 
-export const getInternalDisplayPath = (customer: Customer, bakeryId?: string): string => {
+export const getInternalDisplayPath = (customer: Customer, shortId?: string): string => {
   if (customer.has_dedicated_display && customer.display_url) {
-    return `/display/${customer.display_url}`;
+    return `/d/${customer.display_url}`;
   }
-  return bakeryId ? `/display/shared/${bakeryId}` : '/display/shared';
+  return shortId ? `/s/${shortId}` : '/s';
 };
 
-export const getDisplayUrl = (customer: Customer, bakeryId?: string): string => {
-  const path = getDisplayPath(customer, bakeryId);
+export const getDisplayUrl = (customer: Customer, shortId?: string): string => {
+  const path = getDisplayPath(customer, shortId);
   return `${window.location.origin}${path}`;
 };
 
-export const getSharedDisplayUrl = (bakeryId: string): string => {
-  return `${window.location.origin}/display/shared/${bakeryId}`;
+export const getSharedDisplayUrl = (shortId: string): string => {
+  return `${window.location.origin}/s/${shortId}`;
 };
 
 export const generateQrCodeUrl = (url: string): string => {
