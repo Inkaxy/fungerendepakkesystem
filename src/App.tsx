@@ -21,7 +21,6 @@ import Reports from "./pages/dashboard/Reports";
 import Admin from "./pages/dashboard/Admin";
 import DisplaySettings from "./pages/dashboard/DisplaySettings";
 import Settings from "./pages/dashboard/Settings";
-import Tablets from "./pages/dashboard/Tablets";
 import NotFound from "./pages/NotFound";
 
 // Display Pages - Lazy loaded for better performance
@@ -142,11 +141,6 @@ function AppContent() {
           <Route path="/dashboard/settings" element={
             <AuthLayout>
               <Settings />
-            </AuthLayout>
-          } />
-          <Route path="/dashboard/tablets" element={
-            <AuthLayout>
-              <Tablets />
             </AuthLayout>
           } />
         </Route>
