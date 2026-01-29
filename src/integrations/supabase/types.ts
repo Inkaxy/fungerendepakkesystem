@@ -1299,6 +1299,99 @@ export type Database = {
           },
         ]
       }
+      tablets: {
+        Row: {
+          android_version: string | null
+          bakery_id: string
+          created_at: string | null
+          customer_id: string | null
+          device_id: string | null
+          display_url: string | null
+          id: string
+          ip_address: string | null
+          kiosk_mode: boolean | null
+          last_heartbeat_at: string | null
+          last_seen_at: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          android_version?: string | null
+          bakery_id: string
+          created_at?: string | null
+          customer_id?: string | null
+          device_id?: string | null
+          display_url?: string | null
+          id?: string
+          ip_address?: string | null
+          kiosk_mode?: boolean | null
+          last_heartbeat_at?: string | null
+          last_seen_at?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          android_version?: string | null
+          bakery_id?: string
+          created_at?: string | null
+          customer_id?: string | null
+          device_id?: string | null
+          display_url?: string | null
+          id?: string
+          ip_address?: string | null
+          kiosk_mode?: boolean | null
+          last_heartbeat_at?: string | null
+          last_seen_at?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tablets_bakery_id_fkey"
+            columns: ["bakery_id"]
+            isOneToOne: false
+            referencedRelation: "bakeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tablets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tablets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tablets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_display_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tablets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "public_shared_display_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           assigned_at: string
