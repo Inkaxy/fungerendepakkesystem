@@ -1,29 +1,44 @@
 
+# Plan: Fiks 404-feil for eksterne display-URLer
 
-# Plan: Forenkle Display-URLer
+## Problemanalyse
 
-## Nåværende URL-struktur
+Ved besøk til eksterne skjermer får du 404-feil fordi:
 
-| Type | Nåværende URL |
-|------|---------------|
-| Kunde-display | `loafandload.com/display/a1b2c3` |
-| Delt display | `loafandload.com/display/shared/{bakeryId}` |
+| Problem | Detalj |
+|---------|--------|
+| Gammel URL-prefix | `/display/` brukes fortsatt, men ruten er nå `/d/` |
+| Gammel display_url i database | Verdier har prefiks `display-` (f.eks. `display-f902d9c2`) |
+| Gamle lenker/QR-koder | Peker fortsatt til `/display/...` |
 
-## Foreslått ny URL-struktur
+Eksempel fra feilen:
+- Forsøkt URL: `/display/display-f902d9c2`
+- Forventet format: `/d/f902d9c2`
 
-| Type | Ny URL | Eksempel |
-|------|--------|----------|
-| Kunde-display | `loafandload.com/d/abc123` | `/d/abc123` |
-| Delt display | `loafandload.com/s/{kortBakeryId}` | `/s/xyz789` |
+---
 
-## Endringer
+## Løsning: To-stegs tilnærming
 
-### 1. Kortere route-prefix
-- `/display/` → `/d/` (sparer 6 tegn)
-- `/display/shared/` → `/s/` (sparer 13 tegn)
+### Steg 1: Legg til bakoverkompatible ruter
 
-### 2. Kortere bakery-ID for delt display
-Bakery-ID er nå en full UUID. Vi kan lagre en kort 6-tegns ID på bakeri-nivå.
+Legg til redirects for de gamle URL-formatene slik at eksisterende QR-koder fortsetter å fungere.
+
+**Fil: `src/App.tsx`**
+
+Legg til redirect-ruter:
+- `/display/shared/:bakeryId` → redirect til `/s/:bakeryId`
+- `/display/:displayUrl` → redirect til `/d/:displayUrl`
+
+### Steg 2: Migrer gamle display_url-verdier i databasen
+
+Fjern `display-` prefiks fra eksisterende `display_url`-verdier i `customers`-tabellen.
+
+**Database-migrering:**
+```sql
+UPDATE public.customers
+SET display_url = REPLACE(display_url, 'display-', '')
+WHERE display_url LIKE 'display-%';
+```
 
 ---
 
@@ -33,41 +48,41 @@ Bakery-ID er nå en full UUID. Vi kan lagre en kort 6-tegns ID på bakeri-nivå.
 
 | Fil | Endring |
 |-----|---------|
-| `src/App.tsx` | Oppdatere routes fra `/display/` til `/d/` og `/display/shared/` til `/s/` |
-| `src/utils/displayUtils.ts` | Oppdatere alle path-funksjoner |
-| `src/hooks/useCustomerActions.ts` | Ingen endring (display_url er allerede kort) |
-| Database: `bakeries` | Legge til `short_id` kolonne for delt display |
+| `src/App.tsx` | Legg til redirect-komponenter for gamle URLer |
+| `src/components/routing/LegacyRedirects.tsx` | Ny komponent for håndtering av redirects |
+| Database-migrering | Fjern `display-` prefiks fra eksisterende verdier |
 
-### Route-endringer i App.tsx
-
-```text
-Før:
-/display/shared/:bakeryId
-/display/:displayUrl
-
-Etter:
-/s/:bakeryId
-/d/:displayUrl
-```
-
-### Oppdatert displayUtils.ts
+### Ny redirect-komponent
 
 ```typescript
-// Kunde-display
-return `/d/${customer.display_url}`;
+// LegacyDisplayRedirect.tsx
+const LegacyDisplayRedirect = () => {
+  const { displayUrl } = useParams();
+  return <Navigate to={`/d/${displayUrl}`} replace />;
+};
 
-// Delt display  
-return `/s/${bakeryId}`;
+const LegacySharedRedirect = () => {
+  const { bakeryId } = useParams();
+  return <Navigate to={`/s/${bakeryId}`} replace />;
+};
+```
+
+### Oppdatert App.tsx-ruter
+
+```text
+Nye redirect-ruter:
+/display/shared/:bakeryId → /s/:bakeryId
+/display/:displayUrl → /d/:displayUrl
 ```
 
 ---
 
 ## Resultat
 
-| Før | Etter |
-|-----|-------|
-| `loafandload.com/display/a1b2c3` | `loafandload.com/d/a1b2c3` |
-| `loafandload.com/display/shared/uuid...` | `loafandload.com/s/xyz789` |
+| Scenario | Før | Etter |
+|----------|-----|-------|
+| Gamle QR-koder med `/display/` | 404-feil | Redirectes automatisk til `/d/` |
+| Nye URLer med `/d/` | Fungerer | Fungerer |
+| Databaseverdier | `display-f902d9c2` | `f902d9c2` |
 
-Totalt spart: **~15 tegn** per URL, mye enklere for QR-koder og deling.
-
+Alle eksisterende QR-koder og lenker vil fortsette å fungere via automatisk redirect.
