@@ -1,88 +1,122 @@
 
-# Plan: Fiks 404-feil for eksterne display-URLer
+# Plan: Bruk kort `short_id` for felles display-URL
 
 ## Problemanalyse
 
-Ved besøk til eksterne skjermer får du 404-feil fordi:
+Nåværende URL:
+```
+https://loafandload.com/s/13dfc88b-76a0-485e-8ca7-e2ecb1155d11
+```
 
-| Problem | Detalj |
-|---------|--------|
-| Gammel URL-prefix | `/display/` brukes fortsatt, men ruten er nå `/d/` |
-| Gammel display_url i database | Verdier har prefiks `display-` (f.eks. `display-f902d9c2`) |
-| Gamle lenker/QR-koder | Peker fortsatt til `/display/...` |
+Databasen har allerede `short_id` for hvert bakeri:
+| Bakeri | UUID | short_id |
+|--------|------|----------|
+| Nøtterø Bakeri | `13dfc88b-76a0-485e-8ca7-e2ecb1155d11` | `cf3819` |
 
-Eksempel fra feilen:
-- Forsøkt URL: `/display/display-f902d9c2`
-- Forventet format: `/d/f902d9c2`
-
----
-
-## Løsning: To-stegs tilnærming
-
-### Steg 1: Legg til bakoverkompatible ruter
-
-Legg til redirects for de gamle URL-formatene slik at eksisterende QR-koder fortsetter å fungere.
-
-**Fil: `src/App.tsx`**
-
-Legg til redirect-ruter:
-- `/display/shared/:bakeryId` → redirect til `/s/:bakeryId`
-- `/display/:displayUrl` → redirect til `/d/:displayUrl`
-
-### Steg 2: Migrer gamle display_url-verdier i databasen
-
-Fjern `display-` prefiks fra eksisterende `display_url`-verdier i `customers`-tabellen.
-
-**Database-migrering:**
-```sql
-UPDATE public.customers
-SET display_url = REPLACE(display_url, 'display-', '')
-WHERE display_url LIKE 'display-%';
+Ønsket URL:
+```
+https://loafandload.com/s/cf3819
 ```
 
 ---
 
-## Tekniske endringer
+## Løsning
 
-### Filer som endres
+### 1. SharedDisplay: Oppløs short_id til bakery_id
+
+SharedDisplay mottar `shortId` fra URL, men alle database-hooks forventer full UUID (`bakery_id`). 
+
+**Løsning**: Kall `get_bakery_id_from_short_id()` funksjonen for å oppløse korte IDer til fulle UUIDs.
+
+**Fil: `src/pages/display/SharedDisplay.tsx`**
+- Legg til en hook som oppløser `shortId` til `bakeryId`
+- Støtt bakoverkompatibilitet: Hvis `shortId` er en UUID (36 tegn), bruk direkte
+
+### 2. DisplayManagementCard: Bruk short_id i URL
+
+**Fil: `src/components/customers/DisplayManagementCard.tsx`**
+- Hent `short_id` fra bakeriet via en ny query
+- Generer URL med `short_id` i stedet for full UUID
+
+### 3. Oppdater UserProfile med short_id
+
+**Fil: `src/stores/authStore.ts`**
+- Inkluder `bakeries.short_id` i profil-fetchen
+- Legg til `bakery_short_id` i `UserProfile` interface
+
+### 4. Oppdater forhåndsvisnings-komponenter
+
+**Filer:**
+- `src/components/display-settings/DisplayPreview.tsx`
+- `src/components/display-settings/DisplayPreviewPanel.tsx`
+
+Bruk `bakery_short_id` fra profilen i stedet for `bakery_id`.
+
+---
+
+## Tekniske detaljer
+
+### Ny hook: useResolveBakeryId
+
+```typescript
+// Oppløser short_id til bakery_id
+// Returnerer input uendret hvis det allerede er en UUID
+const useResolveBakeryId = (shortId?: string) => {
+  return useQuery({
+    queryKey: ['resolve-bakery-id', shortId],
+    queryFn: async () => {
+      if (!shortId) return null;
+      
+      // Hvis det allerede er en UUID, returner direkte
+      if (shortId.length === 36 && shortId.includes('-')) {
+        return shortId;
+      }
+      
+      // Ellers oppløs via database-funksjon
+      const { data } = await supabase
+        .rpc('get_bakery_id_from_short_id', { short_id_param: shortId });
+      
+      return data;
+    },
+    enabled: !!shortId,
+  });
+};
+```
+
+### Oppdatert UserProfile interface
+
+```typescript
+interface UserProfile {
+  // ... eksisterende felt
+  bakery_short_id: string | null; // NY
+}
+```
+
+### Legacy redirect oppdatering
+
+**Fil: `src/components/routing/LegacyRedirects.tsx`**
+- `LegacySharedRedirect` trenger å konvertere full UUID til `short_id` for korrekt redirect
+
+---
+
+## Filer som endres
 
 | Fil | Endring |
 |-----|---------|
-| `src/App.tsx` | Legg til redirect-komponenter for gamle URLer |
-| `src/components/routing/LegacyRedirects.tsx` | Ny komponent for håndtering av redirects |
-| Database-migrering | Fjern `display-` prefiks fra eksisterende verdier |
-
-### Ny redirect-komponent
-
-```typescript
-// LegacyDisplayRedirect.tsx
-const LegacyDisplayRedirect = () => {
-  const { displayUrl } = useParams();
-  return <Navigate to={`/d/${displayUrl}`} replace />;
-};
-
-const LegacySharedRedirect = () => {
-  const { bakeryId } = useParams();
-  return <Navigate to={`/s/${bakeryId}`} replace />;
-};
-```
-
-### Oppdatert App.tsx-ruter
-
-```text
-Nye redirect-ruter:
-/display/shared/:bakeryId → /s/:bakeryId
-/display/:displayUrl → /d/:displayUrl
-```
+| `src/pages/display/SharedDisplay.tsx` | Oppløs short_id til bakery_id |
+| `src/components/customers/DisplayManagementCard.tsx` | Bruk short_id i URL |
+| `src/stores/authStore.ts` | Legg til bakery_short_id i profil |
+| `src/components/display-settings/DisplayPreview.tsx` | Bruk short_id |
+| `src/components/display-settings/DisplayPreviewPanel.tsx` | Bruk short_id |
+| `src/components/routing/LegacyRedirects.tsx` | Håndter UUID til short_id redirect |
+| `src/hooks/usePublicDisplayData.ts` | Ny hook for short_id oppløsning |
 
 ---
 
 ## Resultat
 
-| Scenario | Før | Etter |
-|----------|-----|-------|
-| Gamle QR-koder med `/display/` | 404-feil | Redirectes automatisk til `/d/` |
-| Nye URLer med `/d/` | Fungerer | Fungerer |
-| Databaseverdier | `display-f902d9c2` | `f902d9c2` |
+| Før | Etter |
+|-----|-------|
+| `/s/13dfc88b-76a0-485e-8ca7-e2ecb1155d11` | `/s/cf3819` |
 
-Alle eksisterende QR-koder og lenker vil fortsette å fungere via automatisk redirect.
+Totalt spart: **30 tegn** - mye enklere å dele og scanne via QR.
