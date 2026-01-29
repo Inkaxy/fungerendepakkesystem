@@ -74,16 +74,15 @@ function AppContent() {
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
         
-        {/* Display routes (public) - wrapped in ErrorBoundary and Suspense */}
-        {/* SharedDisplay must come BEFORE CustomerDisplay to avoid :displayUrl matching "shared" */}
-        <Route path="/display/shared/:bakeryId" element={
+        {/* Display routes (public) - kort URL-format */}
+        <Route path="/s/:shortId" element={
           <ErrorBoundary>
             <Suspense fallback={<LoadingSpinner />}>
               <SharedDisplay />
             </Suspense>
           </ErrorBoundary>
         } />
-        <Route path="/display/:displayUrl" element={
+        <Route path="/d/:displayUrl" element={
           <ErrorBoundary>
             <Suspense fallback={<LoadingSpinner />}>
               <CustomerDisplay />

@@ -248,7 +248,7 @@ const CustomerDisplay = () => {
           </p>
           <Button 
             variant="outline" 
-            onClick={() => navigate(`/display/shared`)}
+            onClick={() => navigate(`/s`)}
           >
             Gå til felles display
           </Button>

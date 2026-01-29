@@ -31,7 +31,9 @@ import { DisplaySettings } from '@/hooks/useDisplaySettings';
 import { PackingCustomer } from '@/hooks/usePackingData';
 
 const SharedDisplay = () => {
-  const { bakeryId } = useParams<{ bakeryId: string }>();
+  // shortId kan være enten short_id eller bakeryId (for bakoverkompatibilitet)
+  const { shortId } = useParams<{ shortId: string }>();
+  const bakeryId = shortId; // Alias for kompatibilitet med eksisterende hooks
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);

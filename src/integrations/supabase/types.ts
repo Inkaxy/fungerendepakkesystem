@@ -58,6 +58,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          short_id: string
           updated_at: string | null
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          short_id?: string
           updated_at?: string | null
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          short_id?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -1686,6 +1689,10 @@ export type Database = {
       generate_display_url: { Args: never; Returns: string }
       get_bakery_id_from_display_url: {
         Args: { display_url_param: string }
+        Returns: string
+      }
+      get_bakery_id_from_short_id: {
+        Args: { short_id_param: string }
         Returns: string
       }
       get_current_user_bakery_id: { Args: never; Returns: string }
