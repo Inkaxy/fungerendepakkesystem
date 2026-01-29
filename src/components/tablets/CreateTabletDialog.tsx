@@ -78,7 +78,7 @@ const CreateTabletDialog: React.FC<CreateTabletDialogProps> = ({
       name: values.name,
       device_id: values.device_id,
       ip_address: values.ip_address,
-      customer_id: values.customer_id || null,
+      customer_id: values.customer_id === 'none' ? null : values.customer_id || null,
       kiosk_mode: values.kiosk_mode,
       model: values.model,
       android_version: values.android_version,
@@ -160,7 +160,7 @@ const CreateTabletDialog: React.FC<CreateTabletDialogProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Ingen tilknytning</SelectItem>
+                      <SelectItem value="none">Ingen tilknytning</SelectItem>
                       {customers.map((customer) => (
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.name}

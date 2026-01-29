@@ -82,7 +82,7 @@ const EditTabletDialog: React.FC<EditTabletDialogProps> = ({
         name: tablet.name,
         device_id: tablet.device_id || '',
         ip_address: tablet.ip_address || '',
-        customer_id: tablet.customer_id || '',
+        customer_id: tablet.customer_id || 'none',
         kiosk_mode: tablet.kiosk_mode,
         model: tablet.model || '',
         android_version: tablet.android_version || '',
@@ -97,7 +97,7 @@ const EditTabletDialog: React.FC<EditTabletDialogProps> = ({
     await updateTablet.mutateAsync({
       id: tablet.id,
       ...values,
-      customer_id: values.customer_id || null,
+      customer_id: values.customer_id === 'none' ? null : values.customer_id || null,
     });
     onOpenChange(false);
   };
@@ -174,7 +174,7 @@ const EditTabletDialog: React.FC<EditTabletDialogProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Ingen tilknytning</SelectItem>
+                      <SelectItem value="none">Ingen tilknytning</SelectItem>
                       {customers.map((customer) => (
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.name}
