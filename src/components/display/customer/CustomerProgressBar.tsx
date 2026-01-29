@@ -17,9 +17,13 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
 
   // Get progress bar style based on settings
   const progressBarStyle = settings?.progress_bar_style || 'bar';
+  
+  // Accessibility settings
+  const reducedMotion = settings?.reduce_motion ?? false;
 
   // Get truck animation class
   const getTruckAnimationClass = () => {
+    if (reducedMotion) return '';
     switch (settings?.truck_animation_style) {
       case 'bounce':
         return 'animate-bounce';
@@ -67,7 +71,7 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
             strokeDashoffset={offset}
             strokeLinecap="round"
             style={{
-              transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: reducedMotion ? 'none' : 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           />
         </svg>
@@ -159,18 +163,18 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
           marginBottom: `${Math.max(0, ((settings?.truck_icon_size || 24) - (settings?.progress_height ? settings.progress_height * 4 : 32)) / 2)}px`,
         }}
       >
-        <div 
-          className={cn(
-            "rounded-full h-full",
-            (settings?.progress_animation ?? true) && progress < 100 && "animate-pulse"
-          )}
-          style={{ 
-            backgroundColor: settings?.progress_bar_color || '#3b82f6',
-            width: `${progress}%`,
-            transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            willChange: 'width',
-          }}
-        />
+          <div 
+            className={cn(
+              "rounded-full h-full",
+              !reducedMotion && (settings?.progress_animation ?? true) && progress < 100 && "animate-pulse"
+            )}
+            style={{ 
+              backgroundColor: settings?.progress_bar_color || '#3b82f6',
+              width: `${progress}%`,
+              transition: reducedMotion ? 'none' : 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+              willChange: 'width',
+            }}
+          />
         {(settings?.show_truck_icon ?? true) && (
           <img
             src="/lovable-uploads/37c33860-5f09-44ea-a64c-a7e7fb7c925b.png"
@@ -184,7 +188,7 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
               width: `${settings?.truck_icon_size || 24}px`,
               height: `${settings?.truck_icon_size || 24}px`,
               objectFit: 'contain',
-              transition: 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: reducedMotion ? 'none' : 'left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
               zIndex: 10,
             }}
           />
@@ -238,7 +242,8 @@ const CustomerProgressBar = React.memo(({ customerPackingData, settings }: Custo
     prevProps.settings?.progress_background_color === nextProps.settings?.progress_background_color &&
     prevProps.settings?.progress_bar_style === nextProps.settings?.progress_bar_style &&
     prevProps.settings?.show_truck_icon === nextProps.settings?.show_truck_icon &&
-    prevProps.settings?.progress_animation === nextProps.settings?.progress_animation
+    prevProps.settings?.progress_animation === nextProps.settings?.progress_animation &&
+    prevProps.settings?.reduce_motion === nextProps.settings?.reduce_motion
   );
 });
 

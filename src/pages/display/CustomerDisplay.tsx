@@ -341,12 +341,38 @@ const CustomerDisplay = () => {
   const contentPadding = settings?.customer_content_padding ?? 32;
   const maxContentWidth = settings?.customer_max_content_width ?? 1200;
   
+  // Accessibility settings
+  const isHighContrast = settings?.high_contrast_mode ?? false;
+  const reducedMotion = settings?.reduce_motion ?? false;
+  const largeTouchTargets = settings?.large_touch_targets ?? false;
+  const animationSpeed = settings?.animation_speed ?? 'normal';
+  
+  // Calculate animation duration based on speed setting
+  const getAnimationDuration = (baseDuration: number) => {
+    if (reducedMotion) return 0;
+    switch (animationSpeed) {
+      case 'slow': return baseDuration * 1.5;
+      case 'fast': return baseDuration * 0.5;
+      default: return baseDuration;
+    }
+  };
+  
+  // CSS classes for accessibility
+  const accessibilityClasses = [
+    reducedMotion && 'motion-reduce',
+    isHighContrast && 'high-contrast',
+  ].filter(Boolean).join(' ');
+  
   return (
     <div 
-      className="min-h-screen" 
+      className={`min-h-screen ${accessibilityClasses}`}
       style={{
         ...displayStyles,
         padding: `${contentPadding}px`,
+        // High contrast mode adjustments
+        ...(isHighContrast && {
+          filter: 'contrast(1.2)',
+        }),
       }}
     >
       {/* Completion Animation Overlay */}
@@ -376,7 +402,7 @@ const CustomerDisplay = () => {
               borderRadius: settings?.border_radius ? `${settings.border_radius}px` : '0.5rem',
             }}
           >
-            <CardContent className="p-4 text-center">
+            <CardContent className={`p-4 text-center ${largeTouchTargets ? 'p-6' : 'p-4'}`}>
               <div className="flex items-center justify-center gap-2">
                 <Clock className="h-4 w-4" style={{ color: settings?.text_color || '#6b7280' }} />
                 <span 
@@ -390,6 +416,12 @@ const CustomerDisplay = () => {
                   {!isToday && ' (ikke i dag)'}
                 </span>
               </div>
+              {/* Delivery info - controlled by customer_show_delivery_info */}
+              {(settings?.customer_show_delivery_info ?? false) && (
+                <div className="mt-2 text-sm" style={{ color: settings?.text_color || '#6b7280', opacity: 0.8 }}>
+                  <span>Leveringsdato: {format(new Date(displayDate), 'dd.MM.yyyy', { locale: nb })}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
