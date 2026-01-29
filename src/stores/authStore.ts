@@ -160,6 +160,9 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (profileData) {
+            // Type the bakeries relation properly
+            const bakeryData = profileData.bakeries as { name: string; short_id: string } | null;
+            
             const profile: UserProfile = {
               id: profileData.id,
               email: profileData.email || '',
@@ -167,15 +170,15 @@ export const useAuthStore = create<AuthState>()(
               avatar_url: profileData.avatar_url,
               role: (roleData?.role || 'bakery_user') as UserRole, // Use role from user_roles, fallback to bakery_user
               bakery_id: profileData.bakery_id,
-              bakery_name: profileData.bakeries?.name || null,
-              bakery_short_id: profileData.bakeries?.short_id || null,
+              bakery_name: bakeryData?.name || null,
+              bakery_short_id: bakeryData?.short_id || null,
               provider: profileData.provider as AuthProvider,
               email_confirmed: profileData.email_confirmed,
               is_active: profileData.is_active,
             };
             set({ profile });
             
-            console.log('Profile fetched successfully:', profile.email, profile.role);
+            console.log('Profile fetched successfully:', profile.email, profile.role, 'bakery_short_id:', profile.bakery_short_id);
             
             // Log last login
             await supabase
