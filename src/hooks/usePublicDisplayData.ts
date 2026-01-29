@@ -85,11 +85,11 @@ export const usePublicDisplaySettings = (bakeryId?: string) => {
     },
     enabled: !!bakeryId,
     refetchInterval: false,
-    staleTime: 5 * 60 * 1000, // ✅ 5 minutter - ikke Infinity
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true, // ✅ Refetch ved fokus
+    staleTime: 0, // ✅ Alltid stale - slik at WebSocket invalidering trigger refetch
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchOnMount: true,
+    refetchOnMount: 'always',
     retry: (failureCount) => {
       if (failureCount < 3) return true;
       console.warn('Using cached display settings due to fetch failure');
