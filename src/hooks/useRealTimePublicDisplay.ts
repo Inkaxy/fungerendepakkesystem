@@ -308,14 +308,18 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           console.log('🔄 Cache oppdatert optimistisk + tvinger refetch for nøyaktig telling');
         }
       )
-      .subscribe((status) => {
-        setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 
-                           status === 'CHANNEL_ERROR' ? 'disconnected' : 'connecting');
-        
+      .subscribe((status, error) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ WebSocket: Connected');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ WebSocket: Connection error');
+          setConnectionStatus('connected');
+          setRetryCount(0);
+          console.log('✅ WebSocket: Connected successfully');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setConnectionStatus('disconnected');
+          console.error('❌ WebSocket error:', status, error?.message || 'Unknown error');
+          console.log('💡 Tip: If this persists, enable "Tving polling" in display settings');
+        } else {
+          setConnectionStatus('connecting');
+          console.log('🔄 WebSocket status:', status);
         }
       });
 
