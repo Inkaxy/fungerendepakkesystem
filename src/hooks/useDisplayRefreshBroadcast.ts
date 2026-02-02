@@ -19,7 +19,9 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
     console.log('📡 Setting up refresh broadcast listener for bakery:', bakeryId);
 
     const channel = supabase
-      .channel(`display-refresh-${bakeryId}`)
+      .channel(`display-refresh-${bakeryId}`, {
+        config: { broadcast: { ack: true } },
+      })
       .on('broadcast', { event: 'force-refresh' }, (payload) => {
         if (!isMountedRef.current) {
           console.log('⏸️ WebSocket: Ignorer refresh broadcast, komponent er unmounted');
@@ -52,7 +54,14 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
           refetchType: 'active',
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Refresh broadcast channel subscribed:', `display-refresh-${bakeryId}`);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Refresh broadcast channel error:', `display-refresh-${bakeryId}`);
+        }
+      });
 
     return () => {
       isMountedRef.current = false; // FØRST - blokkerer alle callbacks
@@ -69,46 +78,57 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
 
     console.log('📡 Sender refresh broadcast til bakery:', bakeryId);
 
-    const channel = supabase.channel(`display-refresh-${bakeryId}`);
+    const channel = supabase.channel(`display-refresh-${bakeryId}`, {
+      config: { broadcast: { ack: true } },
+    });
 
     // ✅ Viktig: supabase-js v2 sin subscribe() er ikke awaitable (returnerer channel).
     // Vi venter eksplisitt på SUBSCRIBED før vi sender, ellers kan meldingen droppes.
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        // Fallback: ikke blokker for alltid
-        console.warn('⚠️ Broadcast subscribe timeout - forsøker å sende likevel');
-        resolve();
-      }, 2000);
-
-      channel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          clearTimeout(timeout);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          // Fallback: ikke blokker for alltid
+          console.warn('⚠️ Broadcast subscribe timeout - forsøker å sende likevel');
           resolve();
-        }
-        if (status === 'CHANNEL_ERROR') {
-          clearTimeout(timeout);
-          reject(new Error('CHANNEL_ERROR ved subscribe()'));
-        }
+        }, 2000);
+
+        channel.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
+            resolve();
+          }
+          if (status === 'CHANNEL_ERROR') {
+            clearTimeout(timeout);
+            reject(new Error('CHANNEL_ERROR ved subscribe()'));
+          }
+        });
       });
-    });
 
-    const sendResult = await channel.send({
-      type: 'broadcast',
-      event: 'force-refresh',
-      payload: { timestamp: new Date().toISOString() },
-    });
+      const sendResult = await channel.send({
+        type: 'broadcast',
+        event: 'force-refresh',
+        payload: { timestamp: new Date().toISOString() },
+      });
 
-    console.log('📡 Broadcast send result:', sendResult);
+      console.log('📡 Broadcast send result:', sendResult);
 
-    supabase.removeChannel(channel);
+      toast({
+        title: 'Refresh sendt!',
+        description: 'Alle displays oppdateres nå automatisk',
+        duration: 3000,
+      });
 
-    toast({
-      title: "Refresh sendt!",
-      description: "Alle displays oppdateres nå automatisk",
-      duration: 3000,
-    });
-
-    console.log('✅ Refresh broadcast sendt');
+      console.log('✅ Refresh broadcast sendt');
+    } catch (err) {
+      console.error('❌ Kunne ikke sende refresh broadcast:', err);
+      toast({
+        title: 'Feil',
+        description: 'Kunne ikke sende refresh til displayene.',
+        variant: 'destructive',
+      });
+    } finally {
+      supabase.removeChannel(channel);
+    }
   };
 
   return { broadcastRefresh };

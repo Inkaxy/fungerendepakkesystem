@@ -185,7 +185,8 @@ const CustomerDisplay = () => {
 
   // 🔄 Fallback polling - kun når WebSocket er disconnected
   React.useEffect(() => {
-    if (!customer?.bakery_id || connectionStatus === 'connected') return;
+    const bakeryId = customer?.bakery_id;
+    if (isDemo || !bakeryId || connectionStatus === 'connected') return;
 
     console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
 
@@ -199,6 +200,13 @@ const CustomerDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
+
+      // ✅ Viktig: innstillinger må også refetches når WS er nede
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+        exact: false,
+        refetchType: 'active',
+      });
       
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
@@ -208,7 +216,7 @@ const CustomerDisplay = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [customer?.bakery_id, connectionStatus, queryClient]);
+  }, [isDemo, customer?.bakery_id, connectionStatus, queryClient]);
 
   // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall)
   useDisplayHeartbeat({ bakeryId: customer?.bakery_id, enabled: !!customer?.bakery_id });
@@ -229,6 +237,16 @@ const CustomerDisplay = () => {
         console.log('⏸️ Display hidden - polling paused');
       } else {
         console.log('▶️ Display visible - refreshing data');
+
+        const bakeryId = customer?.bakery_id;
+        if (bakeryId) {
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+            exact: false,
+            refetchType: 'active',
+          });
+        }
+
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
           exact: false,
@@ -244,7 +262,7 @@ const CustomerDisplay = () => {
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [queryClient]);
+  }, [customer?.bakery_id, queryClient]);
   
   // ✅ GUARD: Ikke fortsett før activeProducts er lastet
   // Skip loading states i demo-modus
