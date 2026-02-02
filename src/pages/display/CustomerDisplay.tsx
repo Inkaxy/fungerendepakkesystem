@@ -75,7 +75,11 @@ const CustomerDisplay = () => {
   // ✅ Demo: Bruk demo-kunde, ellers ekte kunde
   const customer = isDemo ? DEMO_DEDICATED_CUSTOMER : realCustomer;
   
-  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id, 'customer');
+  // ✅ Demo: Ikke hent innstillinger fra DB (bakery_id = "demo-bakery" er ikke UUID)
+  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(
+    isDemo ? undefined : customer?.bakery_id,
+    'customer'
+  );
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(isDemo ? undefined : customer?.bakery_id);
   
   // ✅ Demo-dato eller ekte dato
