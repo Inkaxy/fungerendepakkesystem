@@ -183,6 +183,54 @@ const SharedDisplay = () => {
     console.log('🔄 Aktiv dato endret - invaliderer packing cache');
   }, [isDemo, bakeryId, activePackingDate, queryClient]);
 
+  // ✅ Page Visibility API - oppdater data når skjerm/tab våkner fra dvale
+  useEffect(() => {
+    if (isDemo) return;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('⏸️ SharedDisplay hidden - polling paused');
+      } else {
+        console.log('▶️ SharedDisplay visible - refreshing all data');
+        
+        if (bakeryId) {
+          // Oppdater innstillinger
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+            exact: false,
+            refetchType: 'active',
+          });
+        }
+        
+        // Oppdater aktive produkter
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_PRODUCTS[0]],
+          exact: false,
+          refetchType: 'active',
+        });
+        
+        // Oppdater pakkedata
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],
+          exact: false,
+          refetchType: 'active',
+        });
+        
+        // Oppdater aktiv dato
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.PUBLIC_ACTIVE_DATE[0]],
+          exact: false,
+          refetchType: 'active',
+        });
+        
+        console.log('✅ Cache invalidert - data vil oppdateres');
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isDemo, bakeryId, queryClient]);
+
   // 🔄 Auto-scroll funksjonalitet
   useEffect(() => {
     if (!effectiveSettings?.shared_auto_scroll || !scrollContainerRef.current) return;
