@@ -1,97 +1,67 @@
 
-# Plan: Fiks SharedDisplay data-synlighet
+# Plan: Fiks manglende GRANT-tillatelser på Views
 
 ## Problem identifisert
 
-SharedDisplay viser ikke pakkedata (kunder og varer) fordi RLS-policyene for `anon`-rollen er feil konfigurert.
+SharedDisplay og CustomerDisplay sitter fast i loading-tilstand fordi viktige views mangler `GRANT SELECT`-tillatelser til `anon`-rollen.
 
 ### Rotårsak
 
-**RLS-policyen på `customers`-tabellen for `anon` er for restriktiv:**
+Migrasjonen `20260126083142` oppdaterte tre views ved å:
+1. `DROP VIEW IF EXISTS public_display_orders`
+2. `CREATE VIEW public_display_orders AS ...`
+3. (men glemte GRANT!)
 
+Den originale migrasjonen `20251015073829` hadde:
 ```sql
--- Nåværende policy (FEIL):
-"Public access to customers via display_url"
-WHERE display_url IS NOT NULL 
-  AND has_dedicated_display = true  -- ❌ Blokkerer SharedDisplay-kunder!
-  AND status = 'active'
+GRANT SELECT ON public_display_orders TO anon, authenticated;
+GRANT SELECT ON public_display_order_products TO anon, authenticated;
+GRANT SELECT ON public_display_products TO anon, authenticated;
 ```
 
-**Problemet:**
-- SharedDisplay skal vise kunder med `has_dedicated_display = false`
-- Men RLS-policyen tillater kun kunder med `has_dedicated_display = true`
-- `public_shared_display_customers` view bruker `security_invoker=on`, som betyr at RLS evalueres
-- Resultatet blir at SharedDisplay får 0 kunder tilbake!
+Men når viewene ble re-opprettet, ble disse tillatelsene ikke gjenopprettet.
 
-### Påvirkede tabeller
+### Påvirkede views
 
-Alle "Public access"-policyer har samme feilaktige betingelse:
-
-| Tabell | Policy-navn | Problem |
-|--------|-------------|---------|
-| `customers` | Public access to customers via display_url | Krever `has_dedicated_display = true` |
-| `orders` | Public access to orders for displays | Krever bakery har kunde med `has_dedicated_display = true` |
-| `order_products` | Public access to order_products for displays | Krever bakery har kunde med `has_dedicated_display = true` |
-| `products` | Public access to products for displays | Krever bakery har kunde med `has_dedicated_display = true` |
-| `active_packing_products` | Public access to active packing products | Krever bakery har kunde med `has_dedicated_display = true` |
-| `packing_sessions` | Public access to packing sessions for displays | Krever bakery har kunde med `has_dedicated_display = true` |
+| View | Status |
+|------|--------|
+| `public_display_orders` | Mangler GRANT til anon |
+| `public_display_order_products` | Mangler GRANT til anon |
+| `public_display_products` | Mangler GRANT til anon |
+| `public_shared_display_customers` | Har `security_invoker=on` - RLS evalueres, men burde fungere nå |
 
 ## Løsning
 
-Oppdater RLS-policyene til å tillate tilgang for alle bakerier som har minst én kunde med display-funksjonalitet (enten dedikert ELLER fellesvisning).
+### Database-migrasjon
 
-### Database-endringer
-
-**1. Oppdater `customers` RLS-policy for anon:**
-```sql
-DROP POLICY IF EXISTS "Public access to customers via display_url" ON customers;
-CREATE POLICY "Public access to customers for displays" ON customers
-  FOR SELECT
-  TO anon
-  USING (
-    status = 'active' AND
-    bakery_id IN (
-      SELECT DISTINCT bakery_id FROM customers 
-      WHERE status = 'active' AND (
-        display_url IS NOT NULL  -- Har dedikert display
-        OR has_dedicated_display = false  -- Eller bruker fellesvisning
-      )
-    )
-  );
-```
-
-**2. Oppdater resterende public access-policyer:**
-
-For `orders`, `order_products`, `products`, `active_packing_products`, og `packing_sessions`:
+Opprette en ny migrasjon som legger til manglende GRANT-tillatelser:
 
 ```sql
--- Nytt mønster for bakery_id betingelse:
-bakery_id IN (
-  SELECT DISTINCT bakery_id FROM customers 
-  WHERE status = 'active' AND (
-    display_url IS NOT NULL
-    OR has_dedicated_display = false
-  )
-)
+-- Fiks manglende GRANT på public display views
+-- Disse ble fjernet ved re-opprettelse i 20260126083142
+
+GRANT SELECT ON public_display_orders TO anon, authenticated;
+GRANT SELECT ON public_display_order_products TO anon, authenticated;
+GRANT SELECT ON public_display_products TO anon, authenticated;
+
+-- Verifiser at shared display customers view også har tilgang
+GRANT SELECT ON public_shared_display_customers TO anon, authenticated;
 ```
 
 ### Fil-endringer
 
 | Fil | Endring |
 |-----|---------|
-| `supabase/migrations/[ny].sql` | Oppdater 6 RLS-policyer for å støtte SharedDisplay |
+| `supabase/migrations/[ny].sql` | Legg til GRANT SELECT på 4 views |
 
 ## Forventet resultat
 
 Etter implementering:
-- SharedDisplay vil kunne hente kunder med `has_dedicated_display = false`
-- Alle pakkedata (ordrer, produkter, status) vil være synlig for fellesvisningen
-- Eksisterende CustomerDisplay (dedikert display) vil fortsette å fungere som før
-- Sanntidsoppdateringer vil fungere korrekt for begge display-typer
+- SharedDisplay (`/s/cf3819`) vil vise kunder og pakkedata
+- CustomerDisplay (`/d/aa430a04`) vil vise produkter og status
+- Sanntidsoppdateringer via WebSocket vil fungere
+- Begge display-typer vil ikke lenger sitte fast i loading-tilstand
 
-## Sikkerhetsvurdering
+## Teknisk bakgrunn
 
-Endringene er trygge fordi:
-- Data er fortsatt begrenset til bakerier som aktivt bruker display-funksjonalitet
-- Ingen personlige data eksponeres ut over det som allerede var tilgjengelig
-- RLS-policyer forblir restriktive - bare aktive kunder fra relevante bakerier er synlige
+PostgreSQL views arver ikke automatisk tillatelser når de re-opprettes. Hver gang en view droppes og opprettes på nytt, må GRANT-statements kjøres på nytt for å gi tilgang til de nødvendige rollene.
