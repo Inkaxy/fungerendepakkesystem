@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getDefaultSettings } from '@/utils/displaySettingsDefaults';
 import { useAuthStore } from '@/stores/authStore';
+import { QUERY_KEYS } from '@/lib/queryKeys';
 
 // DisplaySettings type defined locally to avoid circular imports
 export interface DisplaySettings {
@@ -151,6 +152,25 @@ export interface DisplaySettings {
   auto_refresh_interval?: number;
 }
 
+// Helper to map DB row to DisplaySettings interface
+const mapDbRowToSettings = (row: any): DisplaySettings => ({
+  ...row,
+  screen_type: row.screen_type || 'shared',
+  packing_status_ongoing_color: row.status_in_progress_color || '#3b82f6',
+  packing_status_completed_color: row.status_completed_color || '#10b981',
+  compact_status_progress: row.compact_status_progress ?? true,
+  auto_fit_min_card_height: row.auto_fit_min_card_height ?? 180,
+  customer_display_show_date: row.customer_display_show_date ?? true,
+  customer_display_header_size: row.customer_display_header_size ?? 32,
+  hide_completed_products: row.hide_completed_products ?? false,
+  high_contrast_mode: row.high_contrast_mode ?? false,
+} as DisplaySettings);
+
+/**
+ * Henter innstillinger for admin-panelet.
+ * Bruker BEGGE screen_type-rader (shared+customer) som én sammenslått konfigurasjon.
+ * Fanen "Delt visning" påvirker shared-raden, "Kundevisning" påvirker customer-raden.
+ */
 export const useDisplaySettings = () => {
   const { profile } = useAuthStore();
   
@@ -163,7 +183,7 @@ export const useDisplaySettings = () => {
       console.log('Fetching display settings for user:', user.user.id);
 
       // First get user's profile to get bakery_id
-      const { data: profile, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('bakery_id')
         .eq('id', user.user.id)
@@ -174,81 +194,222 @@ export const useDisplaySettings = () => {
         throw profileError;
       }
 
-      if (!profile?.bakery_id) {
+      if (!profileData?.bakery_id) {
         throw new Error('No bakery found for user');
       }
 
-      console.log('Using bakery_id:', profile.bakery_id);
+      console.log('Using bakery_id:', profileData.bakery_id);
 
-      // Try to get existing settings using bakery_id for shared screen type
-      const result = await (supabase as any)
+      // Hent BEGGE screen_type-rader (shared + customer)
+      const { data, error } = await supabase
         .from('display_settings')
         .select('*')
-        .eq('bakery_id', profile.bakery_id)
-        .eq('screen_type', 'shared')
-        .limit(1);
-
-      const { data, error } = result;
+        .eq('bakery_id', profileData.bakery_id);
 
       if (error) {
         console.error('Error fetching display settings:', error);
         throw error;
       }
+
+      // Finn shared og customer rader
+      const sharedRow = data?.find((r: any) => r.screen_type === 'shared');
+      const customerRow = data?.find((r: any) => r.screen_type === 'customer');
+
+      // Opprett manglende rader hvis de ikke finnes
+      const settingsToCreate: any[] = [];
       
-      // If no settings exist, create default ones
-      if (!data || data.length === 0) {
-        console.log('No existing settings found, creating defaults');
-        const defaultSettings = getDefaultSettings(profile.bakery_id);
-        
-        const { data: newSettings, error: createError } = await supabase
+      if (!sharedRow) {
+        console.log('Creating default shared settings');
+        settingsToCreate.push({ ...getDefaultSettings(profileData.bakery_id), screen_type: 'shared' });
+      }
+      
+      if (!customerRow) {
+        console.log('Creating default customer settings');
+        settingsToCreate.push({ ...getDefaultSettings(profileData.bakery_id), screen_type: 'customer' });
+      }
+
+      if (settingsToCreate.length > 0) {
+        const { data: newRows, error: createError } = await supabase
           .from('display_settings')
-          .insert(defaultSettings)
-          .select()
-          .single();
+          .insert(settingsToCreate)
+          .select();
 
         if (createError) {
           console.error('Error creating default settings:', createError);
           throw createError;
         }
+
+        // Oppdater shared/customerRow fra nyopprettede rader
+        for (const row of newRows || []) {
+          if ((row as any).screen_type === 'shared' && !sharedRow) {
+            Object.assign(sharedRow || {}, row);
+          }
+          if ((row as any).screen_type === 'customer' && !customerRow) {
+            Object.assign(customerRow || {}, row);
+          }
+        }
+
+        // Refetch for å være sikker
+        const { data: refetchedData } = await supabase
+          .from('display_settings')
+          .select('*')
+          .eq('bakery_id', profileData.bakery_id);
         
-        const mappedSettings: DisplaySettings = {
-          ...newSettings,
-          screen_type: (newSettings as any).screen_type || 'shared',
-          packing_status_ongoing_color: (newSettings as any).status_in_progress_color || '#3b82f6',
-          packing_status_completed_color: (newSettings as any).status_completed_color || '#10b981',
-          compact_status_progress: (newSettings as any).compact_status_progress ?? true,
-          auto_fit_min_card_height: (newSettings as any).auto_fit_min_card_height ?? 180,
-          // New customer display specific fields
-          customer_display_show_date: (newSettings as any).customer_display_show_date ?? true,
-          customer_display_header_size: (newSettings as any).customer_display_header_size ?? 32,
-          hide_completed_products: (newSettings as any).hide_completed_products ?? false,
-          high_contrast_mode: (newSettings as any).high_contrast_mode ?? false,
-        } as DisplaySettings;
-        console.log('Created new settings:', mappedSettings);
-        return mappedSettings;
+        const refetchedShared = refetchedData?.find((r: any) => r.screen_type === 'shared');
+        const refetchedCustomer = refetchedData?.find((r: any) => r.screen_type === 'customer');
+        
+        // Kombiner shared og customer til ett objekt (shared er basis, customer overskriver customer-spesifikke felter)
+        const mergedSettings = {
+          ...mapDbRowToSettings(refetchedShared || getDefaultSettings(profileData.bakery_id)),
+          // Behold customer-spesifikke felter fra customer-raden
+          ...(refetchedCustomer ? {
+            customer_display_show_date: refetchedCustomer.customer_display_show_date,
+            customer_display_header_size: refetchedCustomer.customer_display_header_size,
+            customer_show_bakery_name: refetchedCustomer.customer_show_bakery_name,
+            customer_show_delivery_info: refetchedCustomer.customer_show_delivery_info,
+            customer_header_alignment: refetchedCustomer.customer_header_alignment,
+            customer_completion_message: refetchedCustomer.customer_completion_message,
+            customer_show_completion_animation: refetchedCustomer.customer_show_completion_animation,
+            customer_completion_sound: refetchedCustomer.customer_completion_sound,
+            customer_fullscreen_mode: refetchedCustomer.customer_fullscreen_mode,
+            customer_content_padding: refetchedCustomer.customer_content_padding,
+            customer_max_content_width: refetchedCustomer.customer_max_content_width,
+            always_show_customer_name: refetchedCustomer.always_show_customer_name,
+            hide_completed_products: refetchedCustomer.hide_completed_products,
+            strikethrough_completed_products: refetchedCustomer.strikethrough_completed_products,
+            product_card_layout: refetchedCustomer.product_card_layout,
+            product_columns: refetchedCustomer.product_columns,
+            product_show_category: refetchedCustomer.product_show_category,
+            product_group_by_status: refetchedCustomer.product_group_by_status,
+            compact_status_progress: refetchedCustomer.compact_status_progress,
+            progress_bar_style: refetchedCustomer.progress_bar_style,
+            progress_show_fraction: refetchedCustomer.progress_show_fraction,
+            truck_animation_style: refetchedCustomer.truck_animation_style,
+            high_contrast_mode: refetchedCustomer.high_contrast_mode,
+            large_touch_targets: refetchedCustomer.large_touch_targets,
+            reduce_motion: refetchedCustomer.reduce_motion,
+          } : {}),
+        };
+        
+        console.log('Merged settings:', mergedSettings);
+        return mergedSettings;
       }
+
+      // Kombiner shared og customer til ett objekt
+      const mergedSettings = {
+        ...mapDbRowToSettings(sharedRow || getDefaultSettings(profileData.bakery_id)),
+        // Behold customer-spesifikke felter fra customer-raden
+        ...(customerRow ? {
+          customer_display_show_date: customerRow.customer_display_show_date,
+          customer_display_header_size: customerRow.customer_display_header_size,
+          customer_show_bakery_name: customerRow.customer_show_bakery_name,
+          customer_show_delivery_info: customerRow.customer_show_delivery_info,
+          customer_header_alignment: customerRow.customer_header_alignment,
+          customer_completion_message: customerRow.customer_completion_message,
+          customer_show_completion_animation: customerRow.customer_show_completion_animation,
+          customer_completion_sound: customerRow.customer_completion_sound,
+          customer_fullscreen_mode: customerRow.customer_fullscreen_mode,
+          customer_content_padding: customerRow.customer_content_padding,
+          customer_max_content_width: customerRow.customer_max_content_width,
+          always_show_customer_name: customerRow.always_show_customer_name,
+          hide_completed_products: customerRow.hide_completed_products,
+          strikethrough_completed_products: customerRow.strikethrough_completed_products,
+          product_card_layout: customerRow.product_card_layout,
+          product_columns: customerRow.product_columns,
+          product_show_category: customerRow.product_show_category,
+          product_group_by_status: customerRow.product_group_by_status,
+          compact_status_progress: customerRow.compact_status_progress,
+          progress_bar_style: customerRow.progress_bar_style,
+          progress_show_fraction: customerRow.progress_show_fraction,
+          truck_animation_style: customerRow.truck_animation_style,
+          high_contrast_mode: customerRow.high_contrast_mode,
+          large_touch_targets: customerRow.large_touch_targets,
+          reduce_motion: customerRow.reduce_motion,
+        } : {}),
+      };
       
-      const existingData = data[0] as any;
-      const mappedData: DisplaySettings = {
-        ...existingData,
-        screen_type: existingData.screen_type || 'shared',
-        packing_status_ongoing_color: existingData.status_in_progress_color || '#3b82f6',
-        packing_status_completed_color: existingData.status_completed_color || '#10b981',
-        compact_status_progress: existingData.compact_status_progress ?? true,
-        auto_fit_min_card_height: existingData.auto_fit_min_card_height ?? 180,
-        // New customer display specific fields
-        customer_display_show_date: existingData.customer_display_show_date ?? true,
-        customer_display_header_size: existingData.customer_display_header_size ?? 32,
-        hide_completed_products: existingData.hide_completed_products ?? false,
-        high_contrast_mode: existingData.high_contrast_mode ?? false,
-      } as DisplaySettings;
-      console.log('Found existing settings:', mappedData);
-      return mappedData;
+      console.log('Found existing merged settings:', mergedSettings);
+      return mergedSettings;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes - longer stale time since we have real-time updates
-    refetchOnWindowFocus: false, // Disable since we have real-time
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
+
+// Felter som skal lagres til customer-raden (ikke shared)
+const CUSTOMER_SPECIFIC_FIELDS = [
+  'customer_display_show_date',
+  'customer_display_header_size',
+  'customer_show_bakery_name',
+  'customer_show_delivery_info',
+  'customer_header_alignment',
+  'customer_completion_message',
+  'customer_show_completion_animation',
+  'customer_completion_sound',
+  'customer_fullscreen_mode',
+  'customer_content_padding',
+  'customer_max_content_width',
+  'always_show_customer_name',
+  'hide_completed_products',
+  'strikethrough_completed_products',
+  'product_card_layout',
+  'product_columns',
+  'product_show_category',
+  'product_group_by_status',
+  'compact_status_progress',
+  'progress_bar_style',
+  'progress_show_fraction',
+  'truck_animation_style',
+  'high_contrast_mode',
+  'large_touch_targets',
+  'reduce_motion',
+  // Farger som også gjelder kunde-visning
+  'product_1_bg_color',
+  'product_2_bg_color',
+  'product_3_bg_color',
+  'product_1_text_color',
+  'product_2_text_color',
+  'product_3_text_color',
+  'product_1_accent_color',
+  'product_2_accent_color',
+  'product_3_accent_color',
+  'status_pending_color',
+  'status_in_progress_color',
+  'status_completed_color',
+  'status_delivered_color',
+  'progress_bar_color',
+  'progress_background_color',
+  'progress_height',
+  'show_progress_bar',
+  'show_progress_percentage',
+  'show_truck_icon',
+  'truck_icon_size',
+  'show_status_indicator',
+  'show_status_badges',
+  'enable_animations',
+  'animation_speed',
+  'fade_transitions',
+  'pulse_on_update',
+  'product_card_color',
+  'product_text_color',
+  'product_accent_color',
+  'product_name_font_size',
+  'product_quantity_font_size',
+  'product_spacing',
+  'product_card_padding',
+  'show_product_unit',
+  'max_products_per_card',
+  'card_background_color',
+  'card_border_color',
+  'card_shadow_intensity',
+  'border_radius',
+  'text_color',
+  'header_text_color',
+  'background_type',
+  'background_color',
+  'background_gradient_start',
+  'background_gradient_end',
+];
 
 export const useUpdateDisplaySettings = () => {
   const queryClient = useQueryClient();
@@ -262,7 +423,7 @@ export const useUpdateDisplaySettings = () => {
       console.log('Updating display settings:', settings);
 
       // First get user's profile to get bakery_id
-      const { data: profile, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('bakery_id')
         .eq('id', user.user.id)
@@ -273,79 +434,84 @@ export const useUpdateDisplaySettings = () => {
         throw profileError;
       }
 
-      if (!profile?.bakery_id) {
+      if (!profileData?.bakery_id) {
         throw new Error('No bakery found for user');
       }
 
-      console.log('Using bakery_id for update:', profile.bakery_id);
+      console.log('Using bakery_id for update:', profileData.bakery_id);
 
-      // Map interface properties back to database column names manually
-      const dbSettings: any = { ...settings };
+      // Splitt innstillinger: noen til shared-rad, noen til customer-rad
+      const sharedSettings: any = {};
+      const customerSettings: any = {};
       
-      // Map packing status colors back to legacy database column names
-      if (settings.packing_status_ongoing_color) {
-        dbSettings.status_in_progress_color = settings.packing_status_ongoing_color;
-        delete dbSettings.packing_status_ongoing_color;
-      }
-      
-      if (settings.packing_status_completed_color) {
-        dbSettings.status_completed_color = settings.packing_status_completed_color;
-        delete dbSettings.packing_status_completed_color;
-      }
-
-      // Remove id and any undefined values
-      delete dbSettings.id;
-
-      console.log('Cleaned settings for database:', dbSettings);
-
-      // Try to update existing settings first for shared screen type
-      const updateResult = await (supabase as any)
-        .from('display_settings')
-        .update(dbSettings)
-        .eq('bakery_id', profile.bakery_id)
-        .eq('screen_type', 'shared')
-        .select();
-
-      const { data: updateData, error: updateError } = updateResult;
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
-
-      // If no rows were affected (no existing settings), create new ones
-      if (!updateData || updateData.length === 0) {
-        console.log('No existing settings to update, creating new ones');
-        const defaultSettings = getDefaultSettings(profile.bakery_id);
-        const newSettings = { ...defaultSettings, ...dbSettings };
+      for (const [key, value] of Object.entries(settings)) {
+        if (key === 'id') continue; // Skip id
         
-        const { data: insertData, error: insertError } = await supabase
-          .from('display_settings')
-          .insert(newSettings)
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Insert error:', insertError);
-          throw insertError;
+        // Map packing status colors back to legacy database column names
+        if (key === 'packing_status_ongoing_color') {
+          sharedSettings.status_in_progress_color = value;
+          customerSettings.status_in_progress_color = value;
+        } else if (key === 'packing_status_completed_color') {
+          sharedSettings.status_completed_color = value;
+          customerSettings.status_completed_color = value;
+        } else if (CUSTOMER_SPECIFIC_FIELDS.includes(key)) {
+          customerSettings[key] = value;
+          // Noen felter skal også oppdateres i shared (farger, generelle innstillinger)
+          if (!key.startsWith('customer_') && !['always_show_customer_name', 'hide_completed_products', 'strikethrough_completed_products', 'product_card_layout', 'product_columns', 'product_show_category', 'product_group_by_status', 'compact_status_progress', 'progress_bar_style', 'progress_show_fraction', 'truck_animation_style', 'high_contrast_mode', 'large_touch_targets', 'reduce_motion'].includes(key)) {
+            sharedSettings[key] = value;
+          }
+        } else {
+          sharedSettings[key] = value;
         }
-        
-        console.log('Created new settings:', insertData);
-        return insertData;
       }
 
-      console.log('Updated settings:', updateData[0]);
-      return updateData[0];
+      console.log('Shared settings to update:', sharedSettings);
+      console.log('Customer settings to update:', customerSettings);
+
+      // Oppdater shared-rad
+      if (Object.keys(sharedSettings).length > 0) {
+        const { error: sharedError } = await supabase
+          .from('display_settings')
+          .update(sharedSettings)
+          .eq('bakery_id', profileData.bakery_id)
+          .eq('screen_type', 'shared');
+
+        if (sharedError) {
+          console.error('Error updating shared settings:', sharedError);
+          throw sharedError;
+        }
+      }
+
+      // Oppdater customer-rad
+      if (Object.keys(customerSettings).length > 0) {
+        const { error: customerError } = await supabase
+          .from('display_settings')
+          .update(customerSettings)
+          .eq('bakery_id', profileData.bakery_id)
+          .eq('screen_type', 'customer');
+
+        if (customerError) {
+          console.error('Error updating customer settings:', customerError);
+          throw customerError;
+        }
+      }
+
+      console.log('Both settings rows updated successfully');
+      return settings;
     },
     onSuccess: () => {
       const { profile } = useAuthStore.getState();
-      // Immediately invalidate all relevant queries with bakery_id
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['display-settings', profile?.bakery_id] });
+      queryClient.invalidateQueries({ 
+        queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], profile?.bakery_id],
+        exact: false,
+      });
       queryClient.invalidateQueries({ queryKey: ['packing-data', profile?.bakery_id] });
       queryClient.invalidateQueries({ queryKey: ['customers', profile?.bakery_id] });
       queryClient.invalidateQueries({ queryKey: ['orders', profile?.bakery_id] });
       
-      console.log('Display settings updated - cache invalidated');
+      console.log('Display settings updated - cache invalidated for both shared and customer');
       
       toast({
         title: "Innstillinger lagret",
