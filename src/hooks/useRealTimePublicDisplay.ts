@@ -75,8 +75,9 @@ export const useRealTimePublicDisplay = (bakeryId?: string) => {
           
           // Invalidate display settings cache - dette oppdaterer produktfarger osv.
           queryClient.invalidateQueries({
-            queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
-            refetchType: 'active'
+             queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+             exact: false,
+             refetchType: 'active'
           });
           
           console.log('✅ Display settings endret - innstillinger cache invalidert');

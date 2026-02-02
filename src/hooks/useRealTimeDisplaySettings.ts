@@ -45,7 +45,11 @@ export const useRealTimeDisplaySettings = () => {
           if (!isMountedRef.current) return;
           
           // ✅ KRITISK FIX: Invalidate public display settings for live displays
-          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], profile.bakery_id] });
+          // (matches both shared/customer screen_type query keys)
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], profile.bakery_id],
+            exact: false,
+          });
           
           if (!isMountedRef.current) return;
           

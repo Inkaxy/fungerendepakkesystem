@@ -43,9 +43,13 @@ export const usePublicCustomerByDisplayUrl = (displayUrl: string) => {
 };
 
 // Hook to get display settings for a bakery without authentication
-export const usePublicDisplaySettings = (bakeryId?: string) => {
+// NOTE: CustomerDisplay and SharedDisplay use different screen_type rows.
+export const usePublicDisplaySettings = (
+  bakeryId?: string,
+  screenType: 'shared' | 'customer' = 'shared'
+) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+    queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId, screenType],
     queryFn: async () => {
       if (!bakeryId) {
         throw new Error('No bakery_id provided');
@@ -57,7 +61,7 @@ export const usePublicDisplaySettings = (bakeryId?: string) => {
         .from('display_settings')
         .select('*')
         .eq('bakery_id', bakeryId)
-        .eq('screen_type', 'shared')
+        .eq('screen_type', screenType)
         .maybeSingle();
 
       if (error) {
@@ -65,19 +69,28 @@ export const usePublicDisplaySettings = (bakeryId?: string) => {
         throw error;
       }
 
+      // If no settings row exists yet, return a minimal fallback instead of crashing the display.
+      if (!data) {
+        console.warn('⚠️ Ingen display_settings funnet for', { bakeryId, screenType });
+        return {
+          bakery_id: bakeryId,
+          screen_type: screenType,
+        } as DisplaySettings;
+      }
+
       // Map the data to DisplaySettings interface
       const mappedSettings: DisplaySettings = {
-        ...data,
-        screen_type: data.screen_type || 'shared',
-        packing_status_ongoing_color: data.status_in_progress_color || '#3b82f6',
-        packing_status_completed_color: data.status_completed_color || '#10b981',
-        compact_status_progress: (data as any).compact_status_progress ?? true,
-        auto_fit_min_card_height: (data as any).auto_fit_min_card_height ?? 180,
-        // New customer display specific fields
-        customer_display_show_date: (data as any).customer_display_show_date ?? true,
-        customer_display_header_size: (data as any).customer_display_header_size ?? 32,
-        hide_completed_products: (data as any).hide_completed_products ?? false,
-        high_contrast_mode: (data as any).high_contrast_mode ?? false,
+        ...(data ?? {}),
+        screen_type: (data as any)?.screen_type || screenType,
+        packing_status_ongoing_color: (data as any)?.status_in_progress_color || '#3b82f6',
+        packing_status_completed_color: (data as any)?.status_completed_color || '#10b981',
+        compact_status_progress: (data as any)?.compact_status_progress ?? true,
+        auto_fit_min_card_height: (data as any)?.auto_fit_min_card_height ?? 180,
+        // Customer display specific fields
+        customer_display_show_date: (data as any)?.customer_display_show_date ?? true,
+        customer_display_header_size: (data as any)?.customer_display_header_size ?? 32,
+        hide_completed_products: (data as any)?.hide_completed_products ?? false,
+        high_contrast_mode: (data as any)?.high_contrast_mode ?? false,
       } as DisplaySettings;
 
       console.log('Found public display settings:', mappedSettings);
