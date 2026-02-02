@@ -110,11 +110,13 @@ const SharedDisplay = () => {
   // Wake Lock - forhindrer at skjermen slukkes
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
-  // 🔄 Fallback polling - kun når WebSocket er disconnected (skip i demo)
+  // 🔄 Fallback/Force polling - aktiveres når WebSocket er disconnected ELLER force_polling er på
   useEffect(() => {
-    if (isDemo || !bakeryId || connectionStatus === 'connected') return;
+    const shouldPoll = (effectiveSettings?.force_polling === true) || connectionStatus !== 'connected';
+    if (isDemo || !bakeryId || !shouldPoll) return;
 
-    console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
+    const reason = effectiveSettings?.force_polling ? 'force_polling aktivert' : 'WebSocket disconnected';
+    console.log(`⚠️ ${reason} - aktiverer polling (5s interval)`);
 
     const interval = setInterval(() => {
       if (document.hidden) return;
@@ -142,7 +144,7 @@ const SharedDisplay = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isDemo, bakeryId, connectionStatus, queryClient]);
+  }, [isDemo, bakeryId, connectionStatus, effectiveSettings?.force_polling, queryClient]);
 
   // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall) - skip i demo
   useDisplayHeartbeat({ bakeryId: isDemo ? undefined : bakeryId, enabled: !isDemo && !!bakeryId });

@@ -180,6 +180,9 @@ export const mapDatabaseToDisplaySettings = (data: Record<string, any>): Display
     
     // Product Colors
     use_consistent_product_colors: data.use_consistent_product_colors ?? false,
+    
+    // Smart-TV Polling
+    force_polling: data.force_polling ?? false,
   } as DisplaySettings;
 };
 
