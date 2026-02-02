@@ -236,7 +236,14 @@ const SharedDisplay = () => {
 
   // ✅ Pre-filter kunder til kun de som har ordrer (total_line_items_all > 0)
   // Dette sikrer at AutoFitGrid beregner riktig antall celler uten tomme hull
+  // VIKTIG: Returner tom array hvis data fortsatt lastes for å unngå feil filtrering
   const visibleCustomers = useMemo(() => {
+    // ✅ FIX: Hvis packing data ikke er lastet ennå, ikke filtrer ut kunder
+    if (!allPackingData || allPackingData.length === 0) {
+      // Returner alle kunder midlertidig under lasting, eller tom hvis ingen data
+      return packingDataLoading ? sortedCustomers : [];
+    }
+    
     return sortedCustomers.filter(c => {
       const data = packingDataMap.get(c.id);
       // Vis kunder som har ordrer for datoen
@@ -249,7 +256,7 @@ const SharedDisplay = () => {
       
       return true;
     });
-  }, [sortedCustomers, packingDataMap, effectiveSettings?.shared_hide_completed_customers]);
+  }, [sortedCustomers, packingDataMap, allPackingData, packingDataLoading, effectiveSettings?.shared_hide_completed_customers]);
   
   // Demo-kunder sortert
   const sortedDemoCustomers = useMemo(() => {
@@ -270,10 +277,9 @@ const SharedDisplay = () => {
   };
 
   const isToday = effectivePackingDate ? effectivePackingDate === format(new Date(), 'yyyy-MM-dd') : false;
-  // ✅ OPTIMALISERING: Bruk kun dato/kunde-loading for initial state, 
-  // packing data loading håndteres per-kort med skeleton
+  // ✅ FIX: Inkluder packingDataLoading for å unngå tom-tilstand før data er hentet
   // Inkluderer også ID-oppløsning for short_id
-  const isLoading = isDemo ? false : (isResolvingId || dateLoading || customersLoading);
+  const isLoading = isDemo ? false : (isResolvingId || dateLoading || customersLoading || packingDataLoading);
 
   // Determine grid columns class based on settings
   const getCustomerGridClass = () => {
