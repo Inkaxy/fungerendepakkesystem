@@ -38,13 +38,26 @@ const CustomerProductSection = ({ settings, onUpdate }: CustomerProductSectionPr
         onCheckedChange={(checked) => onUpdate({ show_basket_quantity: checked })}
       />
 
-      <ToggleSetting
-        id="show_line_items_count"
-        label="Vis varelinjer-telling"
-        description="Vis pakke-telling som f.eks. 0/1 på produktkort"
-        checked={settings.show_line_items_count}
-        onCheckedChange={(checked) => onUpdate({ show_line_items_count: checked })}
-      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <ToggleSetting
+          id="show_line_items_count"
+          label="Vis varelinjer-telling"
+          description="Vis telling som f.eks. 0/1 på produktkort"
+          checked={settings.show_line_items_count}
+          onCheckedChange={(checked) => onUpdate({ show_line_items_count: checked })}
+        />
+        {settings.show_line_items_count && (
+          <SliderControl
+            label="Telling-størrelse"
+            value={settings.line_items_count_font_size}
+            onChange={(value) => onUpdate({ line_items_count_font_size: value })}
+            min={12}
+            max={32}
+            step={1}
+            unit="px"
+          />
+        )}
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <ToggleSetting
@@ -108,13 +121,24 @@ const CustomerProductSection = ({ settings, onUpdate }: CustomerProductSectionPr
         />
       </div>
 
+      <SliderControl
+        label="Produktkort skalering"
+        value={settings.product_card_size}
+        onChange={(value) => onUpdate({ product_card_size: value })}
+        min={50}
+        max={150}
+        step={10}
+        unit="%"
+        description="Skalerer hele produktkortet proporsjonalt"
+      />
+
       <div className="grid gap-4 md:grid-cols-2">
         <SliderControl
           label="Produktnavn størrelse"
           value={settings.product_name_font_size}
           onChange={(value) => onUpdate({ product_name_font_size: value })}
           min={12}
-          max={28}
+          max={36}
           step={1}
           unit="px"
         />
@@ -135,7 +159,7 @@ const CustomerProductSection = ({ settings, onUpdate }: CustomerProductSectionPr
           value={settings.product_spacing}
           onChange={(value) => onUpdate({ product_spacing: value })}
           min={4}
-          max={24}
+          max={32}
           step={2}
           unit="px"
         />
@@ -144,7 +168,7 @@ const CustomerProductSection = ({ settings, onUpdate }: CustomerProductSectionPr
           value={settings.product_card_padding}
           onChange={(value) => onUpdate({ product_card_padding: value })}
           min={8}
-          max={32}
+          max={48}
           step={4}
           unit="px"
         />

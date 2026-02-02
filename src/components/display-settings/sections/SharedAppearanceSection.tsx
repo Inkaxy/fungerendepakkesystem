@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import ToggleSetting from '../ToggleSetting';
 import SliderControl from '../SliderControl';
 import ColorPicker from '../ColorPicker';
 import type { DisplaySettings } from '@/types/displaySettings';
@@ -72,10 +71,10 @@ const SharedAppearanceSection = ({ settings, onUpdate }: SharedAppearanceSection
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="to-bottom">Nedover</SelectItem>
-                <SelectItem value="to-top">Oppover</SelectItem>
-                <SelectItem value="to-right">Høyre</SelectItem>
-                <SelectItem value="to-left">Venstre</SelectItem>
+                <SelectItem value="to-bottom">Nedover ↓</SelectItem>
+                <SelectItem value="to-top">Oppover ↑</SelectItem>
+                <SelectItem value="to-right">Høyre →</SelectItem>
+                <SelectItem value="to-left">Venstre ←</SelectItem>
                 <SelectItem value="to-bottom-right">Diagonalt ↘</SelectItem>
                 <SelectItem value="to-bottom-left">Diagonalt ↙</SelectItem>
               </SelectContent>
@@ -92,21 +91,43 @@ const SharedAppearanceSection = ({ settings, onUpdate }: SharedAppearanceSection
               id="bg_image_url"
               value={settings.background_image_url || ''}
               onChange={(e) => onUpdate({ background_image_url: e.target.value })}
-              placeholder="https://..."
+              placeholder="https://example.com/bakgrunn.jpg"
             />
           </div>
           <SliderControl
-            label="Overlay opacity"
+            label="Overlay mørkning"
             value={settings.background_overlay_opacity}
             onChange={(value) => onUpdate({ background_overlay_opacity: value })}
             min={0}
             max={100}
             step={10}
             unit="%"
-            description="Mørk overlay over bakgrunnsbildet"
+            description="Mørk overlay for bedre lesbarhet"
           />
         </div>
       )}
+
+      {/* Typography & Text */}
+      <div className="border-t pt-4 space-y-4">
+        <Label className="text-base font-medium">Tekst</Label>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          <ColorPicker
+            label="Generell tekstfarge"
+            value={settings.text_color}
+            onChange={(color) => onUpdate({ text_color: color })}
+          />
+          <SliderControl
+            label="Brødtekst størrelse"
+            value={settings.body_font_size}
+            onChange={(value) => onUpdate({ body_font_size: value })}
+            min={12}
+            max={24}
+            step={1}
+            unit="px"
+          />
+        </div>
+      </div>
 
       {/* Card Styling */}
       <div className="border-t pt-4 space-y-4">
@@ -133,6 +154,7 @@ const SharedAppearanceSection = ({ settings, onUpdate }: SharedAppearanceSection
             min={0}
             max={10}
             step={1}
+            description="0 = ingen skygge"
           />
           <SliderControl
             label="Hjørneradius"
@@ -156,7 +178,7 @@ const SharedAppearanceSection = ({ settings, onUpdate }: SharedAppearanceSection
             unit="px"
           />
           <SliderControl
-            label="Avstand (spacing)"
+            label="Generell avstand"
             value={settings.spacing}
             onChange={(value) => onUpdate({ spacing: value })}
             min={8}
@@ -165,14 +187,6 @@ const SharedAppearanceSection = ({ settings, onUpdate }: SharedAppearanceSection
             unit="px"
           />
         </div>
-
-        <ToggleSetting
-          id="card_hover_effect"
-          label="Hover-effekt"
-          description="Legg til skalering ved hover på kort"
-          checked={settings.card_hover_effect}
-          onCheckedChange={(checked) => onUpdate({ card_hover_effect: checked })}
-        />
       </div>
     </div>
   );

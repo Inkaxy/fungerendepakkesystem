@@ -1,6 +1,14 @@
 import React from 'react';
 import { Accordion } from '@/components/ui/accordion';
-import { Type, Rainbow, Grid3X3, Sparkles, LayoutGrid, Zap, Bell } from 'lucide-react';
+import { 
+  Type, 
+  BarChart3, 
+  LayoutGrid, 
+  Palette, 
+  Maximize, 
+  Zap, 
+  RefreshCw 
+} from 'lucide-react';
 import SettingsSection from '../SettingsSection';
 import SharedHeaderSection from '../sections/SharedHeaderSection';
 import SharedStatsSection from '../sections/SharedStatsSection';
@@ -19,77 +27,84 @@ interface SharedDisplayTabProps {
 
 const SharedDisplayTab = ({ settings, onUpdate, customerCount = 0 }: SharedDisplayTabProps) => {
   return (
-    <Accordion type="multiple" defaultValue={['header']} className="space-y-2">
-      <SettingsSection
-        value="header"
-        icon={Type}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Topptekst"
-      >
-        <SharedHeaderSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+    <div className="space-y-4">
+      {/* Quick info */}
+      <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary">
+        <strong>Delt visning</strong> er skjermen som viser pakkestatus for alle kunder på én felles skjerm (TV, storskjerm).
+      </div>
 
-      <SettingsSection
-        value="stats"
-        icon={Rainbow}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Statistikk-kort"
-      >
-        <SharedStatsSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+      <Accordion type="multiple" defaultValue={['header', 'customer-cards']} className="space-y-2">
+        <SettingsSection
+          value="header"
+          icon={Type}
+          iconColor="text-blue-600"
+          bgColor="bg-blue-50"
+          title="Topptekst & Logo"
+        >
+          <SharedHeaderSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      <SettingsSection
-        value="customer-cards"
-        icon={Grid3X3}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Kundekort"
-      >
-        <SharedCustomerCardsSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        <SettingsSection
+          value="stats"
+          icon={BarChart3}
+          iconColor="text-green-600"
+          bgColor="bg-green-50"
+          title="Statistikk-kort"
+        >
+          <SharedStatsSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      <SettingsSection
-        value="appearance"
-        icon={Sparkles}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Utseende"
-      >
-        <SharedAppearanceSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        <SettingsSection
+          value="customer-cards"
+          icon={LayoutGrid}
+          iconColor="text-purple-600"
+          bgColor="bg-purple-50"
+          title="Kundekort"
+        >
+          <SharedCustomerCardsSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      <SettingsSection
-        value="layout"
-        icon={LayoutGrid}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Layout & Scroll"
-      >
-        <SharedLayoutSection settings={settings} onUpdate={onUpdate} customerCount={customerCount} />
-      </SettingsSection>
+        <SettingsSection
+          value="appearance"
+          icon={Palette}
+          iconColor="text-pink-600"
+          bgColor="bg-pink-50"
+          title="Farger & Utseende"
+        >
+          <SharedAppearanceSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      <SettingsSection
-        value="animation"
-        icon={Zap}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Animasjoner"
-      >
-        <SharedAnimationSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        <SettingsSection
+          value="layout"
+          icon={Maximize}
+          iconColor="text-orange-600"
+          bgColor="bg-orange-50"
+          title="Skjermlayout"
+        >
+          <SharedLayoutSection settings={settings} onUpdate={onUpdate} customerCount={customerCount} />
+        </SettingsSection>
 
-      <SettingsSection
-        value="realtime"
-        icon={Bell}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Sanntid & Status"
-      >
-        <SharedRealtimeSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
-    </Accordion>
+        <SettingsSection
+          value="animation"
+          icon={Zap}
+          iconColor="text-yellow-600"
+          bgColor="bg-yellow-50"
+          title="Animasjoner"
+        >
+          <SharedAnimationSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
+
+        <SettingsSection
+          value="realtime"
+          icon={RefreshCw}
+          iconColor="text-cyan-600"
+          bgColor="bg-cyan-50"
+          title="Oppdatering & Synlighet"
+        >
+          <SharedRealtimeSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
+      </Accordion>
+    </div>
   );
 };
 

@@ -131,10 +131,58 @@ const SharedCustomerCardsSection = ({ settings, onUpdate }: SharedCustomerCardsS
         <ToggleSetting
           id="shared_show_completion_icon"
           label="Vis ferdig-ikon"
-          description="Vis Loaf&Load-logo når kunde er ferdig pakket"
+          description="Vis grønt hake-ikon når kunde er ferdig pakket"
           checked={settings.shared_show_completion_icon ?? true}
           onCheckedChange={(checked) => onUpdate({ shared_show_completion_icon: checked })}
         />
+        <ToggleSetting
+          id="show_status_badges"
+          label="Vis status-badges"
+          description="Vis tekstlig status på hvert kort"
+          checked={settings.show_status_badges ?? true}
+          onCheckedChange={(checked) => onUpdate({ show_status_badges: checked })}
+        />
+      </div>
+
+      <div className="border-t pt-4 space-y-4">
+        <Label className="text-base font-medium">Produktvisning i kort</Label>
+
+        <SliderControl
+          label="Maks produkter per kort"
+          value={settings.max_products_per_card}
+          onChange={(value) => onUpdate({ max_products_per_card: value })}
+          min={1}
+          max={10}
+          step={1}
+          description="Begrens antall produkter som vises per kundekort"
+        />
+
+        <SliderControl
+          label="Produkt tekststørrelse"
+          value={settings.shared_product_font_size}
+          onChange={(value) => onUpdate({ shared_product_font_size: value })}
+          min={10}
+          max={24}
+          step={1}
+          unit="px"
+        />
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <ToggleSetting
+            id="shared_show_product_quantity"
+            label="Vis antall"
+            description="Vis produktantall i produktlisten"
+            checked={settings.shared_show_product_quantity}
+            onCheckedChange={(checked) => onUpdate({ shared_show_product_quantity: checked })}
+          />
+          <ToggleSetting
+            id="show_line_items_count"
+            label="Vis varelinjer"
+            description="Vis telling som 2/5 på produkter"
+            checked={settings.show_line_items_count}
+            onCheckedChange={(checked) => onUpdate({ show_line_items_count: checked })}
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -148,7 +196,7 @@ const SharedCustomerCardsSection = ({ settings, onUpdate }: SharedCustomerCardsS
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="alphabetical">Alfabetisk</SelectItem>
-            <SelectItem value="priority">Prioritet</SelectItem>
+            <SelectItem value="priority">Prioritet (pågår først)</SelectItem>
             <SelectItem value="progress">Fremdrift</SelectItem>
           </SelectContent>
         </Select>
