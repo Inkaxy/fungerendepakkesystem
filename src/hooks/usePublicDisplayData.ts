@@ -78,7 +78,7 @@ export const usePublicDisplaySettings = (
         } as DisplaySettings;
       }
 
-      // Map the data to DisplaySettings interface
+      // Map the data to DisplaySettings interface with proper defaults
       const mappedSettings: DisplaySettings = {
         ...(data ?? {}),
         screen_type: (data as any)?.screen_type || screenType,
@@ -86,11 +86,48 @@ export const usePublicDisplaySettings = (
         packing_status_completed_color: (data as any)?.status_completed_color || '#10b981',
         compact_status_progress: (data as any)?.compact_status_progress ?? true,
         auto_fit_min_card_height: (data as any)?.auto_fit_min_card_height ?? 180,
-        // Customer display specific fields
+        // Header settings
+        customer_name_font_size: (data as any)?.customer_name_font_size ?? 32,
         customer_display_show_date: (data as any)?.customer_display_show_date ?? true,
-        customer_display_header_size: (data as any)?.customer_display_header_size ?? 32,
+        customer_display_header_size: (data as any)?.customer_display_header_size ?? 18,
+        customer_show_bakery_name: (data as any)?.customer_show_bakery_name ?? false,
+        customer_show_delivery_info: (data as any)?.customer_show_delivery_info ?? false,
+        customer_header_alignment: (data as any)?.customer_header_alignment ?? 'center',
+        always_show_customer_name: (data as any)?.always_show_customer_name ?? true,
+        // Layout settings
+        customer_fullscreen_mode: (data as any)?.customer_fullscreen_mode ?? false,
+        customer_content_padding: (data as any)?.customer_content_padding ?? 24,
+        customer_max_content_width: (data as any)?.customer_max_content_width ?? 1200,
+        // Progress settings
+        show_status_indicator: (data as any)?.show_status_indicator ?? true,
+        status_indicator_font_size: (data as any)?.status_indicator_font_size ?? 24,
+        status_indicator_padding: (data as any)?.status_indicator_padding ?? 16,
+        progress_bar_style: (data as any)?.progress_bar_style ?? 'bar',
+        progress_show_fraction: (data as any)?.progress_show_fraction ?? false,
+        progress_animation: (data as any)?.progress_animation ?? true,
+        truck_animation_style: (data as any)?.truck_animation_style ?? 'bounce',
+        // Product settings
         hide_completed_products: (data as any)?.hide_completed_products ?? false,
+        strikethrough_completed_products: (data as any)?.strikethrough_completed_products ?? false,
+        product_card_layout: (data as any)?.product_card_layout ?? 'horizontal',
+        product_columns: (data as any)?.product_columns ?? 2,
+        product_show_category: (data as any)?.product_show_category ?? false,
+        product_group_by_status: (data as any)?.product_group_by_status ?? false,
+        product_card_size: (data as any)?.product_card_size ?? 100,
+        product_unit_font_size: (data as any)?.product_unit_font_size ?? 24,
+        product_name_font_weight: (data as any)?.product_name_font_weight ?? 600,
+        product_quantity_font_weight: (data as any)?.product_quantity_font_weight ?? 700,
+        show_line_items_count: (data as any)?.show_line_items_count ?? true,
+        line_items_count_font_size: (data as any)?.line_items_count_font_size ?? 18,
+        show_basket_quantity: (data as any)?.show_basket_quantity ?? false,
+        // Completion settings
+        customer_completion_message: (data as any)?.customer_completion_message ?? 'Alt er pakket og klart! 🎉',
+        customer_show_completion_animation: (data as any)?.customer_show_completion_animation ?? true,
+        customer_completion_sound: (data as any)?.customer_completion_sound ?? false,
+        // Accessibility settings
         high_contrast_mode: (data as any)?.high_contrast_mode ?? false,
+        large_touch_targets: (data as any)?.large_touch_targets ?? false,
+        reduce_motion: (data as any)?.reduce_motion ?? false,
       } as DisplaySettings;
 
       console.log('Found public display settings:', mappedSettings);
