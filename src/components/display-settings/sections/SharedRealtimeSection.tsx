@@ -1,7 +1,8 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import ToggleSetting from '../ToggleSetting';
+import SliderControl from '../SliderControl';
 import type { DisplaySettings } from '@/types/displaySettings';
 
 interface SharedRealtimeSectionProps {
@@ -12,57 +13,59 @@ interface SharedRealtimeSectionProps {
 const SharedRealtimeSection = ({ settings, onUpdate }: SharedRealtimeSectionProps) => {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Label htmlFor="auto-refresh">Auto-oppdatering</Label>
-        <Switch
-          id="auto-refresh"
-          checked={(settings.auto_refresh_interval ?? 30) > 0}
-          onCheckedChange={(checked) => 
-            onUpdate({ auto_refresh_interval: checked ? 30 : 0 })
-          }
-        />
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Sanntidsoppdateringer skjer automatisk via WebSocket. Disse innstillingene styrer fallback og visuell tilbakemelding.
+      </p>
+
+      <ToggleSetting
+        id="auto-refresh-toggle"
+        label="Fallback polling"
+        description="Automatisk oppdatering hvis WebSocket feiler (anbefalt på)"
+        checked={(settings.auto_refresh_interval ?? 30) > 0}
+        onCheckedChange={(checked) => 
+          onUpdate({ auto_refresh_interval: checked ? 30 : 0 })
+        }
+      />
 
       {(settings.auto_refresh_interval ?? 30) > 0 && (
-        <div className="space-y-2">
-          <Label htmlFor="refresh-interval">Oppdateringsintervall (sekunder)</Label>
-          <Input
-            id="refresh-interval"
-            type="number"
-            min={5}
-            max={300}
-            value={settings.auto_refresh_interval ?? 30}
-            onChange={(e) => onUpdate({ auto_refresh_interval: parseInt(e.target.value) || 30 })}
-          />
-        </div>
+        <SliderControl
+          label="Polling-intervall"
+          value={settings.auto_refresh_interval ?? 30}
+          onChange={(value) => onUpdate({ auto_refresh_interval: value })}
+          min={5}
+          max={120}
+          step={5}
+          unit="sek"
+          description="Hvor ofte data hentes ved WebSocket-feil"
+        />
       )}
 
-      <div className="flex items-center justify-between">
-        <Label htmlFor="show-status-badges">Vis status-badges</Label>
-        <Switch
-          id="show-status-badges"
-          checked={settings.show_status_badges ?? true}
-          onCheckedChange={(checked) => onUpdate({ show_status_badges: checked })}
-        />
-      </div>
+      <ToggleSetting
+        id="show-delivery-dates"
+        label="Vis leveringsdatoer"
+        description="Vis forventet leveringsdato på kundekortene"
+        checked={settings.show_delivery_dates ?? false}
+        onCheckedChange={(checked) => onUpdate({ show_delivery_dates: checked })}
+      />
 
-      <div className="flex items-center justify-between">
-        <Label htmlFor="pulse-on-update">Puls-effekt ved oppdatering</Label>
-        <Switch
-          id="pulse-on-update"
-          checked={settings.pulse_on_update ?? true}
-          onCheckedChange={(checked) => onUpdate({ pulse_on_update: checked })}
-        />
-      </div>
+      <ToggleSetting
+        id="shared_hide_completed_customers"
+        label="Skjul ferdige kunder"
+        description="Automatisk fjern kunder som er ferdig pakket fra visningen"
+        checked={settings.shared_hide_completed_customers ?? false}
+        onCheckedChange={(checked) => onUpdate({ shared_hide_completed_customers: checked })}
+      />
 
-      <div className="flex items-center justify-between">
-        <Label htmlFor="show-delivery-dates">Vis leveringsdatoer</Label>
-        <Switch
-          id="show-delivery-dates"
-          checked={settings.show_delivery_dates ?? false}
-          onCheckedChange={(checked) => onUpdate({ show_delivery_dates: checked })}
-        />
-      </div>
+      <SliderControl
+        label="Opacity på ferdige kunder"
+        value={settings.shared_completed_customer_opacity ?? 50}
+        onChange={(value) => onUpdate({ shared_completed_customer_opacity: value })}
+        min={20}
+        max={100}
+        step={10}
+        unit="%"
+        description="Hvor gjennomsiktige ferdige kunder vises (før de eventuelt skjules)"
+      />
     </div>
   );
 };

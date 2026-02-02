@@ -5,10 +5,10 @@ import {
   Layout, 
   TrendingUp, 
   Package, 
+  Paintbrush,
   Palette, 
-  CheckCircle2, 
-  Accessibility,
-  Paintbrush
+  PartyPopper, 
+  Accessibility
 } from 'lucide-react';
 import SettingsSection from '../SettingsSection';
 import CustomerHeaderSection from '../sections/CustomerHeaderSection';
@@ -28,108 +28,115 @@ interface CustomerDisplayTabProps {
 
 const CustomerDisplayTab = ({ settings, onUpdate }: CustomerDisplayTabProps) => {
   return (
-    <Accordion type="multiple" defaultValue={['header', 'products']} className="space-y-2">
-      {/* Header Settings */}
-      <SettingsSection
-        value="header"
-        icon={User}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Kunde-header"
-      >
-        <CustomerHeaderSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+    <div className="space-y-4">
+      {/* Quick info */}
+      <div className="p-3 bg-accent border border-accent-foreground/10 rounded-lg text-sm text-accent-foreground">
+        <strong>Kundevisning</strong> er skjermen som vises til én spesifikk kunde (nettbrett/skjerm hos kunden).
+      </div>
 
-      {/* Layout Settings */}
-      <SettingsSection
-        value="layout"
-        icon={Layout}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Layout"
-      >
-        <CustomerLayoutSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+      <Accordion type="multiple" defaultValue={['header', 'products']} className="space-y-2">
+        {/* Header Settings */}
+        <SettingsSection
+          value="header"
+          icon={User}
+          iconColor="text-blue-600"
+          bgColor="bg-blue-50"
+          title="Kunde-header"
+        >
+          <CustomerHeaderSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      {/* Progress & Status */}
-      <SettingsSection
-        value="progress"
-        icon={TrendingUp}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Status & Fremdrift"
-      >
-        <CustomerProgressSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        {/* Layout Settings */}
+        <SettingsSection
+          value="layout"
+          icon={Layout}
+          iconColor="text-purple-600"
+          bgColor="bg-purple-50"
+          title="Layout & Bakgrunn"
+        >
+          <CustomerLayoutSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      {/* Product Display */}
-      <SettingsSection
-        value="products"
-        icon={Package}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Produktvisning"
-      >
-        <CustomerProductSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        {/* Progress & Status */}
+        <SettingsSection
+          value="progress"
+          icon={TrendingUp}
+          iconColor="text-green-600"
+          bgColor="bg-green-50"
+          title="Fremdrift & Status"
+        >
+          <CustomerProgressSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      {/* Product Colors */}
-      <SettingsSection
-        value="product-colors"
-        icon={Paintbrush}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Produktfarger"
-      >
-        <CustomerProductColorsSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        {/* Product Display */}
+        <SettingsSection
+          value="products"
+          icon={Package}
+          iconColor="text-orange-600"
+          bgColor="bg-orange-50"
+          title="Produktvisning"
+        >
+          <CustomerProductSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      {/* Status Colors */}
-      <SettingsSection
-        value="status-colors"
-        icon={Palette}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Statusfarger"
-      >
-        <CustomerStatusColorsSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        {/* Product Colors */}
+        <SettingsSection
+          value="product-colors"
+          icon={Paintbrush}
+          iconColor="text-pink-600"
+          bgColor="bg-pink-50"
+          title="Produktfarger"
+        >
+          <CustomerProductColorsSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      {/* Completion */}
-      <SettingsSection
-        value="completion"
-        icon={CheckCircle2}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Fullføring"
-      >
-        <CustomerCompletionSection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        {/* Status Colors */}
+        <SettingsSection
+          value="status-colors"
+          icon={Palette}
+          iconColor="text-indigo-600"
+          bgColor="bg-indigo-50"
+          title="Statusfarger"
+        >
+          <CustomerStatusColorsSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
 
-      {/* Accessibility */}
-      <SettingsSection
-        value="accessibility"
-        icon={Accessibility}
-        iconColor="text-foreground"
-        bgColor="bg-transparent"
-        title="Tilgjengelighet"
-      >
-        <CustomerAccessibilitySection settings={settings} onUpdate={onUpdate} />
-      </SettingsSection>
+        {/* Completion */}
+        <SettingsSection
+          value="completion"
+          icon={PartyPopper}
+          iconColor="text-yellow-600"
+          bgColor="bg-yellow-50"
+          title="Fullføring"
+        >
+          <CustomerCompletionSection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
+
+        {/* Accessibility */}
+        <SettingsSection
+          value="accessibility"
+          icon={Accessibility}
+          iconColor="text-cyan-600"
+          bgColor="bg-cyan-50"
+          title="Tilgjengelighet & Animasjon"
+        >
+          <CustomerAccessibilitySection settings={settings} onUpdate={onUpdate} />
+        </SettingsSection>
+      </Accordion>
 
       {/* Info Box */}
-      <div className="p-4 bg-muted/50 rounded-lg border border-border mt-4">
+      <div className="p-4 bg-muted/50 rounded-lg border border-border">
         <div className="flex items-start gap-2">
           <div className="text-primary mt-0.5">💡</div>
           <div>
-            <p className="text-sm font-medium">Live oppdateringer aktivert</p>
+            <p className="text-sm font-medium">Live oppdateringer</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Kunde-displayene oppdateres automatisk via websockets - ingen forsinkelse!
+              Kunde-displayene oppdateres automatisk via websockets når pakking endres.
             </p>
           </div>
         </div>
       </div>
-    </Accordion>
+    </div>
   );
 };
 

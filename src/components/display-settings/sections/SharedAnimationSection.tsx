@@ -15,7 +15,7 @@ const SharedAnimationSection = ({ settings, onUpdate }: SharedAnimationSectionPr
       <ToggleSetting
         id="enable_animations"
         label="Aktiver animasjoner"
-        description="Slå av for å forbedre ytelse på svakere enheter"
+        description="Slå av for å forbedre ytelse på eldre enheter eller store skjermer"
         checked={settings.enable_animations}
         onCheckedChange={(checked) => onUpdate({ enable_animations: checked })}
       />
@@ -32,9 +32,9 @@ const SharedAnimationSection = ({ settings, onUpdate }: SharedAnimationSectionPr
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="slow">Sakte</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="fast">Rask</SelectItem>
+                <SelectItem value="slow">Langsom (2s)</SelectItem>
+                <SelectItem value="normal">Normal (1s)</SelectItem>
+                <SelectItem value="fast">Rask (0.5s)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -43,20 +43,36 @@ const SharedAnimationSection = ({ settings, onUpdate }: SharedAnimationSectionPr
             <ToggleSetting
               id="fade_transitions"
               label="Fade-overganger"
-              description="Myk innfading ved endringer"
+              description="Myk innfading når innhold endres"
               checked={settings.fade_transitions}
               onCheckedChange={(checked) => onUpdate({ fade_transitions: checked })}
             />
             <ToggleSetting
               id="pulse_on_update"
               label="Puls ved oppdatering"
-              description="Kort puls-animasjon ved data-endringer"
+              description="Kort lysblink ved pakke-endringer"
               checked={settings.pulse_on_update}
               onCheckedChange={(checked) => onUpdate({ pulse_on_update: checked })}
             />
           </div>
+
+          <ToggleSetting
+            id="card_hover_effect"
+            label="Hover-effekt på kort"
+            description="Kort skalerer litt opp ved hover (for touch-skjermer)"
+            checked={settings.card_hover_effect}
+            onCheckedChange={(checked) => onUpdate({ card_hover_effect: checked })}
+          />
         </>
       )}
+
+      <ToggleSetting
+        id="reduce_motion"
+        label="Reduser bevegelse"
+        description="Respekter brukeres preferanse for mindre animasjon (tilgjengelighet)"
+        checked={settings.reduce_motion ?? false}
+        onCheckedChange={(checked) => onUpdate({ reduce_motion: checked })}
+      />
     </div>
   );
 };
