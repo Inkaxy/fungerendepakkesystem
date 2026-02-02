@@ -183,12 +183,14 @@ const CustomerDisplay = () => {
   const { isActive: wakeLockActive, isSupported: wakeLockSupported } = useWakeLock();
 
 
-  // 🔄 Fallback polling - kun når WebSocket er disconnected
+  // 🔄 Fallback/Force polling - aktiveres når WebSocket er disconnected ELLER force_polling er på
   React.useEffect(() => {
     const bakeryId = customer?.bakery_id;
-    if (isDemo || !bakeryId || connectionStatus === 'connected') return;
+    const shouldPoll = (settings?.force_polling === true) || connectionStatus !== 'connected';
+    if (isDemo || !bakeryId || !shouldPoll) return;
 
-    console.log('⚠️ WebSocket disconnected - aktiverer fallback polling (5s interval)');
+    const reason = settings?.force_polling ? 'force_polling aktivert' : 'WebSocket disconnected';
+    console.log(`⚠️ ${reason} - aktiverer polling (5s interval)`);
 
     const interval = setInterval(() => {
       if (document.hidden) return;
@@ -216,7 +218,7 @@ const CustomerDisplay = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isDemo, customer?.bakery_id, connectionStatus, queryClient]);
+  }, [isDemo, customer?.bakery_id, connectionStatus, settings?.force_polling, queryClient]);
 
   // ✅ KONSOLIDERT: Heartbeat via felles hook (60s intervall)
   useDisplayHeartbeat({ bakeryId: customer?.bakery_id, enabled: !!customer?.bakery_id });

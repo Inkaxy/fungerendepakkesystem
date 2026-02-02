@@ -189,4 +189,7 @@ export const getDefaultSettings = (bakery_id: string): Omit<DisplaySettings, 'id
   
   // Basket Quantity
   show_basket_quantity: false,
+  
+  // Smart-TV Polling
+  force_polling: false,
 });

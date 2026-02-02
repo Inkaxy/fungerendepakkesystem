@@ -300,6 +300,7 @@ export type Database = {
           enable_cat_animations: boolean | null
           fade_transitions: boolean | null
           font_family: string | null
+          force_polling: boolean | null
           force_single_screen: boolean | null
           fullscreen_mode: boolean | null
           grid_fixed_columns: number | null
@@ -477,6 +478,7 @@ export type Database = {
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
           font_family?: string | null
+          force_polling?: boolean | null
           force_single_screen?: boolean | null
           fullscreen_mode?: boolean | null
           grid_fixed_columns?: number | null
@@ -654,6 +656,7 @@ export type Database = {
           enable_cat_animations?: boolean | null
           fade_transitions?: boolean | null
           font_family?: string | null
+          force_polling?: boolean | null
           force_single_screen?: boolean | null
           fullscreen_mode?: boolean | null
           grid_fixed_columns?: number | null

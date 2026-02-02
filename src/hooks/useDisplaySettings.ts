@@ -150,6 +150,7 @@ export interface DisplaySettings {
   show_delivery_dates?: boolean;
   show_product_images?: boolean;
   auto_refresh_interval?: number;
+  force_polling?: boolean;
 }
 
 // Helper to map DB row to DisplaySettings interface

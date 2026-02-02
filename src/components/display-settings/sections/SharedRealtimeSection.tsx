@@ -18,6 +18,14 @@ const SharedRealtimeSection = ({ settings, onUpdate }: SharedRealtimeSectionProp
       </p>
 
       <ToggleSetting
+        id="force-polling-toggle"
+        label="Tving polling (for Smart-TV)"
+        description="Alltid oppdater hvert 5. sekund, selv med aktiv WebSocket-tilkobling. Nyttig for Smart-TV-er med ustabile sanntidsforbindelser."
+        checked={settings.force_polling ?? false}
+        onCheckedChange={(checked) => onUpdate({ force_polling: checked })}
+      />
+
+      <ToggleSetting
         id="auto-refresh-toggle"
         label="Fallback polling"
         description="Automatisk oppdatering hvis WebSocket feiler (anbefalt på)"
