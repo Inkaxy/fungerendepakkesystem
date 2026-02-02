@@ -591,10 +591,12 @@ export const usePublicAllCustomersPackingData = (
             customer!.packed_line_items_all += 1;
           }
 
-          // Skip if not in activeProducts (for display filtering)
-          // ✅ FIX: Queryet kjører kun når activeProducts !== undefined (se enabled)
-          // Hvis tom array -> vis ingen produkter i listen
-          if (!activeProducts || activeProducts.length === 0) return;
+          // ✅ FIX: Kun filtrer produktlisten hvis activeProducts finnes,
+          // men la alltid progress-telling (total_line_items_all) gå gjennom
+          const hasActiveProducts = activeProducts && activeProducts.length > 0;
+          
+          // Skip produktliste-populering hvis ingen produkter er valgt
+          if (!hasActiveProducts) return;
 
           const activeProduct = activeProducts.find(ap => 
             ap.product_id === op.product_id || ap.product_name === product.name
@@ -654,7 +656,8 @@ export const usePublicAllCustomersPackingData = (
       console.log('📦 Batch fetch complete:', customerMap.size, 'customers with data');
       return Array.from(customerMap.values());
     },
-    enabled: !!bakeryId && !!customerIds?.length && customerIds.length > 0 && activeProducts !== undefined,
+    // ✅ FIX: Ikke avhengig av activeProducts - hent ALLTID data for å beregne total_line_items_all
+    enabled: !!bakeryId && !!customerIds?.length && customerIds.length > 0,
     staleTime: 0, // Alltid fresh for packing data
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
