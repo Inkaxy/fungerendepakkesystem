@@ -1,102 +1,85 @@
 
-# Plan: Legg til "Tving Polling"-innstilling for Smart-TV-er
+# Plan: Fiks WebSocket CHANNEL_ERROR
 
-## Bakgrunn
+## Problem identifisert
 
-Displayet har i dag et **WebSocket-primært** oppdateringssystem som kun aktiverer polling som fallback når `connectionStatus !== 'connected'`. Smart-TV-nettlesere rapporterer ofte "connected"-status selv om de ikke mottar sanntidsmeldinger, noe som gjør at fallback-polling aldri utløses. Dette forårsaker at TV-er ikke oppdateres selv om PC-er med samme URL fungerer fint.
+WebSocket-tilkoblingen feiler med `CHANNEL_ERROR` av to hovedårsaker:
+
+### 1. **Manglende public RLS-policy for `packing_sessions`**
+Andre tabeller som `display_settings`, `active_packing_products`, og `order_products` har en **"Public access"** RLS-policy som tillater lesing fra offentlige displays:
+
+```sql
+-- Eksisterende policy på display_settings:
+"Public access to display settings" 
+WHERE bakery_id IN (SELECT DISTINCT bakery_id FROM customers WHERE display_url IS NOT NULL ...)
+```
+
+Men `packing_sessions`-tabellen **mangler denne policyen**. Når en offentlig display (uten autentisering) forsøker å lytte på `postgres_changes` for `packing_sessions`, blokkeres WebSocket-tilkoblingen av RLS, noe som gir `CHANNEL_ERROR`.
+
+### 2. **Broadcast-kanaler krever ikke RLS, men mislykkes pga. relaterte queries**
+`useDisplayRefreshBroadcast` og `usePackingBroadcastListener` bruker Supabase Broadcast (ikke postgres_changes), som teoretisk ikke krever RLS. Men disse kanalene feiler fordi:
+- Supabase-klienten opplever ustabil tilkobling når andre kanaler på samme connection feiler
+- Error-propagering mellom kanaler i samme WebSocket-tilkobling
 
 ## Løsning
 
-Legge til et nytt databasefelt `force_polling` (boolean) som, når aktivert, kjører automatisk polling hvert 5. sekund **uansett WebSocket-status**. Dette overstyrer den smarte fallback-logikken og sikrer pålitelig oppdatering på enheter med ustabile sanntidsforbindelser.
+### Database-endringer
 
----
-
-## Tekniske endringer
-
-### 1. Database-migrasjon
-Legge til nytt felt i `display_settings`-tabellen:
+Legge til en public SELECT-policy for `packing_sessions`:
 
 ```sql
-ALTER TABLE display_settings
-ADD COLUMN IF NOT EXISTS force_polling BOOLEAN DEFAULT FALSE;
+CREATE POLICY "Public access to packing sessions for displays" 
+ON packing_sessions 
+FOR SELECT 
+USING (
+  bakery_id IN (
+    SELECT DISTINCT bakery_id 
+    FROM customers 
+    WHERE display_url IS NOT NULL 
+      AND has_dedicated_display = true 
+      AND status = 'active'
+  )
+);
 ```
 
-### 2. TypeScript-typer (`src/hooks/useDisplaySettings.ts`)
-Utvide `DisplaySettings`-interface med:
+### Kodeendringer
+
+Forbedre reconnect-logikken i `useRealTimePublicDisplay.ts`:
+
+1. **Øke retry-logikk synlighet** - Legge til `TIMED_OUT` håndtering
+2. **Bedre feilmeldinger** - Logge spesifikk feilårsak
+3. **Graceful degradation** - Automatisk fallback til polling ved vedvarende feil
 
 ```typescript
-force_polling?: boolean;
+// useRealTimePublicDisplay.ts - subscribe callback
+.subscribe((status, error) => {
+  if (status === 'SUBSCRIBED') {
+    setConnectionStatus('connected');
+    setRetryCount(0);
+  } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+    console.error('❌ WebSocket error:', error?.message || status);
+    setConnectionStatus('disconnected');
+  }
+});
 ```
 
-### 3. Default-verdier (`src/utils/displaySettingsDefaults.ts`)
-Legge til i defaults:
-
-```typescript
-force_polling: false,
-```
-
-### 4. Settings UI (`src/components/display-settings/sections/SharedRealtimeSection.tsx`)
-Legge til ny ToggleSetting øverst i "Oppdatering & Synlighet"-seksjonen:
-
-```tsx
-<ToggleSetting
-  id="force_polling"
-  label="Tving polling (for Smart-TV)"
-  description="Alltid oppdater hvert 5. sekund, selv med aktiv WebSocket-tilkobling"
-  checked={settings.force_polling ?? false}
-  onCheckedChange={(checked) => onUpdate({ force_polling: checked })}
-/>
-```
-
-### 5. Display-komponenter
-Modifisere polling-logikken i både `SharedDisplay.tsx` og `CustomerDisplay.tsx`:
-
-**Før (linje ~113-145 i SharedDisplay):**
-```typescript
-if (isDemo || !bakeryId || connectionStatus === 'connected') return;
-```
-
-**Etter:**
-```typescript
-const shouldPoll = (effectiveSettings?.force_polling === true) || connectionStatus !== 'connected';
-if (isDemo || !bakeryId || !shouldPoll) return;
-```
-
-Dette sikrer at polling aktiveres hvis:
-- `force_polling` er aktivert i innstillinger, ELLER
-- WebSocket er disconnected (eksisterende fallback-logikk)
-
-### 6. CustomerDisplay.tsx
-Tilsvarende endring i linje ~186-219:
-
-```typescript
-const shouldPoll = (settings?.force_polling === true) || connectionStatus !== 'connected';
-if (isDemo || !bakeryId || !shouldPoll) return;
-```
-
----
-
-## Fil-oppsummering
+## Fil-endringer
 
 | Fil | Endring |
 |-----|---------|
-| `supabase/migrations/[ny].sql` | Ny kolonne `force_polling` |
-| `src/integrations/supabase/types.ts` | Oppdatert automatisk |
-| `src/hooks/useDisplaySettings.ts` | Ny property i interface |
-| `src/utils/displaySettingsDefaults.ts` | Default: `false` |
-| `src/components/display-settings/sections/SharedRealtimeSection.tsx` | Ny toggle UI |
-| `src/pages/display/SharedDisplay.tsx` | Polling-logikk sjekker `force_polling` |
-| `src/pages/display/CustomerDisplay.tsx` | Polling-logikk sjekker `force_polling` |
+| `supabase/migrations/[ny].sql` | Ny public RLS-policy for `packing_sessions` |
+| `src/hooks/useRealTimePublicDisplay.ts` | Bedre feilhåndtering og logging av `TIMED_OUT` |
 
----
+## Forventet resultat
 
-## Brukeropplevelse
+Etter implementering:
+- WebSocket-tilkoblingen vil ikke lenger blokkeres av RLS
+- Offentlige displays vil kunne motta sanntidsoppdateringer for alle relevante tabeller
+- `CHANNEL_ERROR` vil kun oppstå ved reelle nettverksproblemer (ikke RLS-blokkeringer)
+- Fallback-polling (5s når `force_polling` er aktivert) fortsetter å fungere som backup
 
-Etter implementering vil brukere kunne:
+## Tekniske detaljer
 
-1. Gå til **Skjermvisning Innstillinger** → **Delt visning** → **Oppdatering & Synlighet**
-2. Slå på **"Tving polling (for Smart-TV)"**
-3. Lagre endringene
-4. TV-en vil nå oppdatere hvert 5. sekund automatisk
+Supabase Realtime med `postgres_changes` krever at brukeren har SELECT-tilgang til tabellen via RLS. Når en anonym bruker (offentlig display) abonnerer på endringer i en tabell uten public policy, returnerer Supabase en `CHANNEL_ERROR` fordi den ikke kan etablere change-feed.
 
-En informasjonstekst vil forklare at dette er spesielt nyttig for Smart-TV-er med ustabile WebSocket-forbindelser.
+Ved å legge til den manglende policyen for `packing_sessions` (med samme mønster som de andre tabellene), vil WebSocket-tilkoblingen kunne etableres korrekt.
