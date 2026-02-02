@@ -75,7 +75,7 @@ const CustomerDisplay = () => {
   // ✅ Demo: Bruk demo-kunde, ellers ekte kunde
   const customer = isDemo ? DEMO_DEDICATED_CUSTOMER : realCustomer;
   
-  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id);
+  const { data: settings, isLoading: settingsLoading } = usePublicDisplaySettings(customer?.bakery_id, 'customer');
   const { data: activePackingDate, isLoading: dateLoading } = usePublicActivePackingDate(isDemo ? undefined : customer?.bakery_id);
   
   // ✅ Demo-dato eller ekte dato
@@ -113,6 +113,59 @@ const CustomerDisplay = () => {
   const { data: packingSession } = usePublicPackingSession(
     isDemo ? undefined : customer?.bakery_id, 
     isDemo ? undefined : displayDate
+  );
+
+  // ✅ Viktig: Hold hook-rekkefølgen stabil (ingen hooks etter early-returns)
+  const demoPackingData = isDemo ? {
+    id: DEMO_DEDICATED_PACKING_DATA.id,
+    name: DEMO_DEDICATED_PACKING_DATA.name,
+    products: DEMO_DEDICATED_PACKING_DATA.products,
+    overall_status: DEMO_DEDICATED_PACKING_DATA.overall_status,
+    progress_percentage: DEMO_DEDICATED_PACKING_DATA.progress_percentage,
+    total_line_items: DEMO_DEDICATED_PACKING_DATA.total_line_items,
+    packed_line_items: DEMO_DEDICATED_PACKING_DATA.packed_line_items,
+    total_line_items_all: DEMO_DEDICATED_PACKING_DATA.total_line_items_all,
+    packed_line_items_all: DEMO_DEDICATED_PACKING_DATA.packed_line_items_all,
+  } : null;
+
+  const customerPackingData = isDemo
+    ? demoPackingData
+    : packingData?.find(data => data.id === customer?.id);
+
+  const sessionProgress = React.useMemo(() => {
+    if (isDemo) {
+      return {
+        percentage: DEMO_DEDICATED_PACKING_DATA.progress_percentage,
+        isCompleted: DEMO_DEDICATED_PACKING_DATA.progress_percentage >= 100,
+      };
+    }
+
+    if (packingSession?.status === 'completed') {
+      return { percentage: 100, isCompleted: true };
+    }
+
+    const pct = customerPackingData?.progress_percentage ?? 0;
+    return { percentage: pct, isCompleted: pct >= 100 };
+  }, [isDemo, packingSession?.status, customerPackingData?.progress_percentage]);
+
+  // Completion animation state (må ligge før conditional returns)
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const prevProgressRef = React.useRef(sessionProgress.percentage);
+
+  // Trigger completion animation when hitting 100%
+  useEffect(() => {
+    if (sessionProgress.percentage === 100 && prevProgressRef.current < 100) {
+      setShowCompletionAnimation(true);
+      const timer = setTimeout(() => setShowCompletionAnimation(false), 5000);
+      return () => clearTimeout(timer);
+    }
+    prevProgressRef.current = sessionProgress.percentage;
+  }, [sessionProgress.percentage]);
+
+  // Completion sound
+  useCompletionSound(
+    sessionProgress.isCompleted,
+    settings?.customer_completion_sound ?? false
   );
   
   // ✅ KRITISK: Real-time hooks MÅ kalles FØR noen conditional returns - skip i demo
@@ -257,23 +310,6 @@ const CustomerDisplay = () => {
     );
   }
 
-  // ✅ Demo-data eller ekte data
-  const demoPackingData = isDemo ? {
-    id: DEMO_DEDICATED_PACKING_DATA.id,
-    name: DEMO_DEDICATED_PACKING_DATA.name,
-    products: DEMO_DEDICATED_PACKING_DATA.products,
-    overall_status: DEMO_DEDICATED_PACKING_DATA.overall_status,
-    progress_percentage: DEMO_DEDICATED_PACKING_DATA.progress_percentage,
-    total_line_items: DEMO_DEDICATED_PACKING_DATA.total_line_items,
-    packed_line_items: DEMO_DEDICATED_PACKING_DATA.packed_line_items,
-    total_line_items_all: DEMO_DEDICATED_PACKING_DATA.total_line_items_all,
-    packed_line_items_all: DEMO_DEDICATED_PACKING_DATA.packed_line_items_all,
-  } : null;
-  
-  const customerPackingData = isDemo 
-    ? demoPackingData 
-    : packingData?.find(data => data.id === customer.id);
-
   // 🧠 Filtrer kundens produkter basert på aktive produkter i DB (skip i demo)
   const maxProducts = settings?.max_products_per_card ?? 3;
   const displayProducts = isDemo
@@ -293,49 +329,6 @@ const CustomerDisplay = () => {
     : undefined;
   const displayStyles = settings ? generateDisplayStyles(settings) : {};
   const statusColors = settings ? packingStatusColorMap(settings) : { ongoing: '#3b82f6', completed: '#10b981' };
-
-  // Helper function to calculate session-based progress
-  const getSessionProgress = () => {
-    if (isDemo) {
-      return { percentage: DEMO_DEDICATED_PACKING_DATA.progress_percentage, isCompleted: DEMO_DEDICATED_PACKING_DATA.progress_percentage >= 100 };
-    }
-    if (packingSession && packingSession.status === 'completed') {
-      return { percentage: 100, isCompleted: true };
-    }
-    
-    if (customerPackingData) {
-      return {
-        percentage: customerPackingData.progress_percentage,
-        isCompleted: customerPackingData.progress_percentage >= 100
-      };
-    }
-    
-    // Default to 0% if no data
-    return { percentage: 0, isCompleted: false };
-  };
-
-  const sessionProgress = getSessionProgress();
-
-  // Completion animation and sound
-  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
-  const prevProgressRef = React.useRef(sessionProgress.percentage);
-
-  // Trigger completion animation when hitting 100%
-  useEffect(() => {
-    if (sessionProgress.percentage === 100 && prevProgressRef.current < 100) {
-      setShowCompletionAnimation(true);
-      // Auto-hide after 5 seconds
-      const timer = setTimeout(() => setShowCompletionAnimation(false), 5000);
-      return () => clearTimeout(timer);
-    }
-    prevProgressRef.current = sessionProgress.percentage;
-  }, [sessionProgress.percentage]);
-
-  // Completion sound
-  useCompletionSound(
-    sessionProgress.isCompleted, 
-    settings?.customer_completion_sound ?? false
-  );
 
   // Apply customer-specific layout settings
   const contentPadding = settings?.customer_content_padding ?? 32;

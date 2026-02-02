@@ -31,6 +31,7 @@ export const useDisplayRefreshBroadcast = (bakeryId?: string, isDisplay = false)
         // Myk refresh: invalider relevante queries (ingen full reload → mindre flimring)
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+          exact: false,
           refetchType: 'active',
         });
 
