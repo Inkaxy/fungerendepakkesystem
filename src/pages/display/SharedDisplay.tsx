@@ -126,6 +126,13 @@ const SharedDisplay = () => {
         exact: false,
         refetchType: 'active',
       });
+
+      // ✅ Viktig: innstillinger må også refetches når WS er nede
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.PUBLIC_DISPLAY_SETTINGS[0], bakeryId],
+        exact: false,
+        refetchType: 'active',
+      });
       
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PUBLIC_PACKING_DATA[0]],

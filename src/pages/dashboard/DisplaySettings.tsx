@@ -20,7 +20,9 @@ const DisplaySettings = () => {
   const updateSettings = useUpdateDisplaySettings();
   const { toast } = useToast();
   const { profile } = useAuthStore();
-  const { broadcastRefresh } = useDisplayRefreshBroadcast(profile?.bakery_id);
+  // Bruk bakery_id fra faktiske settings (mer robust enn authStore ved init-race)
+  const bakeryId = settings?.bakery_id ?? profile?.bakery_id;
+  const { broadcastRefresh } = useDisplayRefreshBroadcast(bakeryId);
   const [localSettings, setLocalSettings] = React.useState<DisplaySettingsType | null>(settings ?? null);
   const [activeTab, setActiveTab] = React.useState<string>('shared');
   const [savePresetDialogOpen, setSavePresetDialogOpen] = React.useState(false);
